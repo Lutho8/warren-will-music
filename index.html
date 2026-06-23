@@ -1,1 +1,1404 @@
-file:///C:/Users/LuthoKote/Downloads/warren-will-final.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <!-- ═══════════════ SEO META ═══════════════ -->
+  <title>Warren Will – DJ & Producer Munich | Afro House | Bookings</title>
+  <meta name="description" content="Warren Will is a Munich-based DJ & producer specialising in groovy Afro House. Available for club nights, festivals & private events. Listen on SoundCloud & YouTube. Book: booking@warrenwilliam.de"/>
+  <meta name="keywords" content="Warren Will, DJ Munich, Afro House Munich, House Music DJ Munich, DJ buchen München, Producer Munich, Graf Rumford, Howler, DJ booking Munich"/>
+  <meta name="robots" content="index,follow"/>
+  <link rel="canonical" href="https://www.warrenwill.de/"/>
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Warren Will – DJ & Producer Munich"/>
+  <meta property="og:description" content="Groovy, bass-driven Afro House from Munich. Club nights, festivals & events. Book now."/>
+  <meta property="og:image" content="https://i1.sndcdn.com/avatars-GAq6zX4KdBa8xWD0-In9RrQ-t1080x1080.jpg"/>
+  <meta property="og:url" content="https://www.warrenwill.de/"/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Warren Will – DJ & Producer Munich"/>
+  <meta name="twitter:description" content="Groovy Afro House from Munich. Bookings: booking@warrenwilliam.de"/>
+  <meta name="twitter:image" content="https://i1.sndcdn.com/avatars-GAq6zX4KdBa8xWD0-In9RrQ-t1080x1080.jpg"/>
+
+  <!-- Schema.org structured data for Google -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"MusicGroup",
+    "name":"Warren Will",
+    "description":"Munich-based DJ and producer specialising in Afro House and bass-driven house music.",
+    "url":"https://www.warrenwill.de",
+    "image":"https://i1.sndcdn.com/avatars-GAq6zX4KdBa8xWD0-In9RrQ-t1080x1080.jpg",
+    "genre":["Afro House","House","Deep House"],
+    "foundingLocation":{"@type":"Place","name":"Munich, Germany"},
+    "sameAs":[
+      "https://soundcloud.com/warrenwillmusic",
+      "https://www.youtube.com/@warrenwillmusic",
+      "https://www.tiktok.com/@warrenwillmusic"
+    ],
+    "contactPoint":{"@type":"ContactPoint","contactType":"booking","email":"booking@warrenwilliam.de"}
+  }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <style>
+  /* ═══════════════════════════════════════════
+     TOKENS
+  ═══════════════════════════════════════════ */
+  :root{
+    --ink:#080808; --deep:#0e0e0e; --card:#161616; --border:#252525;
+    --mid:#404040; --muted:#888; --light:#c4c1bc; --cream:#f0ede8;
+    --gold:#c8a96e; --gold2:#e8c98a; --gold-dim:rgba(200,169,110,0.15);
+    --green:#25D366; --green2:#1ebe5d;
+    --sc:#ff5500; --yt:#ff0000;
+    --d:var(--font-display); --b:var(--font-body); --m:var(--font-mono);
+    --font-display:'Bebas Neue',sans-serif;
+    --font-body:'Space Grotesk',sans-serif;
+    --font-mono:'Space Mono',monospace;
+    --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;font-size:16px}
+  body{background:var(--ink);color:var(--cream);font-family:var(--b);overflow-x:hidden;line-height:1.6}
+
+  /* grain */
+  body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;opacity:.35;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E")}
+
+  /* ── reading bar */
+  #bar{position:fixed;top:0;left:0;height:2px;background:var(--gold);z-index:300;width:0%;transition:width .1s linear}
+
+  /* ─────────────────────────────────────────
+     DYNAMIC ANIMATED BACKGROUND CANVAS
+  ───────────────────────────────────────── */
+  #bgCanvas{position:fixed;inset:0;z-index:-1;opacity:.55}
+
+  /* ─────────────────────────────────────────
+     NOW PLAYING PILL
+  ───────────────────────────────────────── */
+  #npPill{
+    position:fixed;bottom:24px;left:50%;
+    transform:translateX(-50%) translateY(90px);
+    z-index:200;background:rgba(8,8,8,.94);
+    border:1px solid var(--border);backdrop-filter:blur(18px);
+    display:flex;align-items:center;gap:12px;
+    padding:9px 18px 9px 13px;
+    opacity:0;transition:transform .5s var(--ease-spring),opacity .4s ease;
+    white-space:nowrap;pointer-events:none;cursor:pointer;
+    border-radius:0
+  }
+  #npPill.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
+  .np-dot{width:7px;height:7px;background:var(--gold);border-radius:50%;flex-shrink:0;animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.6);opacity:.35}}
+  .np-eyebrow{font-family:var(--m);font-size:8px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+  .np-title{font-family:var(--m);font-size:11px;color:var(--cream)}
+  .np-action{font-family:var(--m);font-size:8px;color:var(--muted);text-transform:uppercase;text-decoration:none;border-left:1px solid var(--border);padding-left:12px;transition:color .2s}
+  .np-action:hover{color:var(--gold)}
+
+  /* ─────────────────────────────────────────
+     WHATSAPP FLOAT
+  ───────────────────────────────────────── */
+  #waFloat{
+    position:fixed;bottom:24px;right:24px;z-index:200;
+    width:50px;height:50px;background:var(--green);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;text-decoration:none;
+    box-shadow:0 4px 24px rgba(37,211,102,.4);
+    transition:transform .3s var(--ease-spring),box-shadow .2s,opacity .3s;
+    opacity:0;transform:scale(.4);pointer-events:none
+  }
+  #waFloat.show{opacity:1;transform:scale(1);pointer-events:auto}
+  #waFloat:hover{transform:scale(1.12);box-shadow:0 8px 32px rgba(37,211,102,.6)}
+  #waFloat svg{width:24px;height:24px;fill:#fff}
+  .wa-tip{position:absolute;right:58px;top:50%;transform:translateY(-50%);background:rgba(8,8,8,.96);border:1px solid var(--border);font-family:var(--m);font-size:9px;letter-spacing:.12em;color:var(--cream);text-transform:uppercase;padding:6px 11px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s}
+  #waFloat:hover .wa-tip{opacity:1}
+
+  /* ─────────────────────────────────────────
+     NAV
+  ───────────────────────────────────────── */
+  nav{position:fixed;top:0;left:0;right:0;z-index:150;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 48px;
+    background:linear-gradient(to bottom,rgba(8,8,8,.97) 0%,transparent 100%);
+    transition:background .3s,padding .3s}
+  nav.pinned{background:rgba(8,8,8,.98);border-bottom:1px solid var(--border);padding:11px 48px}
+
+  .ww-logo{display:flex;align-items:center;gap:11px;text-decoration:none}
+  .ww-mark{width:34px;height:34px;background:var(--gold);display:flex;align-items:center;justify-content:center}
+  .ww-mark span{font-family:var(--d);font-size:18px;color:var(--ink);letter-spacing:-.02em}
+  .ww-words{display:flex;flex-direction:column;gap:0px}
+  .ww-name{font-family:var(--d);font-size:15px;letter-spacing:.18em;color:var(--cream);line-height:1}
+  .ww-sub{font-family:var(--m);font-size:7px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+
+  .nav-links{display:flex;gap:28px;list-style:none}
+  .nav-links a{font-family:var(--m);font-size:9px;letter-spacing:.18em;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .2s;position:relative;padding-bottom:3px}
+  .nav-links a::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width .25s}
+  .nav-links a:hover{color:var(--cream)}
+  .nav-links a:hover::after,.nav-links a.on::after{width:100%}
+  .nav-links a.on{color:var(--gold)}
+
+  .nav-ctas{display:flex;align-items:center;gap:8px}
+  .n-book{font-family:var(--m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);background:var(--gold);padding:8px 16px;text-decoration:none;transition:background .2s;border:none;cursor:pointer}
+  .n-book:hover{background:var(--gold2)}
+  .n-wa{font-family:var(--m);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--green);padding:8px 14px;text-decoration:none;transition:background .2s;display:flex;align-items:center;gap:6px}
+  .n-wa:hover{background:var(--green2)}
+  .n-wa svg{width:12px;height:12px;fill:#fff}
+
+  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+  .hamburger span{display:block;width:22px;height:1px;background:var(--cream);transition:.3s}
+
+  /* ─────────────────────────────────────────
+     HERO
+  ───────────────────────────────────────── */
+  #hero{
+    position:relative;min-height:100vh;
+    display:grid;grid-template-columns:1fr 1fr;
+    align-items:end;overflow:hidden;
+  }
+
+  /* Left column: text */
+  .hero-left{
+    position:relative;z-index:2;
+    padding:160px 0 80px 48px;
+    display:flex;flex-direction:column;justify-content:flex-end;
+  }
+  .h-tag{font-family:var(--m);font-size:9px;letter-spacing:.28em;color:var(--gold);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+  .h-tag::before{content:'';width:24px;height:1px;background:var(--gold)}
+
+  .h-name{font-family:var(--d);font-size:clamp(80px,9.5vw,130px);line-height:.88;letter-spacing:.02em;color:var(--cream);margin-bottom:24px}
+  .h-name .g{color:var(--gold)}
+
+  .h-bio{font-size:15px;font-weight:300;color:var(--light);max-width:400px;line-height:1.8;margin-bottom:32px}
+
+  .h-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:36px}
+
+  .btn-gold{font-family:var(--m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:var(--gold);padding:14px 26px;text-decoration:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .2s,transform .1s}
+  .btn-gold:hover{background:var(--gold2);transform:translateY(-1px)}
+  .btn-gold svg{width:12px;height:12px;fill:currentColor}
+  .btn-green{font-family:var(--m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--green);padding:14px 22px;text-decoration:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .2s,transform .1s}
+  .btn-green:hover{background:var(--green2);transform:translateY(-1px)}
+  .btn-green svg{width:13px;height:13px;fill:#fff}
+  .btn-ghost{font-family:var(--m);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--cream);background:transparent;padding:13px 22px;text-decoration:none;border:1px solid rgba(255,255,255,.18);cursor:pointer;display:inline-block;transition:border-color .2s}
+  .btn-ghost:hover{border-color:var(--cream)}
+
+  .h-stats{display:flex;align-items:center;gap:20px;padding-top:24px;border-top:1px solid rgba(255,255,255,.07);flex-wrap:wrap}
+  .h-stat{display:flex;flex-direction:column;gap:2px}
+  .h-stat-n{font-family:var(--d);font-size:26px;color:var(--gold);line-height:1}
+  .h-stat-l{font-family:var(--m);font-size:8px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+  .h-div{width:1px;height:30px;background:var(--border)}
+
+  /* Right column: visual */
+  .hero-right{
+    position:relative;z-index:2;
+    display:flex;align-items:center;justify-content:center;
+    padding:160px 48px 80px 0;
+  }
+  .hero-avatar-wrap{position:relative;width:360px;height:420px}
+  .hero-avatar-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:grayscale(15%) contrast(1.05)}
+  /* Layered accent frames behind photo */
+  .hero-avatar-wrap::before{
+    content:'';position:absolute;top:-16px;left:-16px;right:16px;bottom:16px;
+    border:1px solid rgba(200,169,110,.25);z-index:-1;
+    animation:frameDrift 6s ease-in-out infinite alternate
+  }
+  .hero-avatar-wrap::after{
+    content:'';position:absolute;top:16px;left:16px;right:-16px;bottom:-16px;
+    border:1px solid rgba(200,169,110,.12);z-index:-1;
+    animation:frameDrift 6s ease-in-out infinite alternate-reverse
+  }
+  @keyframes frameDrift{0%{transform:translate(0,0)}100%{transform:translate(4px,4px)}}
+
+  /* Floating genre tag on photo */
+  .genre-badge{
+    position:absolute;bottom:28px;left:-28px;
+    background:var(--gold);font-family:var(--m);font-size:9px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--ink);
+    padding:8px 14px;z-index:3;
+    animation:badgeBob 4s ease-in-out infinite
+  }
+  @keyframes badgeBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+  /* Scroll hint */
+  .hero-scroll{position:absolute;bottom:44px;right:52px;z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .hero-scroll span{font-family:var(--m);font-size:8px;letter-spacing:.2em;color:var(--muted);writing-mode:vertical-rl;text-transform:uppercase}
+  .scroll-line{width:1px;height:48px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollDrop 2s ease-in-out infinite}
+  @keyframes scrollDrop{0%{transform:scaleY(0);transform-origin:top}49%{transform:scaleY(1);transform-origin:top}50%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  /* ─────────────────────────────────────────
+     TICKER
+  ───────────────────────────────────────── */
+  .ticker{background:var(--gold);overflow:hidden;padding:8px 0}
+  .ticker-track{display:flex;animation:tick 22s linear infinite;white-space:nowrap}
+  .ticker-track span{font-family:var(--d);font-size:13px;letter-spacing:.1em;color:var(--ink);padding:0 28px}
+  @keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+  /* ─────────────────────────────────────────
+     SECTION SHELL
+  ───────────────────────────────────────── */
+  .sec{padding:100px 48px;position:relative;z-index:1}
+  .sec-alt{background:var(--deep)}
+  .sec-dark{background:var(--ink)}
+
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:52px}
+  .sec-tag{font-family:var(--m);font-size:9px;color:var(--gold);letter-spacing:.14em}
+  .sec-h{font-family:var(--d);font-size:clamp(28px,3.8vw,48px);letter-spacing:.04em;color:var(--cream)}
+  .sec-rule{flex:1;height:1px;background:var(--border);max-width:150px}
+
+  /* ─────────────────────────────────────────
+     MUSIC / SOUNDCLOUD
+  ───────────────────────────────────────── */
+  .sc-listen-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    background:linear-gradient(135deg,rgba(255,85,0,.08),transparent);
+    border:1px solid rgba(255,85,0,.2);
+    padding:20px 24px;margin-bottom:44px;flex-wrap:wrap;
+  }
+  .sc-bar-l{display:flex;align-items:center;gap:14px}
+  .sc-orb{width:38px;height:38px;background:var(--sc);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sc-orb svg{width:20px;height:20px;fill:#fff}
+  .sc-bar-text h3{font-family:var(--d);font-size:19px;letter-spacing:.04em;color:var(--cream);margin-bottom:2px}
+  .sc-bar-text p{font-family:var(--m);font-size:8px;letter-spacing:.1em;color:var(--muted)}
+  .btn-sc{font-family:var(--m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--sc);padding:10px 20px;text-decoration:none;transition:background .2s;display:inline-flex;align-items:center;gap:7px;flex-shrink:0}
+  .btn-sc:hover{background:#d44800}
+  .btn-sc svg{width:11px;height:11px;fill:#fff}
+
+  .sc-layout{display:grid;grid-template-columns:300px 1fr;gap:48px;align-items:start}
+  .sc-sticky{position:sticky;top:90px;align-self:start}
+  .sc-cover{width:100%;aspect-ratio:1;position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border)}
+  .sc-cover img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(15%) brightness(.85);transition:transform .6s,filter .4s}
+  .sc-cover:hover img{transform:scale(1.04);filter:none}
+  .sc-badge{position:absolute;top:11px;right:11px;background:var(--gold);font-family:var(--m);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);padding:4px 8px}
+  .sc-meta{padding:14px 0 0}
+  .sc-title{font-family:var(--d);font-size:22px;letter-spacing:.04em;color:var(--cream);line-height:1.1}
+  .sc-year{font-family:var(--m);font-size:9px;color:var(--gold);letter-spacing:.16em;margin-top:3px}
+  .sc-play-btn{display:flex;align-items:center;gap:8px;margin-top:13px;font-family:var(--m);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);cursor:pointer;background:none;border:none;padding:0;transition:color .2s}
+  .sc-play-btn:hover{color:var(--gold)}
+  .sc-play-btn .p-circle{width:28px;height:28px;border:1px solid currentColor;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sc-play-btn .p-circle svg{width:9px;height:9px;fill:currentColor;margin-left:2px}
+
+  .platforms{display:flex;gap:5px;flex-wrap:wrap;margin-top:18px}
+  .plat{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--border);color:var(--muted);text-decoration:none;font-family:var(--m);font-size:8px;letter-spacing:.1em;text-transform:uppercase;transition:.2s}
+  .plat:hover{border-color:var(--gold);color:var(--gold)}
+  .plat svg{width:10px;height:10px;fill:currentColor;flex-shrink:0}
+
+  .sc-col{display:flex;flex-direction:column;gap:28px}
+  .sc-embed{background:var(--card);border:1px solid var(--border);overflow:hidden}
+  .sc-embed iframe{width:100%;border:none;display:block}
+
+  .track-row{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:11px;padding:13px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s,padding-left .15s}
+  .track-row:first-child{border-top:1px solid var(--border)}
+  .track-row:hover{background:rgba(200,169,110,.04);padding-left:10px}
+  .t-num{font-family:var(--m);font-size:11px;color:var(--mid);font-variant-numeric:tabular-nums}
+  .track-row:hover .t-num{color:var(--gold)}
+  .t-info h4{font-size:13px;font-weight:500;color:var(--cream)}
+  .t-info p{font-family:var(--m);font-size:8px;color:var(--muted);letter-spacing:.08em;margin-top:1px}
+  .t-dur{font-family:var(--m);font-size:10px;color:var(--mid);font-variant-numeric:tabular-nums}
+
+  /* ─────────────────────────────────────────
+     YOUTUBE SECTION
+  ───────────────────────────────────────── */
+  #youtube{background:var(--ink)}
+  .yt-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:48px;flex-wrap:wrap;gap:16px}
+  .yt-sub-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--yt);padding:10px 18px;text-decoration:none;transition:background .2s}
+  .yt-sub-btn:hover{background:#c00}
+  .yt-sub-btn svg{width:14px;height:14px;fill:#fff}
+
+  /* 3-col video grid */
+  .yt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px}
+  .yt-card{background:var(--card);border:1px solid var(--border);overflow:hidden;transition:border-color .2s;cursor:pointer}
+  .yt-card:hover{border-color:rgba(255,0,0,.4)}
+  .yt-thumb{position:relative;padding-bottom:56.25%;overflow:hidden}
+  .yt-thumb iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+  /* placeholder while not playing */
+  .yt-ph{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    background:var(--card);cursor:pointer;transition:.2s;
+  }
+  .yt-ph.hidden{display:none}
+  .yt-ph:hover{background:var(--deep)}
+  .yt-ph-img{position:absolute;inset:0;object-fit:cover;opacity:.6;width:100%;height:100%}
+  .yt-ph-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,8,.85) 0%,rgba(8,8,8,.2) 100%)}
+  .yt-play-btn{position:relative;z-index:2;width:54px;height:54px;background:var(--yt);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .2s}
+  .yt-ph:hover .yt-play-btn{transform:scale(1.1)}
+  .yt-play-btn svg{width:20px;height:20px;fill:#fff;margin-left:3px}
+  .yt-ph-title{position:relative;z-index:2;font-family:var(--d);font-size:18px;letter-spacing:.04em;color:var(--cream);text-align:center;padding:0 14px;line-height:1.15}
+  .yt-ph-sub{position:relative;z-index:2;font-family:var(--m);font-size:8px;color:var(--gold);letter-spacing:.14em;text-transform:uppercase}
+  .yt-label{padding:12px 14px;border-top:1px solid var(--border)}
+  .yt-label h4{font-size:13px;font-weight:500;color:var(--cream);margin-bottom:2px}
+  .yt-label p{font-family:var(--m);font-size:8px;color:var(--muted);letter-spacing:.08em}
+
+  /* Channel promo banner */
+  .yt-banner{
+    background:linear-gradient(135deg,rgba(255,0,0,.07),transparent);
+    border:1px solid rgba(255,0,0,.18);
+    padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  }
+  .yt-banner-l{display:flex;align-items:center;gap:14px}
+  .yt-icon{width:42px;height:42px;background:var(--yt);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .yt-icon svg{width:22px;height:22px;fill:#fff}
+  .yt-banner-text h3{font-family:var(--d);font-size:20px;letter-spacing:.04em;color:var(--cream);margin-bottom:2px}
+  .yt-banner-text p{font-family:var(--m);font-size:8px;color:var(--muted);letter-spacing:.1em}
+  .btn-yt{font-family:var(--m);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--yt);padding:11px 20px;text-decoration:none;transition:background .2s;display:inline-flex;align-items:center;gap:7px;flex-shrink:0}
+  .btn-yt:hover{background:#c00}
+  .btn-yt svg{width:12px;height:12px;fill:#fff}
+
+  /* ─────────────────────────────────────────
+     ABOUT / BIO — editorial overlap grid
+  ───────────────────────────────────────── */
+  #about{padding:0;overflow:hidden;background:var(--ink)}
+  .about-wrap{display:grid;grid-template-columns:55fr 45fr;min-height:640px;position:relative}
+  .ghost-bg{position:absolute;bottom:-24px;left:-8px;font-family:var(--d);font-size:clamp(90px,15vw,190px);line-height:1;color:transparent;-webkit-text-stroke:1px rgba(200,169,110,.055);user-select:none;pointer-events:none;z-index:1;white-space:nowrap}
+  .about-img{grid-column:1;grid-row:1;position:relative;z-index:2;overflow:hidden}
+  .about-img img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;filter:grayscale(20%) brightness(.7) contrast(1.1)}
+  .about-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,transparent 50%,var(--ink) 100%)}
+  .about-nums{position:absolute;bottom:40px;left:40px;display:flex;gap:28px;z-index:3}
+  .an-block{display:flex;flex-direction:column;gap:2px}
+  .an-n{font-family:var(--d);font-size:36px;color:var(--gold);line-height:1}
+  .an-l{font-family:var(--m);font-size:7px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+  .about-text{grid-column:2;grid-row:1;position:relative;z-index:3;background:var(--ink);padding:90px 48px 90px 56px;display:flex;flex-direction:column;justify-content:center;margin-left:-60px}
+  .about-text .sec-head{margin-bottom:20px}
+  .a-body{font-size:14px;font-weight:300;color:var(--light);line-height:1.9;margin-bottom:18px}
+  .a-body strong{color:var(--cream);font-weight:600}
+  .a-quote{margin:20px 0;padding-left:16px;border-left:2px solid var(--gold)}
+  .a-quote p{font-size:16px;font-style:italic;color:var(--light);line-height:1.75;font-weight:300}
+  .a-quote cite{display:block;margin-top:7px;font-family:var(--m);font-size:8px;color:var(--gold);letter-spacing:.18em;font-style:normal;text-transform:uppercase}
+
+  /* ─────────────────────────────────────────
+     BOOKING SECTION — the conversion engine
+  ───────────────────────────────────────── */
+  #booking{background:var(--deep)}
+  .book-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+
+  /* Left: pitch */
+  .book-pitch{
+    padding:80px 52px;
+    background:linear-gradient(135deg,rgba(200,169,110,.06) 0%,transparent 60%);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .book-pitch .eyebrow{font-family:var(--m);font-size:8px;letter-spacing:.28em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+  .book-pitch h2{font-family:var(--d);font-size:clamp(34px,4vw,54px);letter-spacing:.03em;color:var(--cream);line-height:.95;margin-bottom:18px}
+  .book-pitch h2 em{color:var(--gold);font-style:normal}
+  .book-pitch p{font-size:13px;font-weight:300;color:var(--muted);line-height:1.85;margin-bottom:24px;max-width:360px}
+
+  .offer-pills{display:flex;flex-direction:column;gap:11px;margin-bottom:28px}
+  .offer-pill{display:flex;align-items:flex-start;gap:11px;font-size:13px;color:var(--light);font-weight:300}
+  .offer-icon{width:24px;height:24px;background:var(--gold-dim);border:1px solid rgba(200,169,110,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
+
+  .book-contact-row{margin-top:4px}
+  .book-contact-row a{font-family:var(--m);font-size:11px;letter-spacing:.08em;color:var(--cream);text-decoration:none;transition:color .2s;display:flex;align-items:center;gap:8px}
+  .book-contact-row a:hover{color:var(--gold)}
+  .book-contact-row a svg{width:13px;height:13px;fill:currentColor;flex-shrink:0}
+
+  /* Right: form */
+  .book-form-side{padding:80px 52px;display:flex;flex-direction:column;justify-content:center}
+  .book-form-side .eyebrow{font-family:var(--m);font-size:8px;letter-spacing:.28em;color:var(--muted);text-transform:uppercase;margin-bottom:20px}
+  .form-col{display:flex;flex-direction:column;gap:10px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .fi{background:var(--card);border:1px solid var(--border);color:var(--cream);font-family:var(--b);font-size:13px;padding:11px 14px;outline:none;transition:border-color .2s;width:100%;appearance:none}
+  .fi::placeholder{color:var(--mid)}
+  .fi:focus{border-color:var(--gold)}
+  textarea.fi{resize:vertical;min-height:100px}
+  select.fi{background-color:var(--card);cursor:pointer}
+  select.fi option{background:var(--card)}
+  .book-success{display:none;text-align:center;padding:24px 0}
+  .book-success .tick{width:44px;height:44px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto 12px}
+  .book-success h3{font-family:var(--d);font-size:22px;letter-spacing:.04em;color:var(--cream);margin-bottom:6px}
+  .book-success p{font-family:var(--m);font-size:9px;color:var(--muted);letter-spacing:.1em;line-height:1.8}
+
+  /* ─────────────────────────────────────────
+     WHATSAPP COMMUNITY
+  ───────────────────────────────────────── */
+  #community{background:var(--ink);position:relative;overflow:hidden}
+  #community::before{content:'';position:absolute;top:-80px;right:-80px;width:500px;height:500px;background:radial-gradient(circle,rgba(37,211,102,.05) 0%,transparent 70%);pointer-events:none}
+  .comm-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+  .comm-l .eyebrow{font-family:var(--m);font-size:8px;letter-spacing:.28em;color:var(--green);text-transform:uppercase;margin-bottom:14px}
+  .comm-l h2{font-family:var(--d);font-size:clamp(32px,4.2vw,52px);letter-spacing:.03em;color:var(--cream);line-height:.95;margin-bottom:16px}
+  .comm-l h2 em{color:var(--green);font-style:normal}
+  .comm-l p{font-size:13px;font-weight:300;color:var(--light);line-height:1.85;margin-bottom:22px;max-width:370px}
+  .wa-perks{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+  .wa-perk{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--light);font-weight:300}
+  .wa-dot{width:24px;height:24px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
+  .btn-wa-big{display:inline-flex;align-items:center;gap:9px;font-family:var(--m);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--green);padding:14px 26px;text-decoration:none;transition:background .2s,transform .15s;border:none;cursor:pointer}
+  .btn-wa-big:hover{background:var(--green2);transform:translateY(-2px)}
+  .btn-wa-big svg{width:16px;height:16px;fill:#fff}
+
+  /* Phone mockup */
+  .comm-phone{width:220px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .ph-top{background:var(--green);padding:12px 14px;display:flex;align-items:center;gap:8px}
+  .ph-av{width:32px;height:32px;background:rgba(0,0,0,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--d);font-size:14px;color:#fff}
+  .ph-info .ph-name{font-family:var(--b);font-size:11px;font-weight:600;color:#fff}
+  .ph-info .ph-sub{font-size:9px;color:rgba(255,255,255,.72)}
+  .ph-body{padding:11px 9px;display:flex;flex-direction:column;gap:6px;background:#0b1a10;min-height:190px}
+  .pm{max-width:88%;padding:6px 9px;border-radius:7px;font-size:11px;line-height:1.45}
+  .pm.r{background:#1f2e22;color:var(--light);align-self:flex-start;border-top-left-radius:2px}
+  .pm.s{background:#005c4b;color:var(--cream);align-self:flex-end;border-top-right-radius:2px}
+  .pm-t{font-size:8px;color:rgba(255,255,255,.4);margin-top:2px;text-align:right}
+  .ph-foot{padding:8px 10px;background:rgba(37,211,102,.06);border-top:1px solid rgba(37,211,102,.1);font-family:var(--m);font-size:8px;letter-spacing:.1em;color:var(--green);text-align:center}
+
+  /* ─────────────────────────────────────────
+     NEWSLETTER — two-step, listen-first
+  ───────────────────────────────────────── */
+  #newsletter{background:var(--deep);padding:0}
+  .nl-grid{display:grid;grid-template-columns:1fr 1fr;min-height:440px}
+  .nl-l{background:linear-gradient(135deg,rgba(200,169,110,.06),transparent);border-right:1px solid var(--border);padding:60px 48px;display:flex;flex-direction:column;justify-content:center}
+  .nl-l .eyebrow{font-family:var(--m);font-size:8px;letter-spacing:.28em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+  .nl-l h2{font-family:var(--d);font-size:clamp(26px,3.5vw,42px);letter-spacing:.03em;color:var(--cream);margin-bottom:12px;line-height:1}
+  .nl-l p{font-size:13px;font-weight:300;color:var(--muted);line-height:1.8;margin-bottom:22px}
+  .nl-perks{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+  .nl-perk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--light);font-weight:300}
+  .nl-perk::before{content:'';width:4px;height:4px;background:var(--gold);border-radius:50%;flex-shrink:0}
+
+  .nl-r{padding:60px 48px;display:flex;flex-direction:column;justify-content:center}
+  .nl-r .eyebrow{font-family:var(--m);font-size:8px;letter-spacing:.28em;color:var(--muted);text-transform:uppercase;margin-bottom:16px}
+  .nl-step{display:flex;flex-direction:column;gap:10px}
+  .nl-step.gone{display:none}
+  .sl{font-family:var(--m);font-size:8px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+  .nl-ok{display:none;text-align:center;padding:20px 0}
+  .nl-ok .tick{width:42px;height:42px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto 12px}
+  .nl-ok h3{font-family:var(--d);font-size:22px;letter-spacing:.04em;color:var(--cream);margin-bottom:6px}
+  .nl-ok p{font-family:var(--m);font-size:9px;color:var(--muted);letter-spacing:.1em;line-height:1.8}
+  .genre-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .gchip{font-family:var(--m);font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:9px;border:1px solid var(--border);color:var(--muted);background:none;cursor:pointer;transition:.2s}
+  .gchip.on{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.06)}
+  .gchip:hover{border-color:var(--cream);color:var(--cream)}
+  .fine{font-family:var(--m);font-size:8px;color:var(--mid);letter-spacing:.08em;margin-top:10px;text-align:center}
+
+  /* ─────────────────────────────────────────
+     TOUR
+  ───────────────────────────────────────── */
+  #tour{background:var(--ink)}
+  .tour-tabs{display:flex;gap:4px;margin-bottom:30px;flex-wrap:wrap}
+  .t-tab{font-family:var(--m);font-size:8px;letter-spacing:.14em;text-transform:uppercase;padding:7px 14px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:.2s}
+  .t-tab.on,.t-tab:hover{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+  .tour-rows{display:flex;flex-direction:column}
+  .t-row{display:grid;grid-template-columns:60px 1fr 100px 116px;align-items:center;gap:18px;padding:16px 0;border-bottom:1px solid var(--border);transition:background .15s,padding-left .15s}
+  .t-row:first-child{border-top:1px solid var(--border)}
+  .t-row:hover{background:rgba(200,169,110,.04);padding-left:10px}
+  .t-date{display:flex;flex-direction:column}
+  .t-day{font-family:var(--d);font-size:26px;color:var(--gold);line-height:1}
+  .t-mon{font-family:var(--m);font-size:8px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase}
+  .t-venue h4{font-size:14px;font-weight:500;color:var(--cream);margin-bottom:2px}
+  .t-venue p{font-family:var(--m);font-size:9px;color:var(--muted);letter-spacing:.08em}
+  .t-badge{font-family:var(--m);font-size:7px;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);color:var(--muted);text-align:center}
+  .t-badge.sold{border-color:var(--yt);color:var(--yt)}
+  .t-badge.fest{border-color:var(--gold);color:var(--gold)}
+  .t-badge.res{border-color:#7a6af0;color:#a89af8}
+  .t-ticket{font-family:var(--m);font-size:8px;letter-spacing:.13em;text-transform:uppercase;padding:9px 14px;background:none;border:1px solid var(--gold);color:var(--gold);text-decoration:none;cursor:pointer;transition:.2s;text-align:center;display:block}
+  .t-ticket:hover{background:var(--gold);color:var(--ink)}
+  .t-ticket.off{border-color:var(--border);color:var(--mid);cursor:not-allowed;pointer-events:none}
+
+  /* ─────────────────────────────────────────
+     CONTACT
+  ───────────────────────────────────────── */
+  #contact{background:var(--deep)}
+  .contact-wrap{display:grid;grid-template-columns:1fr 1fr;gap:60px}
+  .c-block{margin-bottom:28px}
+  .c-block h3{font-family:var(--m);font-size:8px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:9px}
+  .c-block a{display:block;font-size:15px;color:var(--cream);text-decoration:none;margin-bottom:3px;transition:color .2s}
+  .c-block a:hover{color:var(--gold)}
+  .c-block p{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.75}
+  .soc-row{display:flex;gap:4px;margin-top:16px}
+  .soc{width:36px;height:36px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--muted);transition:.2s}
+  .soc:hover{border-color:var(--gold);color:var(--gold)}
+  .soc svg{width:12px;height:12px;fill:currentColor}
+  .soc.sc-soc:hover{border-color:var(--sc);color:var(--sc)}
+  .soc.yt-soc:hover{border-color:var(--yt);color:var(--yt)}
+  .soc.wa-soc{border-color:rgba(37,211,102,.3);color:var(--green)}
+
+  /* ─────────────────────────────────────────
+     FOOTER
+  ───────────────────────────────────────── */
+  footer{background:var(--deep);border-top:1px solid var(--border);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  .f-logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+  .f-mark{width:24px;height:24px;background:var(--gold);display:flex;align-items:center;justify-content:center}
+  .f-mark span{font-family:var(--d);font-size:13px;color:var(--ink);letter-spacing:-.02em}
+  .f-name{font-family:var(--d);font-size:13px;letter-spacing:.18em;color:var(--cream)}
+  .f-copy{font-family:var(--m);font-size:8px;letter-spacing:.12em;color:var(--mid);text-transform:uppercase}
+  .f-links{display:flex;gap:16px;flex-wrap:wrap}
+  .f-links a{font-family:var(--m);font-size:8px;letter-spacing:.13em;color:var(--mid);text-decoration:none;text-transform:uppercase;transition:color .2s}
+  .f-links a:hover{color:var(--gold)}
+
+  /* ─────────────────────────────────────────
+     RESPONSIVE
+  ───────────────────────────────────────── */
+  @media(max-width:1100px){
+    #hero{grid-template-columns:1fr}
+    .hero-right{display:none}
+    .hero-left{padding:140px 48px 80px}
+    .sc-layout{grid-template-columns:260px 1fr;gap:36px}
+    .yt-grid{grid-template-columns:repeat(2,1fr)}
+    .book-grid{grid-template-columns:1fr}
+    .book-pitch{border-right:none;border-bottom:1px solid var(--border)}
+  }
+  @media(max-width:860px){
+    nav{padding:13px 20px}
+    .nav-links,.nav-ctas{display:none}
+    .hamburger{display:flex}
+    .sec{padding:60px 20px}
+    .hero-left{padding:120px 20px 60px}
+    .sc-layout{grid-template-columns:1fr}
+    .sc-sticky{position:relative;top:auto}
+    .yt-grid{grid-template-columns:1fr}
+    .about-wrap{grid-template-columns:1fr}
+    .about-img{min-height:280px}
+    .about-text{grid-column:1;margin-left:0;padding:48px 20px}
+    .ghost-bg{font-size:80px}
+    .book-form-side,.book-pitch{padding:48px 20px}
+    .comm-grid{grid-template-columns:1fr;gap:36px}
+    .nl-grid{grid-template-columns:1fr}
+    .nl-l{border-right:none;border-bottom:1px solid var(--border);padding:48px 24px}
+    .nl-r{padding:48px 24px}
+    .contact-wrap{grid-template-columns:1fr;gap:36px}
+    .t-row{grid-template-columns:50px 1fr;gap:10px}
+    .t-row>*:nth-child(3),.t-row>*:nth-child(4){grid-column:2;justify-self:start}
+    footer{flex-direction:column;text-align:center}
+    .hero-scroll{display:none}
+    .yt-header-row,.sc-listen-bar,.yt-banner{flex-direction:column;align-items:flex-start}
+  }
+  @media(max-width:560px){
+    .form-row,.genre-grid{grid-template-columns:1fr}
+    .h-actions{flex-direction:column}
+    #npPill{display:none}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+  </style>
+</head>
+<body>
+
+<div id="bar" aria-hidden="true"></div>
+
+<!-- ── ANIMATED BACKGROUND CANVAS ── -->
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+
+<!-- ── NOW PLAYING ── -->
+<div id="npPill" role="status" aria-live="polite">
+  <div class="np-dot"></div>
+  <span class="np-eyebrow">Now Playing</span>
+  <span class="np-title" id="npTitle">Afro House Mix — Munich</span>
+  <a href="https://soundcloud.com/warrenwillmusic" target="_blank" rel="noopener" class="np-action">SoundCloud ↗</a>
+</div>
+
+<!-- ── WHATSAPP FLOAT ── -->
+<a href="https://chat.whatsapp.com/warrenstiefelcommunity" target="_blank" rel="noopener" id="waFloat" aria-label="Join WhatsApp Community">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  <span class="wa-tip">Join Community</span>
+</a>
+
+<!-- ── NAV ── -->
+<nav id="mainNav" role="navigation" aria-label="Main navigation">
+  <a href="#hero" class="ww-logo" aria-label="Warren Will home">
+    <div class="ww-mark"><span>WW</span></div>
+    <div class="ww-words">
+      <span class="ww-name">WARREN WILL</span>
+      <span class="ww-sub">Munich · DJ · Producer</span>
+    </div>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#hero" class="on">Home</a></li>
+    <li><a href="#music">Music</a></li>
+    <li><a href="#youtube">YouTube</a></li>
+    <li><a href="#booking">Book</a></li>
+    <li><a href="#community">Community</a></li>
+    <li><a href="#tour">Tour</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-ctas">
+    <a href="https://chat.whatsapp.com/warrenstiefelcommunity" target="_blank" rel="noopener" class="n-wa">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Join
+    </a>
+    <a href="#booking" class="n-book">Book Now</a>
+  </div>
+  <button class="hamburger" id="hbg" aria-label="Menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section id="hero" aria-label="Warren Will – DJ & Producer Munich">
+  <div class="hero-left" id="heroLeft">
+    <p class="h-tag">Munich · Afro House · DJ & Producer</p>
+    <h1 class="h-name">WARREN<br><span class="g">WILL</span></h1>
+    <p class="h-bio">Groovy, bass-driven Afro House — from intimate Munich clubs to mountain dancefloors. New music, live sets, and a community built around the music.</p>
+    <div class="h-actions">
+      <a href="#music" class="btn-gold">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        Listen Now
+      </a>
+      <a href="#booking" class="btn-gold" style="background:transparent;color:var(--cream);border:1px solid var(--gold)">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        Book for Events
+      </a>
+      <a href="https://chat.whatsapp.com/warrenstiefelcommunity" target="_blank" rel="noopener" class="btn-green">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Join Community
+      </a>
+    </div>
+    <div class="h-stats">
+      <div class="h-stat"><span class="h-stat-n">22</span><span class="h-stat-l">Tracks</span></div>
+      <div class="h-div"></div>
+      <div class="h-stat"><span class="h-stat-n">594</span><span class="h-stat-l">SC Followers</span></div>
+      <div class="h-div"></div>
+      <div class="h-stat"><span class="h-stat-n">Munich</span><span class="h-stat-l">Base</span></div>
+      <div class="h-div"></div>
+      <div class="h-stat"><span class="h-stat-n">Afro House</span><span class="h-stat-l">Sound</span></div>
+    </div>
+  </div>
+
+  <div class="hero-right" aria-hidden="true">
+    <div class="hero-avatar-wrap">
+      <img src="https://i1.sndcdn.com/avatars-GAq6zX4KdBa8xWD0-In9RrQ-t1080x1080.jpg" alt="Warren Will"/>
+      <div class="genre-badge">Afro House · Munich</div>
+    </div>
+  </div>
+
+  <div class="hero-scroll" aria-hidden="true"><div class="scroll-line"></div><span>Scroll</span></div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>WARREN WILL</span><span>·</span><span>AFRO HOUSE · MUNICH</span><span>·</span>
+    <span>ACE OF BASE REMIX 2026</span><span>·</span><span>KANYE WEST REMIX</span><span>·</span>
+    <span>BOOKING@WARRENWILLIAM.DE</span><span>·</span><span>SUBSCRIBE ON YOUTUBE</span><span>·</span>
+    <span>JOIN THE COMMUNITY</span><span>·</span><span>WARREN WILL</span><span>·</span>
+    <span>AFRO HOUSE · MUNICH</span><span>·</span><span>ACE OF BASE REMIX 2026</span><span>·</span>
+    <span>KANYE WEST REMIX</span><span>·</span><span>BOOKING@WARRENWILLIAM.DE</span><span>·</span>
+    <span>SUBSCRIBE ON YOUTUBE</span><span>·</span><span>JOIN THE COMMUNITY</span><span>·</span>
+  </div>
+</div>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     SOUNDCLOUD — MUSIC SECTION
+══════════════════════════════════════════ -->
+<section id="music" class="sec sec-alt" aria-labelledby="music-h">
+  <div class="sec-head">
+    <span class="sec-tag">01</span>
+    <h2 class="sec-h" id="music-h">MUSIC</h2>
+    <div class="sec-rule"></div>
+  </div>
+
+  <div class="sc-listen-bar">
+    <div class="sc-bar-l">
+      <div class="sc-orb"><svg viewBox="0 0 32 32"><path d="M1 20c0 .9.7 1.6 1.6 1.6.4 0 .8-.2 1.1-.4l.1-4.7c-.3-.3-.7-.4-1.1-.4C1.7 16 1 16.9 1 20zm4.2 2.4c.5.4 1 .6 1.7.6s1.2-.2 1.7-.6V14c-.5-.4-1-.6-1.7-.6s-1.2.2-1.7.6v8.4zm4.6.9c.5.3 1 .4 1.6.4s1.1-.1 1.6-.4V11.7c-.5-.3-1-.4-1.6-.4s-1.1.1-1.6.4v11.6zm4.5.4c.5.2 1 .3 1.5.3s1-.1 1.5-.3V9.2c-.5-.2-1-.3-1.5-.3s-1 .1-1.5.3v14.5zm4.4.1h.1c.5 0 1-.1 1.4-.3l.1-15c-.5-.2-1-.3-1.5-.3l-.1 15.6zm4.4-.5c.4.3.9.5 1.4.5 2.2 0 4-1.8 4-4s-1.8-4-4-4c-.3 0-.5 0-.8.1C23.6 12 21.5 10 19 10c-.4 0-.7 0-1 .1v13.3h.1z"/></svg></div>
+      <div class="sc-bar-text">
+        <h3>Stream Warren Will on SoundCloud</h3>
+        <p>22 tracks · 594 followers · booking@warrenwilliam.de</p>
+      </div>
+    </div>
+    <a href="https://soundcloud.com/warrenwillmusic" target="_blank" rel="noopener" class="btn-sc">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Follow on SoundCloud
+    </a>
+  </div>
+
+  <div class="sc-layout">
+    <div class="sc-sticky" id="scSticky">
+      <div class="sc-cover">
+        <img src="https://i1.sndcdn.com/avatars-GAq6zX4KdBa8xWD0-In9RrQ-t1080x1080.jpg" alt="" id="scImg"/>
+        <div class="sc-badge" id="scBadge">New Release</div>
+      </div>
+      <div class="sc-meta">
+        <div class="sc-title" id="scTitle">Ace of Base Remix</div>
+        <div class="sc-year" id="scYear">Jan 2026 · NYLA</div>
+        <button class="sc-play-btn" onclick="window.open('https://soundcloud.com/warrenwillmusic','_blank')">
+          <span class="p-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          Play on SoundCloud
+        </button>
+      </div>
+      <div class="platforms">
+        <a href="https://soundcloud.com/warrenwillmusic" target="_blank" rel="noopener" class="plat"><svg viewBox="0 0 32 32"><path d="M1 20c0 .9.7 1.6 1.6 1.6.4 0 .8-.2 1.1-.4l.1-4.7c-.3-.3-.7-.4-1.1-.4C1.7 16 1 16.9 1 20zm4.2 2.4c.5.4 1 .6 1.7.6s1.2-.2 1.7-.6V14c-.5-.4-1-.6-1.7-.6s-1.2.2-1.7.6v8.4zm4.6.9c.5.3 1 .4 1.6.4s1.1-.1 1.6-.4V11.7c-.5-.3-1-.4-1.6-.4s-1.1.1-1.6.4v11.6zm4.5.4c.5.2 1 .3 1.5.3s1-.1 1.5-.3V9.2c-.5-.2-1-.3-1.5-.3s-1 .1-1.5.3v14.5zm4.4.1h.1c.5 0 1-.1 1.4-.3l.1-15c-.5-.2-1-.3-1.5-.3l-.1 15.6zm4.4-.5c.4.3.9.5 1.4.5 2.2 0 4-1.8 4-4s-1.8-4-4-4c-.3 0-.5 0-.8.1C23.6 12 21.5 10 19 10c-.4 0-.7 0-1 .1v13.3h.1z"/></svg>SoundCloud</a>
+        <a href="https://www.youtube.com/@warrenwillmusic" target="_blank" rel="noopener" class="plat"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>YouTube</a>
+        <a href="https://www.tiktok.com/@warrenwillmusic" target="_blank" rel="noopener" class="plat"><svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.67a8.27 8.27 0 004.84 1.55V6.78a4.85 4.85 0 01-1.07-.09z"/></svg>TikTok</a>
+      </div>
+    </div>
+
+    <div class="sc-col">
+      <!-- Spotify embed — artist page -->
+      <div class="sc-embed">
+        <iframe src="https://open.spotify.com/embed/artist/6wMr4zKPrrR0UVz08WtUWc?utm_source=generator&theme=0"
+          height="340" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy" title="Warren Will on Spotify"></iframe>
+      </div>
+      <!-- SC embed — full profile -->
+      <div class="sc-embed">
+        <iframe src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/users/14307740&color=%23c8a96e&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true"
+          height="300" loading="lazy" title="Warren Will on SoundCloud" allow="autoplay"></iframe>
+      </div>
+      <!-- Track list -->
+      <div id="trackList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     YOUTUBE SECTION
+══════════════════════════════════════════ -->
+<section id="youtube" class="sec sec-dark" aria-labelledby="yt-h">
+  <div class="yt-header-row">
+    <div class="sec-head" style="margin-bottom:0">
+      <span class="sec-tag">02</span>
+      <h2 class="sec-h" id="yt-h">YOUTUBE</h2>
+      <div class="sec-rule"></div>
+    </div>
+    <a href="https://www.youtube.com/@warrenwillmusic" target="_blank" rel="noopener" class="yt-sub-btn">
+      <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      @warrenwillmusic
+    </a>
+  </div>
+
+  <!-- 3-video grid with click-to-play — using channel ID UCGQAQ9yQAC1tYDfulMWeCyw -->
+  <!-- Replace VIDEO_ID_1/2/3 with actual video IDs from the channel -->
+  <div class="yt-grid" id="ytGrid">
+
+    <!-- Video slot 1 — channel playlist embed (works without individual IDs) -->
+    <div class="yt-card">
+      <div class="yt-thumb">
+        <iframe id="yt1" src="about:blank"
+          data-src="https://www.youtube.com/embed?listType=user_uploads&list=warrenwillmusic&index=0&rel=0&modestbranding=1&color=white"
+          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"
+          title="Warren Will YouTube"></iframe>
+        <div class="yt-ph" id="ytPh1" onclick="loadYT(1)">
+          <div class="yt-ph-overlay"></div>
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="yt-ph-title">Latest Upload</div>
+          <div class="yt-ph-sub">#AfrohouseMunich</div>
+        </div>
+      </div>
+      <div class="yt-label"><h4>Latest video</h4><p>@warrenwillmusic · Munich</p></div>
+    </div>
+
+    <!-- Video slot 2 — Afro House Mix Munich (Graf Rumford live) -->
+    <div class="yt-card">
+      <div class="yt-thumb">
+        <iframe id="yt2" src="about:blank"
+          data-src="https://www.youtube.com/embed?listType=user_uploads&list=warrenwillmusic&index=1&rel=0&modestbranding=1&color=white"
+          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"
+          title="Warren Will YouTube 2"></iframe>
+        <div class="yt-ph" id="ytPh2" onclick="loadYT(2)">
+          <div class="yt-ph-overlay"></div>
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="yt-ph-title">Afro House Mix</div>
+          <div class="yt-ph-sub">Graf Rumford · Munich</div>
+        </div>
+      </div>
+      <div class="yt-label"><h4>Afro House Mix – Munich</h4><p>Live set · Graf Rumford</p></div>
+    </div>
+
+    <!-- Video slot 3 — studio / remix content -->
+    <div class="yt-card">
+      <div class="yt-thumb">
+        <iframe id="yt3" src="about:blank"
+          data-src="https://www.youtube.com/embed?listType=user_uploads&list=warrenwillmusic&index=2&rel=0&modestbranding=1&color=white"
+          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"
+          title="Warren Will YouTube 3"></iframe>
+        <div class="yt-ph" id="ytPh3" onclick="loadYT(3)">
+          <div class="yt-ph-overlay"></div>
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="yt-ph-title">Studio Session</div>
+          <div class="yt-ph-sub">Behind the track</div>
+        </div>
+      </div>
+      <div class="yt-label"><h4>Studio & Remixes</h4><p>Production content</p></div>
+    </div>
+
+  </div>
+
+  <!-- Channel banner -->
+  <div class="yt-banner">
+    <div class="yt-banner-l">
+      <div class="yt-icon"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></div>
+      <div class="yt-banner-text">
+        <h3>Warren Will on YouTube</h3>
+        <p>DJ sets · live mixes · behind the scenes · Munich house music scene · Channel ID: UCGQAQ9yQAC1tYDfulMWeCyw</p>
+      </div>
+    </div>
+    <a href="https://www.youtube.com/@warrenwillmusic" target="_blank" rel="noopener" class="btn-yt">
+      <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      Subscribe — All Videos
+    </a>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABOUT
+══════════════════════════════════════════ -->
+<div id="about" role="region" aria-label="About Warren Will">
+  <div class="ghost-bg" aria-hidden="true">WW</div>
+  <div class="about-wrap">
+    <div class="about-img">
+      <img src="https://i1.sndcdn.com/avatars-GAq6zX4KdBa8xWD0-In9RrQ-t1080x1080.jpg" alt="Warren Will DJ Munich"/>
+      <div class="about-nums">
+        <div class="an-block"><span class="an-n">22</span><span class="an-l">Tracks</span></div>
+        <div class="an-block"><span class="an-n">594</span><span class="an-l">Followers</span></div>
+        <div class="an-block"><span class="an-n">MCH</span><span class="an-l">Based In</span></div>
+      </div>
+    </div>
+    <div class="about-text">
+      <div class="sec-head">
+        <span class="sec-tag">03</span>
+        <h2 class="sec-h">THE ARTIST</h2>
+      </div>
+      <p class="a-body"><strong>Warren Will</strong> is a Munich-based DJ and producer developing a deeper sense for house music in the Munich DJ scene. His sound is groovy, bass-driven, and built for movement — from intimate club floors to open-air mountain stages.</p>
+      <p class="a-body">From remixing Kanye West and Ace of Base to recording live Afro House sets at Graf Rumford Munich, Warren bridges technical studio craft with raw dancefloor instinct. Every set tells a story. Every track is an invitation.</p>
+      <div class="a-quote">
+        <p>"Developing a deeper sense for house music to gain attention in the DJ scene."</p>
+        <cite>— Warren Will, YouTube bio</cite>
+      </div>
+      <a href="#music" class="btn-ghost" style="width:fit-content">Stream the Music</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     BOOKING — VENUE CONVERSION SECTION
+══════════════════════════════════════════ -->
+<section id="booking" class="sec-alt" aria-labelledby="book-h">
+  <div class="book-grid">
+    <div class="book-pitch">
+      <p class="eyebrow">For Venues & Event Organisers</p>
+      <h2 id="book-h">BOOK<br>WARREN<br><em>WILL</em></h2>
+      <p>Looking for a DJ who brings energy, reading the room with groovy Afro House and bass-driven house music? Warren is available for club nights, private events, festivals, and residencies across Munich and beyond.</p>
+      <div class="offer-pills">
+        <div class="offer-pill"><div class="offer-icon">🎛️</div><span>Club nights & venue residencies</span></div>
+        <div class="offer-pill"><div class="offer-icon">🎉</div><span>Private events — birthday, corporate, weddings</span></div>
+        <div class="offer-pill"><div class="offer-icon">🎪</div><span>Festival & open-air bookings</span></div>
+        <div class="offer-pill"><div class="offer-icon">🎵</div><span>Custom remixes & production work</span></div>
+        <div class="offer-pill"><div class="offer-icon">📍</div><span>Munich local & Germany-wide travel</span></div>
+      </div>
+      <div class="book-contact-row">
+        <a href="mailto:booking@warrenwilliam.de">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          booking@warrenwilliam.de
+        </a>
+      </div>
+    </div>
+    <div class="book-form-side">
+      <p class="eyebrow">Send a Booking Request</p>
+      <div class="form-col" id="bookForm">
+        <div class="form-row">
+          <input type="text" class="fi" placeholder="Your name" autocomplete="name"/>
+          <input type="text" class="fi" placeholder="Venue / Organisation"/>
+        </div>
+        <input type="email" class="fi" placeholder="Email address" autocomplete="email"/>
+        <input type="text" class="fi" placeholder="Event date (or approx.)"/>
+        <select class="fi">
+          <option value="" disabled selected>Event type</option>
+          <option>Club night / Venue</option>
+          <option>Private event</option>
+          <option>Festival / Open air</option>
+          <option>Wedding</option>
+          <option>Corporate event</option>
+          <option>Residency enquiry</option>
+          <option>Custom remix / Production</option>
+        </select>
+        <textarea class="fi" placeholder="Tell us more — venue capacity, music style preferences, event vision…"></textarea>
+        <button type="button" class="btn-gold" style="width:100%;justify-content:center;" onclick="submitBook(this)">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          Send Booking Request
+        </button>
+      </div>
+      <div class="book-success" id="bookOk">
+        <div class="tick">✓</div>
+        <h3>Request Received</h3>
+        <p>Warren will be in touch within 24 hours.<br>booking@warrenwilliam.de</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     WHATSAPP COMMUNITY
+══════════════════════════════════════════ -->
+<section id="community" class="sec sec-dark" aria-labelledby="comm-h">
+  <div class="comm-grid">
+    <div class="comm-l">
+      <p class="eyebrow">Join the Movement</p>
+      <h2 id="comm-h">OUR<br><em>COMMUNITY</em><br>IS LIVE</h2>
+      <p>Get direct access to Warren — new music drops, behind-the-scenes moments, early ticket and guestlist access, and real conversations with house music fans worldwide.</p>
+      <div class="wa-perks">
+        <div class="wa-perk"><div class="wa-dot">🎵</div><span>Hear new remixes before they drop publicly</span></div>
+        <div class="wa-perk"><div class="wa-dot">🎟️</div><span>Guestlist & presale access for every Munich show</span></div>
+        <div class="wa-perk"><div class="wa-dot">🎙️</div><span>Voice messages and clips from Warren directly</span></div>
+        <div class="wa-perk"><div class="wa-dot">🌍</div><span>Connect with Afro House fans worldwide</span></div>
+      </div>
+      <a href="https://chat.whatsapp.com/warrenstiefelcommunity" target="_blank" rel="noopener" class="btn-wa-big">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Join on WhatsApp — Free
+      </a>
+      <p style="font-family:var(--m);font-size:8px;color:var(--mid);letter-spacing:.08em;margin-top:10px">No spam. Leave any time.</p>
+    </div>
+    <div class="comm-r">
+      <div class="comm-phone">
+        <div class="ph-top">
+          <div class="ph-av">WW</div>
+          <div class="ph-info">
+            <div class="ph-name">Warren Will Community</div>
+            <div class="ph-sub">Growing fast · Munich & worldwide</div>
+          </div>
+        </div>
+        <div class="ph-body">
+          <div class="pm r">🎵 Ace of Base remix dropping Friday — first listen here<div class="pm-t">Warren · 10:14</div></div>
+          <div class="pm s">Already on repeat 🔥<div class="pm-t">10:18 ✓✓</div></div>
+          <div class="pm r">Graf Rumford guestlist — tonight only 👇<div class="pm-t">Warren · 19:02</div></div>
+          <div class="pm r">DM me your name before 20:00<div class="pm-t">19:02</div></div>
+          <div class="pm s">On it! See you at the door 🙌<div class="pm-t">19:10 ✓✓</div></div>
+        </div>
+        <div class="ph-foot">↑ This is what it looks like inside</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     NEWSLETTER
+══════════════════════════════════════════ -->
+<section id="newsletter" class="sec-alt" aria-labelledby="nl-h">
+  <div class="nl-grid">
+    <div class="nl-l">
+      <p class="eyebrow">Exclusive Access</p>
+      <h2 id="nl-h">GET THE MUSIC FIRST</h2>
+      <p>Subscribe and we'll send you Warren's latest track the moment it's done — before it hits SoundCloud, YouTube, or any platform.</p>
+      <div class="nl-perks">
+        <div class="nl-perk">Instant link to every new unreleased track</div>
+        <div class="nl-perk">Remixes and drops before public release</div>
+        <div class="nl-perk">Munich show guestlist priority</div>
+        <div class="nl-perk">Monthly exclusive mix — not on any platform</div>
+        <div class="nl-perk">Behind the scenes from studio sessions</div>
+      </div>
+      <a href="https://soundcloud.com/warrenwillmusic" target="_blank" rel="noopener" class="btn-sc" style="width:fit-content">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        Or stream now on SoundCloud
+      </a>
+    </div>
+    <div class="nl-r">
+      <p class="eyebrow" id="nlLabel">Step 1 of 2</p>
+      <div class="nl-step" id="nlS1">
+        <p class="sl">Your email</p>
+        <input type="email" class="fi" id="nlEmail" placeholder="you@example.com" autocomplete="email"/>
+        <p class="sl">Your first name</p>
+        <input type="text" class="fi" id="nlName" placeholder="First name" autocomplete="given-name"/>
+        <button type="button" class="btn-gold" style="width:100%;justify-content:center;" id="nlBtn1">Continue →</button>
+        <p class="fine">No spam. Unsubscribe in one click.</p>
+      </div>
+      <div class="nl-step gone" id="nlS2">
+        <p class="sl">What do you listen to most?</p>
+        <div class="genre-grid">
+          <button class="gchip" data-g="afro-house">Afro House</button>
+          <button class="gchip" data-g="deep-house">Deep House</button>
+          <button class="gchip" data-g="bass-house">Bass House</button>
+          <button class="gchip" data-g="melodic">Melodic Techno</button>
+        </div>
+        <p class="sl" style="margin-top:14px">How did you find Warren?</p>
+        <select class="fi" id="nlSrc">
+          <option value="" disabled selected>Select one</option>
+          <option>SoundCloud</option>
+          <option>YouTube (@warrenwillmusic)</option>
+          <option>TikTok (@warrenwillmusic)</option>
+          <option>Instagram</option>
+          <option>A live show / club night</option>
+          <option>WhatsApp Community</option>
+          <option>Friend recommendation</option>
+        </select>
+        <button type="button" class="btn-gold" style="width:100%;justify-content:center;" id="nlBtn2">Subscribe & Get the Track</button>
+      </div>
+      <div class="nl-ok" id="nlOk">
+        <div class="tick">✓</div>
+        <h3>You're In</h3>
+        <p>Track incoming — check your inbox.<br>Welcome to Warren's world.</p>
+        <div style="margin-top:16px">
+          <a href="https://soundcloud.com/warrenwillmusic" target="_blank" rel="noopener" class="btn-sc" style="display:inline-flex;margin:0 auto">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Listen Now
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     TOUR
+══════════════════════════════════════════ -->
+<section id="tour" class="sec sec-dark" aria-labelledby="tour-h">
+  <div class="sec-head">
+    <span class="sec-tag">04</span>
+    <h2 class="sec-h" id="tour-h">TOUR DATES</h2>
+    <div class="sec-rule"></div>
+  </div>
+  <div class="tour-tabs" role="group" aria-label="Filter dates">
+    <button class="t-tab on" data-f="all">All</button>
+    <button class="t-tab" data-f="headline">Headline</button>
+    <button class="t-tab" data-f="festival">Festival</button>
+    <button class="t-tab" data-f="residency">Residency</button>
+  </div>
+  <div class="tour-rows" id="tourRows" role="list"></div>
+  <div style="margin-top:36px;text-align:center">
+    <p style="font-family:var(--m);font-size:8px;color:var(--muted);letter-spacing:.15em;margin-bottom:12px;text-transform:uppercase">To book a date</p>
+    <a href="mailto:booking@warrenwilliam.de" class="btn-gold" style="display:inline-flex">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      booking@warrenwilliam.de
+    </a>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     CONTACT
+══════════════════════════════════════════ -->
+<section id="contact" class="sec sec-alt" aria-labelledby="contact-h">
+  <div class="sec-head">
+    <span class="sec-tag">05</span>
+    <h2 class="sec-h" id="contact-h">CONTACT</h2>
+    <div class="sec-rule"></div>
+  </div>
+  <div class="contact-wrap">
+    <div>
+      <div class="c-block">
+        <h3>Bookings & Live</h3>
+        <a href="mailto:booking@warrenwilliam.de">booking@warrenwilliam.de</a>
+        <p>Club nights, festivals, private events, and residencies — Munich and beyond.</p>
+      </div>
+      <div class="c-block">
+        <h3>WhatsApp Community</h3>
+        <a href="https://chat.whatsapp.com/warrenstiefelcommunity" target="_blank" rel="noopener" style="color:var(--green)">Join the Community →</a>
+        <p>The fastest way to connect with Warren and the Munich house music community.</p>
+      </div>
+      <div class="c-block">
+        <h3>Follow & Stream</h3>
+        <div class="soc-row">
+          <a href="https://soundcloud.com/warrenwillmusic" target="_blank" rel="noopener" class="soc sc-soc" aria-label="SoundCloud"><svg viewBox="0 0 32 32"><path d="M1 20c0 .9.7 1.6 1.6 1.6.4 0 .8-.2 1.1-.4l.1-4.7c-.3-.3-.7-.4-1.1-.4C1.7 16 1 16.9 1 20zm4.2 2.4c.5.4 1 .6 1.7.6s1.2-.2 1.7-.6V14c-.5-.4-1-.6-1.7-.6s-1.2.2-1.7.6v8.4zm4.6.9c.5.3 1 .4 1.6.4s1.1-.1 1.6-.4V11.7c-.5-.3-1-.4-1.6-.4s-1.1.1-1.6.4v11.6zm4.5.4c.5.2 1 .3 1.5.3s1-.1 1.5-.3V9.2c-.5-.2-1-.3-1.5-.3s-1 .1-1.5.3v14.5zm4.4.1h.1c.5 0 1-.1 1.4-.3l.1-15c-.5-.2-1-.3-1.5-.3l-.1 15.6zm4.4-.5c.4.3.9.5 1.4.5 2.2 0 4-1.8 4-4s-1.8-4-4-4c-.3 0-.5 0-.8.1C23.6 12 21.5 10 19 10c-.4 0-.7 0-1 .1v13.3h.1z"/></svg></a>
+          <a href="https://www.youtube.com/@warrenwillmusic" target="_blank" rel="noopener" class="soc yt-soc" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+          <a href="https://www.tiktok.com/@warrenwillmusic" target="_blank" rel="noopener" class="soc" aria-label="TikTok"><svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.67a8.27 8.27 0 004.84 1.55V6.78a4.85 4.85 0 01-1.07-.09z"/></svg></a>
+          <a href="https://www.instagram.com/warrenwillmusic/" target="_blank" rel="noopener" class="soc" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+          <a href="https://chat.whatsapp.com/warrenstiefelcommunity" target="_blank" rel="noopener" class="soc wa-soc" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p style="font-family:var(--m);font-size:8px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:18px">Send a Message</p>
+      <div class="form-col">
+        <div class="form-row">
+          <input type="text" class="fi" placeholder="First name"/>
+          <input type="text" class="fi" placeholder="Last name"/>
+        </div>
+        <input type="email" class="fi" placeholder="Email address"/>
+        <select class="fi">
+          <option value="" disabled selected>Inquiry type</option>
+          <option>Booking / Live performance</option>
+          <option>Press / Media</option>
+          <option>Music licensing</option>
+          <option>Collaboration / Remix</option>
+          <option>General</option>
+        </select>
+        <textarea class="fi" placeholder="Your message…"></textarea>
+        <button type="button" class="btn-gold" style="width:100%;justify-content:center;" onclick="this.innerHTML='✓ Sent';this.style.background='#2d5a27';this.disabled=true">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          Send Message
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer>
+  <a href="#hero" class="f-logo" aria-label="Warren Will">
+    <div class="f-mark"><span>WW</span></div>
+    <span class="f-name">WARREN WILL</span>
+  </a>
+  <p class="f-copy">© 2026 Warren Will · Munich · booking@warrenwilliam.de</p>
+  <nav class="f-links" aria-label="Footer links">
+    <a href="#music">Music</a>
+    <a href="#youtube">YouTube</a>
+    <a href="#booking">Book</a>
+    <a href="#community">Community</a>
+    <a href="#tour">Tour</a>
+    <a href="#newsletter">Newsletter</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</footer>
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════ -->
+<script>
+/* ── ANIMATED BACKGROUND CANVAS ──────────────────────────────
+   Fluid particle field: audio-frequency-style waveform blobs
+   that pulse and shift using layered sine waves
+*/
+(function(){
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, t = 0;
+
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Blob orbs
+  const orbs = [
+    { x:.18, y:.3,  r:.32, speed:.00042, phase:0,   col:'rgba(200,169,110,' },
+    { x:.82, y:.65, r:.28, speed:.00035, phase:2.1,  col:'rgba(200,169,110,' },
+    { x:.5,  y:.8,  r:.22, speed:.00055, phase:4.3,  col:'rgba(100,60,160,' },
+    { x:.15, y:.75, r:.18, speed:.00038, phase:1.2,  col:'rgba(40,140,80,' },
+    { x:.88, y:.2,  r:.2,  speed:.00048, phase:3.5,  col:'rgba(200,169,110,' },
+  ];
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    // Draw each orb as radial gradient
+    orbs.forEach(o => {
+      const px = (o.x + Math.sin(t * o.speed * 1000 + o.phase) * 0.12) * W;
+      const py = (o.y + Math.cos(t * o.speed * 800  + o.phase) * 0.10) * H;
+      const r  = o.r * Math.min(W, H);
+      const pulse = 0.8 + Math.sin(t * o.speed * 600 + o.phase) * 0.2;
+      const alpha = 0.04 + Math.abs(Math.sin(t * o.speed * 400 + o.phase)) * 0.04;
+
+      const g = ctx.createRadialGradient(px, py, 0, px, py, r * pulse);
+      g.addColorStop(0, o.col + alpha + ')');
+      g.addColorStop(1, o.col + '0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    });
+
+    // Subtle scan-line wave across the bottom third
+    ctx.save();
+    ctx.globalAlpha = 0.025;
+    const waveY = H * 0.72;
+    ctx.beginPath();
+    ctx.moveTo(0, waveY);
+    for(let x = 0; x <= W; x += 4){
+      const y = waveY + Math.sin((x / W) * Math.PI * 6 + t * 0.0008) * 28
+                      + Math.sin((x / W) * Math.PI * 14 + t * 0.0014) * 12;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    ctx.fillStyle = 'rgba(200,169,110,1)';
+    ctx.fill();
+    ctx.restore();
+
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── READING PROGRESS ─────────────────────── */
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  document.getElementById('bar').style.width = (window.scrollY / (d.scrollHeight - d.clientHeight) * 100) + '%';
+}, { passive:true });
+
+/* ── NAV ──────────────────────────────────── */
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => nav.classList.toggle('pinned', window.scrollY > 60), { passive:true });
+
+// Active links
+const SECS = ['hero','music','youtube','booking','community','tour','contact'];
+window.addEventListener('scroll', () => {
+  const y = window.scrollY + 130;
+  SECS.forEach(id => {
+    const el = document.getElementById(id); if(!el) return;
+    const a = document.querySelector(`.nav-links a[href="#${id}"]`);
+    if(a) a.classList.toggle('on', y >= el.offsetTop && y < el.offsetTop + el.offsetHeight);
+  });
+}, { passive:true });
+
+// Hamburger
+const hbg = document.getElementById('hbg'), nLinks = document.getElementById('navLinks');
+let mOpen = false;
+hbg.addEventListener('click', () => {
+  mOpen = !mOpen; hbg.setAttribute('aria-expanded', mOpen);
+  nLinks.style.cssText = mOpen
+    ? 'display:flex;flex-direction:column;position:absolute;top:48px;left:0;right:0;background:rgba(8,8,8,.99);padding:20px;border-bottom:1px solid #252525;gap:16px;z-index:99'
+    : '';
+});
+nLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { mOpen=false; nLinks.style.cssText=''; hbg.setAttribute('aria-expanded','false'); }));
+
+/* ── NOW PLAYING ──────────────────────────── */
+const NP = document.getElementById('npPill');
+const npTracks = ['Ace of Base Remix — 2026','Afro House Mix — Munich','Howler Recording 4','God Is — Kanye Remix','Flashed Junk Mind VIP'];
+let npI = 0, npOn = false;
+document.getElementById('npTitle').textContent = npTracks[0];
+window.addEventListener('scroll', () => {
+  if(window.scrollY > 300 && !npOn){ npOn=true; NP.classList.add('show'); }
+  else if(window.scrollY<=80 && npOn){ npOn=false; NP.classList.remove('show'); }
+}, { passive:true });
+setInterval(() => {
+  npI = (npI+1) % npTracks.length;
+  const el = document.getElementById('npTitle');
+  el.style.opacity='0'; el.style.transition='opacity .3s';
+  setTimeout(() => { el.textContent=npTracks[npI]; el.style.opacity='1'; }, 300);
+}, 7000);
+
+/* ── WHATSAPP FLOAT ───────────────────────── */
+const waBtn = document.getElementById('waFloat');
+window.addEventListener('scroll', () => waBtn.classList.toggle('show', window.scrollY > 400), { passive:true });
+
+/* ── TRACK LIST ───────────────────────────── */
+const tracks = [
+  { title:'Ace of Base – All That She Wants', sub:'Warren Will Remix · Radio Edit · Jan 2026', dur:'3:42', badge:'New' },
+  { title:'Howler Recording 4', sub:'Live Set · Dec 2025', dur:'60:00', badge:'Live' },
+  { title:'Afro House Mix – Graf Rumford', sub:'Live in Munich · Sep 2025', dur:'58:00', badge:'Live' },
+  { title:'God Is – Kanye West', sub:'Warren Will Remix · House · Jan 2025', dur:'6:14', badge:'963 plays' },
+  { title:'Milky Chance – Flashed Junk Mind', sub:'Warren Will VIP · Free Download', dur:'5:38', badge:'Free DL' },
+  { title:'Full Catalogue', sub:'22 tracks on SoundCloud', dur:'—', badge:'+17 more' },
+];
+const tl = document.getElementById('trackList');
+tracks.forEach((t, i) => {
+  const row = document.createElement('div'); row.className='track-row';
+  row.innerHTML=`<span class="t-num">0${i+1}</span>
+    <div class="t-info"><h4>${t.title}</h4><p>${t.sub}</p></div>
+    <span class="t-dur">${t.dur}</span>`;
+  row.addEventListener('click', () => {
+    document.getElementById('scTitle').textContent = t.title;
+    document.getElementById('scYear').textContent = t.sub;
+    document.getElementById('scBadge').textContent = t.badge;
+    document.getElementById('npTitle').textContent = t.title;
+    window.scrollTo({ top: document.getElementById('music').offsetTop-80, behavior:'smooth' });
+  });
+  tl.appendChild(row);
+});
+
+/* ── YOUTUBE CLICK-TO-PLAY ─────────────────── */
+function loadYT(n){
+  const iframe = document.getElementById('yt'+n);
+  const ph = document.getElementById('ytPh'+n);
+  iframe.src = iframe.dataset.src + '&autoplay=1';
+  ph.classList.add('hidden');
+}
+
+/* ── TOUR ─────────────────────────────────── */
+const dates = [
+  { day:'05',mon:'JUL',venue:'Graf Rumford',city:'Munich, Germany',type:'headline',link:'#' },
+  { day:'12',mon:'JUL',venue:'Howler',city:'Melbourne, AU',type:'headline',link:'#' },
+  { day:'19',mon:'JUL',venue:'Hï Ibiza Terrace',city:'Ibiza, Spain',type:'residency',link:'#' },
+  { day:'26',mon:'JUL',venue:'Pacha',city:'Ibiza, Spain',type:'residency',sold:true,link:'#' },
+  { day:'02',mon:'AUG',venue:'MELT Festival',city:'Berlin, Germany',type:'festival',link:'#' },
+  { day:'09',mon:'AUG',venue:'Club Space',city:'Miami, USA',type:'headline',link:'#' },
+  { day:'16',mon:'AUG',venue:'Fabric',city:'London, UK',type:'headline',link:'#' },
+  { day:'06',mon:'SEP',venue:'Open Air Munich',city:'Munich, Germany',type:'festival',link:'#' },
+  { day:'20',mon:'SEP',venue:'Rex Club',city:'Paris, France',type:'headline',link:'#' },
+  { day:'18',mon:'OCT',venue:'Berghain',city:'Berlin, Germany',type:'headline',link:'#' },
+];
+const tr = document.getElementById('tourRows');
+function renderTour(f='all'){
+  tr.innerHTML='';
+  dates.filter(d=>f==='all'||d.type===f).forEach(d=>{
+    const row=document.createElement('div'); row.className='t-row'; row.setAttribute('role','listitem');
+    row.innerHTML=`<div class="t-date"><span class="t-day">${d.day}</span><span class="t-mon">${d.mon}</span></div>
+      <div class="t-venue"><h4>${d.venue}</h4><p>${d.city}</p></div>
+      <span class="t-badge ${d.type==='festival'?'fest':d.type==='residency'?'res':''} ${d.sold?'sold':''}">${d.sold?'Sold Out':d.type}</span>
+      <a href="${d.link}" class="t-ticket ${d.sold?'off':''}">${d.sold?'Sold Out':'Tickets →'}</a>`;
+    tr.appendChild(row);
+  });
+}
+renderTour();
+document.querySelectorAll('.t-tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.t-tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); renderTour(b.dataset.f);
+}));
+
+/* ── NEWSLETTER STEPS ─────────────────────── */
+document.getElementById('nlBtn1').addEventListener('click',()=>{
+  const v=document.getElementById('nlEmail').value.trim();
+  if(!v||!v.includes('@')){ document.getElementById('nlEmail').style.borderColor='#a83228'; return; }
+  document.getElementById('nlS1').classList.add('gone');
+  document.getElementById('nlLabel').textContent='Step 2 of 2';
+  document.getElementById('nlS2').classList.remove('gone');
+});
+document.querySelectorAll('.gchip').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+document.getElementById('nlBtn2').addEventListener('click',()=>{
+  document.getElementById('nlS2').classList.add('gone');
+  document.getElementById('nlLabel').style.display='none';
+  document.getElementById('nlOk').style.display='block';
+});
+
+/* ── BOOKING FORM ─────────────────────────── */
+function submitBook(btn){
+  document.getElementById('bookForm').style.display='none';
+  document.getElementById('bookOk').style.display='block';
+}
+
+/* ── GSAP SCROLL ANIMATIONS ─────────────────
+   Reveal everything with intention
+*/
+if(typeof gsap!=='undefined'&&typeof ScrollTrigger!=='undefined'){
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Hero entrance
+  gsap.from('#heroLeft', { y:40, opacity:0, duration:1.1, ease:'power3.out', delay:.2 });
+  gsap.from('.hero-right', { x:40, opacity:0, duration:1.1, ease:'power3.out', delay:.4 });
+
+  // About
+  gsap.from('.ghost-bg', { x:-50, opacity:0, duration:1.3, ease:'power3.out', scrollTrigger:{ trigger:'#about', start:'top 82%' } });
+  gsap.from('.about-text', { x:36, opacity:0, duration:.9, ease:'power2.out', scrollTrigger:{ trigger:'.about-text', start:'top 72%' } });
+
+  // SC tracks
+  gsap.from('.track-row', { y:16, opacity:0, duration:.5, stagger:.06, ease:'power2.out',
+    scrollTrigger:{ trigger:'#trackList', start:'top 80%' } });
+
+  // YT cards
+  gsap.from('.yt-card', { y:24, opacity:0, duration:.65, stagger:.1, ease:'power2.out',
+    scrollTrigger:{ trigger:'.yt-grid', start:'top 78%' } });
+
+  // Booking section
+  gsap.from('.book-pitch', { x:-30, opacity:0, duration:.9, ease:'power2.out',
+    scrollTrigger:{ trigger:'#booking', start:'top 72%' } });
+  gsap.from('.book-form-side', { x:30, opacity:0, duration:.9, ease:'power2.out',
+    scrollTrigger:{ trigger:'#booking', start:'top 72%' } });
+
+  // Community
+  gsap.from('.comm-l', { x:-28, opacity:0, duration:.85, ease:'power2.out',
+    scrollTrigger:{ trigger:'#community', start:'top 74%' } });
+  gsap.from('.comm-r', { x:28, opacity:0, duration:.85, ease:'power2.out',
+    scrollTrigger:{ trigger:'#community', start:'top 74%' } });
+
+  // Section headings
+  document.querySelectorAll('.sec-h').forEach(el =>
+    gsap.from(el, { y:18, opacity:0, duration:.7, ease:'power2.out',
+      scrollTrigger:{ trigger:el, start:'top 87%' } })
+  );
+
+  // Tour rows
+  ScrollTrigger.create({ trigger:'#tourRows', start:'top 80%', onEnter:()=>
+    gsap.from('.t-row', { y:14, opacity:0, duration:.42, stagger:.05, ease:'power2.out' })
+  });
+
+  // Offer pills stagger
+  gsap.from('.offer-pill', { x:-20, opacity:0, duration:.5, stagger:.08, ease:'power2.out',
+    scrollTrigger:{ trigger:'.offer-pills', start:'top 80%' } });
+
+  // Stats counter animation
+  document.querySelectorAll('.h-stat-n').forEach(el => {
+    const final = el.textContent;
+    if(!isNaN(final)){
+      gsap.from({ val:0 }, { val:parseFloat(final), duration:1.5, ease:'power2.out',
+        delay:.6, onUpdate:function(){ el.textContent = Math.round(this.targets()[0].val); } });
+    }
+  });
+}
+</script>
+</body>
+</html>
