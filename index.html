@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#050505"/>
 
   <!-- ═══════════════ SEO META ═══════════════ -->
   <title>Warren Will – DJ & Producer Munich | Tech House | Bookings</title>
@@ -71,15 +72,15 @@
       padding:14px 28px;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
     #nav.solid{background:rgba(5,5,5,.92);backdrop-filter:blur(12px);border-color:var(--line)}
     .logo{display:flex;align-items:center;gap:10px}
-    .logo .mark{width:34px;height:34px;border:1.5px solid var(--gold);display:grid;place-items:center;
-      font-family:var(--bebas);font-size:16px;color:var(--gold);letter-spacing:.05em}
+    .logo .mark{width:34px;height:34px;background:var(--gold);border:1.5px solid var(--gold);display:grid;place-items:center;
+      font-family:var(--bebas);font-size:16px;color:#050505;letter-spacing:.05em}
     .logo .name{font-family:var(--bebas);font-size:20px;letter-spacing:.18em}
     .nav-links{display:flex;align-items:center;gap:26px;list-style:none}
     .nav-links a{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);transition:color .25s}
     .nav-links a:hover,.nav-links a.on{color:var(--gold)}
-    .nav-book{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--gold-dim);padding:8px 14px;
-      font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--gold);transition:background .25s,color .25s}
-    .nav-book:hover{background:var(--gold);color:#000}
+    .nav-book{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--gold);padding:8px 14px;
+      font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#050505;background:var(--gold);transition:background .25s,color .25s}
+    .nav-book:hover{background:#dbbe85;border-color:#dbbe85;color:#000}
     #hbg{display:none;background:none;border:none;cursor:pointer;padding:6px}
     #hbg span{display:block;width:22px;height:2px;background:var(--text);margin:5px 0;transition:.3s}
     @media(max-width:900px){
@@ -260,6 +261,46 @@
     #waFloat.show{opacity:1;pointer-events:auto;transform:none}
     #waFloat svg{width:26px;height:26px;fill:#fff}
 
+    /* ── CONVERSION: pkg CTAs / form note / sticky mobile bar ── */
+    .pkg-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;background:var(--gold);color:#050505;
+      font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:14px 18px;border:1px solid var(--gold);transition:.25s}
+    .pkg-cta:hover{background:#dbbe85;border-color:#dbbe85;color:#000}
+    .form-note{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;text-align:center;margin-top:2px}
+    #mCta{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:96;
+      background:var(--gold);color:#050505;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+      text-transform:uppercase;padding:17px 18px;box-shadow:0 16px 40px -12px rgba(0,0,0,.7);
+      transform:translateY(160%);transition:transform .4s cubic-bezier(.2,.6,.2,1)}
+    #mCta.show{transform:none}
+    @media(min-width:701px){#mCta{display:none}}
+
+    /* ── MOBILE POLISH ── */
+    a,button{-webkit-tap-highlight-color:transparent}
+    @supports(padding:max(0px)){
+      #nav{padding-left:max(28px,env(safe-area-inset-left));padding-right:max(28px,env(safe-area-inset-right))}
+      #waFloat{right:max(20px,env(safe-area-inset-right))}
+    }
+    @media(max-width:700px){
+      section{padding:64px 20px}
+      .hero-inner{padding:0 20px 40px}
+      h1{font-size:clamp(64px,20vw,120px)}
+      .hero-sub{font-size:14px}
+      .hero-cta{flex-direction:column;align-items:stretch}
+      .hero-cta .btn{justify-content:center;width:100%}
+      .sec-head{flex-wrap:wrap;gap:10px;margin-bottom:34px}
+      .fi{font-size:16px} /* stops iOS focus-zoom */
+      .sc-embed iframe{height:300px}
+      .book-split{gap:34px}
+      .pkg{padding:24px 20px}
+      .stats{gap:26px}
+      .stat .n{font-size:34px}
+      .big-mail{font-size:clamp(21px,6.2vw,30px);overflow-wrap:anywhere}
+      .comm-card{padding:26px 20px}
+      .about-grid{gap:28px}
+      .about-img{max-width:220px;margin:0 auto}
+      #waFloat{bottom:calc(88px + env(safe-area-inset-bottom))}
+      footer{justify-content:center;text-align:center;padding:30px 20px calc(30px + env(safe-area-inset-bottom))}
+    }
+
     .reveal{opacity:0;transform:translateY(26px)}
     @media(prefers-reduced-motion:reduce){
       .reveal{opacity:1!important;transform:none!important}
@@ -430,6 +471,7 @@
           <li>Community guestlist push to fill the floor</li>
           <li>Social clip of the night for the venue</li>
         </ul>
+        <a href="#bookForm" class="pkg-cta" data-type="Club night">Book a club night →</a>
       </div>
       <div class="pkg">
         <span class="p-flag">Highest margin</span>
@@ -441,6 +483,7 @@
           <li>Tailored playlist arc + backup equipment</li>
           <li>Optional custom edit of the couple's song</li>
         </ul>
+        <a href="#bookForm" class="pkg-cta" data-type="Private / Wedding">Book a private event →</a>
       </div>
       <div class="pkg">
         <span class="p-tag">Festival / Open Air</span>
@@ -451,6 +494,7 @@
           <li>Recorded set for YouTube · event cross-promo</li>
           <li>Germany-wide &amp; DACH travel</li>
         </ul>
+        <a href="#bookForm" class="pkg-cta" data-type="Festival / Open Air">Book a festival slot →</a>
       </div>
     </div>
 
@@ -479,9 +523,10 @@
           <input type="text" class="fi" id="bkCity" placeholder="City / venue"/>
         </div>
         <textarea class="fi" id="bkMsg" placeholder="Tell us about the night — capacity, lineup, set time…"></textarea>
-        <button type="submit" class="btn btn-gold" style="justify-content:center">
+        <button type="submit" class="btn btn-gold" style="justify-content:center;padding:18px 26px;font-size:12px">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          Send Booking Inquiry</button>
+          Send Booking Inquiry →</button>
+        <p class="form-note">Reply within 48 hours · 50% deposit secures the date</p>
       </form>
       <div class="book-success" id="bookOk">
         <div class="tick">✓</div>
@@ -570,8 +615,13 @@
     <a href="#booking">Booking</a>
     <a href="#community">Community</a>
     <a href="#contact">Contact</a>
+    <a href="https://warren-will-v3.vercel.app/epk.html">Press Kit</a>
+    <a href="admin.html">Admin</a>
   </nav>
 </footer>
+
+<!-- Sticky mobile booking bar -->
+<a id="mCta" href="#booking">Book Warren — 48h reply →</a>
 
 <!-- WhatsApp float -->
 <a href="https://chat.whatsapp.com/warrenstiefelcommunity" target="_blank" rel="noopener" id="waFloat" aria-label="Join the WhatsApp Community">
@@ -729,6 +779,20 @@ document.getElementById('nlForm').addEventListener('submit', (e) => {
 /* ── WHATSAPP FLOAT ─────────────────────── */
 const waBtn = document.getElementById('waFloat');
 window.addEventListener('scroll', () => waBtn.classList.toggle('show', window.scrollY > 500), { passive:true });
+
+/* ── PACKAGE CTAs → preselect event type ── */
+document.querySelectorAll('.pkg-cta').forEach(a => a.addEventListener('click', () => {
+  const sel = document.getElementById('bkType');
+  if(a.dataset.type && sel) sel.value = a.dataset.type;
+}));
+
+/* ── STICKY MOBILE BOOKING BAR ──────────── */
+const mCta = document.getElementById('mCta');
+let bookingInView = false;
+function updateMCta(){ mCta.classList.toggle('show', window.scrollY > 600 && !bookingInView); }
+new IntersectionObserver(([e]) => { bookingInView = e.isIntersecting; updateMCta(); }, { threshold:.12 })
+  .observe(document.getElementById('booking'));
+window.addEventListener('scroll', updateMCta, { passive:true });
 
 /* ── GSAP REVEALS ───────────────────────── */
 if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'
