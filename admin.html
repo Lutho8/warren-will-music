@@ -110,6 +110,25 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
 @media(max-width:860px){.grid2{grid-template-columns:1fr}}
 
+/* ── lifecycle funnel ── */
+.funnel{display:flex;gap:3px;height:36px}
+.funnel .seg{min-width:6%;border-radius:9px;background:rgba(169,133,62,.1)}
+.funnel .seg.c1{background:rgba(169,133,62,.25)}
+.funnel .seg.c2{background:rgba(169,133,62,.42)}
+.funnel .seg.c3{background:rgba(169,133,62,.6)}
+.funnel .seg.c4{background:rgba(169,133,62,.8)}
+.funnel .seg.c5{background:var(--gold)}
+.flabels{display:flex;gap:3px;margin-top:9px}
+.flabels span{flex:1 1 0;text-align:center;font-family:var(--mono);font-size:7.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)}
+.flabels b{display:block;font-family:var(--bebas);font-size:18px;color:var(--ink);letter-spacing:.02em}
+
+/* ── whatsapp business ── */
+.wa-mode{display:flex;align-items:center;gap:10px}
+.wa-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(31,138,68,.15);flex:none}
+.wa-stat{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.wa-stat span{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);border-radius:100px;padding:6px 11px;color:var(--ink2)}
+.wa-stat span b{color:var(--green);font-weight:400}
+
 #err{display:none;background:#fdf0ee;border:1px solid var(--red);color:var(--red);border-radius:14px;
   padding:14px 16px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;margin-bottom:16px}
 </style>
@@ -149,11 +168,20 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 
   <div class="kpis" id="kpis"></div>
 
+  <h2>LIFECYCLE <span class="cnt" id="lcCnt"></span></h2>
+  <div class="card" style="padding:18px 16px 14px">
+    <div class="funnel" id="funnel"></div>
+    <div class="flabels" id="flabels"></div>
+  </div>
+
   <h2>FOLLOW-UP QUEUE <span class="cnt" id="fqCnt"></span></h2>
   <div id="followups"></div>
 
   <h2>BOOKINGS PIPELINE <span class="cnt" id="ppCnt"></span></h2>
   <div class="pipe-scroll" id="pipeline"></div>
+
+  <h2>WHATSAPP BUSINESS</h2>
+  <div class="card" id="waBiz"></div>
 
   <div class="grid2">
     <div>
@@ -230,9 +258,14 @@ async function load(){
 function render(d){
   const c = d.counts || {}, p = c.pipeline || {};
   const active = (p.new||0)+(p.contacted||0)+(p.replied||0)+(p.negotiating||0);
+  const todayISO = new Date().toISOString().slice(0,10);
+  const revenue = (d.gigs || []).reduce((s, x) => s + ((x.deposit_received || (x.date && String(x.date).slice(0,10) <= todayISO)) ? (+x.fee || 0) : 0), 0);
+  const pv = (d.pipeline || []).reduce((s, o) => s + (['played','rebook','lost'].includes(o.stage) ? 0 : (+o.fee_quote || 0)), 0);
   $('kpis').innerHTML = [
     { n: c.followups_due ?? 0, l: 'Follow-ups due', cls: (c.followups_due|0) > 0 ? 'alert' : '' },
     { n: active, l: 'Active opportunities', cls: active > 0 ? 'hot' : '' },
+    { n: '€' + revenue.toLocaleString('en-GB'), l: 'Revenue made', cls: revenue > 0 ? 'hot' : '' },
+    { n: '€' + pv.toLocaleString('en-GB'), l: 'Pipeline value' },
     { n: c.booking_leads ?? 0, l: 'Booking leads' },
     { n: c.whatsapp_contacts ?? 0, l: 'WhatsApp contacts' },
     { n: c.inner_circle ?? 0, l: 'Inner circle' },
@@ -267,6 +300,32 @@ function render(d){
           <div class="meta">${esc(o.type || '')}${vn.name ? ' · ' + esc(vn.name) + (vn.city ? ' (' + esc(vn.city) + ')' : '') : ''}${o.fee_quote ? ' · €' + esc(o.fee_quote) : ''}<br>touch: ${fmtD(o.last_touch)}${o.next_follow_up ? ' · next: ' + fmtD(o.next_follow_up) : ''}</div></div>`;
       }).join('') : '<p class="empty" style="padding:6px 2px">—</p>') + `</div>`;
   }).join('');
+
+  /* lifecycle funnel */
+  const fStages = ['new','contacted','replied','negotiating','confirmed','played'];
+  const fCounts = fStages.map(st => ops.filter(o => o.stage === st).length);
+  const fTotal = fCounts.reduce((a, b) => a + b, 0);
+  const fMax = Math.max(1, ...fCounts);
+  $('lcCnt').textContent = fTotal + ' opportunities · ' + (p.rebook || 0) + ' rebook · ' + (p.lost || 0) + ' lost';
+  $('funnel').innerHTML = fStages.map((st, i) => {
+    const share = fTotal ? Math.max(6, Math.round(fCounts[i] / fTotal * 100)) : 6;
+    const lvl = Math.max(1, Math.round(fCounts[i] / fMax * 5));
+    return `<div class="seg c${lvl}" style="flex:0 0 ${share}%" title="${st}: ${fCounts[i]}"></div>`;
+  }).join('');
+  $('flabels').innerHTML = fStages.map((st, i) => `<span><b>${fCounts[i]}</b>${st}</span>`).join('');
+
+  /* whatsapp business */
+  const waFirst = (d.contacts || []).filter(x => x.preferred_channel === 'whatsapp').length;
+  const waNums = (d.contacts || []).filter(x => digits(x.phone_whatsapp).length >= 7).length;
+  $('waBiz').innerHTML = `<div class="wa-mode"><span class="wa-dot"></span>
+    <div><div class="who">Manual capture — "WW CRM Log" WhatsApp group</div>
+    <div class="sub">Lutho + Warren log every promoter / venue chat · agent loops pick it up from the CRM</div></div>
+    <div class="acts"><span class="chip wa">LIVE</span></div></div>
+    <div class="wa-stat">
+      <span><b>${waFirst}</b> WhatsApp-first contacts</span>
+      <span><b>${waNums}</b> with numbers</span>
+      <span>upgrade gate: 360dialog API &gt; 20 warm threads</span>
+    </div>`;
 
   /* whatsapp contacts */
   const waList = (d.contacts || []).filter(x => digits(x.phone_whatsapp).length >= 7 || x.preferred_channel === 'whatsapp');

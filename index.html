@@ -98,8 +98,9 @@
       background:linear-gradient(180deg,rgba(5,5,5,.45) 0%,rgba(5,5,5,.25) 40%,rgba(5,5,5,.82) 100%)}
     .hero-inner{position:relative;z-index:3;width:100%;padding:0 28px 42px;max-width:1400px;margin:0 auto}
     .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
-    h1{font-family:var(--bebas);font-weight:400;font-size:clamp(72px,15vw,220px);line-height:.88;letter-spacing:.01em;margin:10px 0 6px}
-    .hero-sub{max-width:520px;color:#ddd8cf;font-size:15px;line-height:1.55;margin-bottom:26px}
+    h1{font-family:var(--bebas);font-weight:400;font-size:clamp(56px,12.5vw,168px);line-height:.9;letter-spacing:.015em;margin:10px 0 8px;white-space:nowrap}
+    h1 em{color:var(--gold);font-style:normal}
+    .hero-sub{max-width:400px;color:#ddd8cf;font-size:14px;line-height:1.5;margin-bottom:26px;border-left:2px solid var(--gold);padding-left:14px}
     .hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
     .btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;
       text-transform:uppercase;padding:15px 26px;cursor:pointer;border:1px solid var(--gold);transition:.25s}
@@ -111,9 +112,20 @@
     .hero-meta{position:absolute;right:28px;bottom:42px;z-index:3;text-align:right;font-family:var(--mono);
       font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.55);text-transform:uppercase;line-height:2}
     @media(max-width:700px){.hero-meta{display:none}}
-    .scroll-cue{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;z-index:3;width:1px;height:34px;
-      background:linear-gradient(var(--gold),transparent);animation:cue 2s infinite}
+    .scroll-cue{display:none}
     @keyframes cue{0%{opacity:0}30%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(8px)}}
+
+    /* ── beat pulse CTA — 122 BPM, every 2 beats ── */
+    .btn-gold.pulse{animation:beat .984s infinite}
+    @keyframes beat{0%,100%{box-shadow:0 0 0 0 rgba(200,169,110,.42)}50%{box-shadow:0 0 0 13px rgba(200,169,110,0)}}
+
+    /* ── hero ticker ── */
+    .ticker{position:absolute;left:0;right:0;bottom:0;z-index:4;border-top:1px solid var(--line);
+      background:rgba(5,5,5,.5);backdrop-filter:blur(8px);overflow:hidden;padding:9px 0}
+    .ticker-track{display:inline-block;white-space:nowrap;font-family:var(--mono);font-size:9px;
+      letter-spacing:.26em;text-transform:uppercase;color:var(--muted);animation:tick 30s linear infinite}
+    .ticker-track b{color:var(--gold);font-weight:400}
+    @keyframes tick{from{transform:none}to{transform:translateX(-50%)}}
 
     /* ── SECTIONS ─────────────────────────── */
     section{padding:88px 28px;max-width:1400px;margin:0 auto}
@@ -282,7 +294,7 @@
     @media(max-width:700px){
       section{padding:64px 20px}
       .hero-inner{padding:0 20px 40px}
-      h1{font-size:clamp(64px,20vw,120px)}
+      h1{font-size:clamp(40px,13vw,84px);letter-spacing:.01em}
       .hero-sub{font-size:14px}
       .hero-cta{flex-direction:column;align-items:stretch}
       .hero-cta .btn{justify-content:center;width:100%}
@@ -304,7 +316,8 @@
     .reveal{opacity:0;transform:translateY(26px)}
     @media(prefers-reduced-motion:reduce){
       .reveal{opacity:1!important;transform:none!important}
-      .scroll-cue{animation:none}
+      .btn-gold.pulse{animation:none}
+      .ticker-track{animation:none}
     }
   </style>
 </head>
@@ -339,10 +352,10 @@
   </div>
   <div class="hero-inner">
     <p class="eyebrow">// munich · tech house</p>
-    <h1>WARREN<br>WILL</h1>
+    <h1>WARREN <em>WILL</em></h1>
     <p class="hero-sub">Groovy, bass-driven Tech House — from Munich clubs to mountain dancefloors.</p>
     <div class="hero-cta">
-      <a href="#booking" class="btn btn-gold">Book Warren
+      <a href="#booking" class="btn btn-gold pulse">Book Warren
         <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
       </a>
       <a href="#music" class="btn btn-ghost">
@@ -352,7 +365,7 @@
     </div>
   </div>
   <div class="hero-meta">22 tracks released<br>±50 gigs / year<br>munich · DACH · worldwide</div>
-  <div class="scroll-cue" aria-hidden="true"></div>
+  <div class="ticker" aria-hidden="true"><span class="ticker-track" id="mqTrack">TECH HOUSE <b>·</b> MUNICH <b>·</b> CLUBS <b>·</b> FESTIVALS <b>·</b> MOUNTAIN DANCEFLOORS <b>·</b> VOL2 — BERLIN TECHNO <b>·</b> BOOKINGS OPEN <b>·</b> </span></div>
 </header>
 
 <main>
@@ -506,6 +519,7 @@
         <p class="deposit">50% deposit secures the date<br>erste Option holds a date for 7 days</p>
       </div>
       <form class="form-col" id="bookForm" novalidate>
+        <input type="text" id="bkWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"/>
         <div class="form-row">
           <input type="text" class="fi" id="bkName" placeholder="Your name" required/>
           <input type="email" class="fi" id="bkMail" placeholder="Email address" required/>
@@ -558,6 +572,7 @@
       <h3>GET THE MUSIC FIRST</h3>
       <p>Every release lands in your inbox before it hits any platform. No spam — one email per release, one per month max.</p>
       <form class="form-col" id="nlForm" novalidate>
+        <input type="text" id="nlWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"/>
         <input type="text" class="fi" id="nlName" placeholder="First name"/>
         <input type="email" class="fi" id="nlEmail" placeholder="you@example.com" required/>
         <button type="submit" class="btn btn-ghost" style="justify-content:center">Subscribe →</button>
@@ -736,18 +751,32 @@ function playTrack(i){
   }, { threshold:.25 }).observe(document.getElementById('vcFrame'));
 })();
 
-/* ── BOOKING FORM → prefilled email ─────────────────────── */
-document.getElementById('bookForm').addEventListener('submit', (e) => {
+/* ── FORMS → Supabase CRM (mailto fallback — nothing is ever lost) ── */
+const CRM_URL = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/booking-inquiry';
+async function sendToCRM(payload){
+  const r = await fetch(CRM_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+  if(!r.ok) throw new Error('crm '+r.status);
+  return r.json();
+}
+document.getElementById('bookForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const g = id => document.getElementById(id).value.trim();
   if(!g('bkName') || !g('bkMail') || !g('bkMail').includes('@')){
     document.getElementById('bkMail').style.borderColor = '#a83228'; return;
   }
-  const subject = encodeURIComponent(`Booking Inquiry — ${g('bkType')} · ${g('bkCity') || g('bkDate') || 'date TBC'}`);
-  const body = encodeURIComponent(
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try{
+    await sendToCRM({ kind:'booking', name:g('bkName'), email:g('bkMail'), event_type:g('bkType'), event_date:g('bkDate'), city_venue:g('bkCity'), message:g('bkMsg'), website:g('bkWebsite'), source:'v4-dark' });
+    document.getElementById('bookForm').style.display = 'none';
+    document.querySelector('#bookOk p').textContent = 'Inquiry received — it landed directly in the booking CRM and we reply within 48 hours.';
+    document.getElementById('bookOk').style.display = 'block';
+  }catch(_){
+    const subject = encodeURIComponent(`Booking Inquiry — ${g('bkType')} · ${g('bkCity') || g('bkDate') || 'date TBC'}`);
+    const body = encodeURIComponent(
 `Servus Warren / team,
 
-Booking inquiry via warrenwill.de:
+Booking inquiry via the website:
 
 Name: ${g('bkName')}
 Email: ${g('bkMail')}
@@ -759,26 +788,38 @@ About the night:
 ${g('bkMsg') || '—'}
 
 — sent from warrenwill.de`);
-  window.location.href = `mailto:booking@warrenwilliam.de?subject=${subject}&body=${body}`;
-  document.getElementById('bookForm').style.display = 'none';
-  document.getElementById('bookOk').style.display = 'block';
+    window.location.href = `mailto:booking@warrenwilliam.de?subject=${subject}&body=${body}`;
+    document.getElementById('bookForm').style.display = 'none';
+    document.getElementById('bookOk').style.display = 'block';
+  }
 });
 
-/* ── NEWSLETTER → prefilled email (webhook in phase 2) ──── */
-document.getElementById('nlForm').addEventListener('submit', (e) => {
+/* ── NEWSLETTER → CRM inner-circle (mailto fallback) ── */
+document.getElementById('nlForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = document.getElementById('nlName').value.trim();
   const mail = document.getElementById('nlEmail').value.trim();
   if(!mail || !mail.includes('@')){ document.getElementById('nlEmail').style.borderColor = '#a83228'; return; }
-  const subject = encodeURIComponent('Inner Circle — signup');
-  const body = encodeURIComponent(`Add me to the Warren Will inner circle:\n\nName: ${name || '—'}\nEmail: ${mail}\n\n(Release-first emails, guestlist priority, WW merch drops.)`);
-  window.location.href = `mailto:booking@warrenwilliam.de?subject=${subject}&body=${body}`;
-  e.target.innerHTML = '<p style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.14em;padding:12px 0">✓ Your email draft has opened — hit send. Welcome in.</p>';
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Joining…';
+  try{
+    await sendToCRM({ kind:'inner-circle', name, email: mail, website: document.getElementById('nlWebsite').value.trim(), source:'v4-dark' });
+    e.target.innerHTML = '<p style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.14em;padding:12px 0">✓ You are in — welcome to the Inner Circle. The next release lands in your inbox first.</p>';
+  }catch(_){
+    const subject = encodeURIComponent('Inner Circle — signup');
+    const body = encodeURIComponent(`Add me to the Warren Will inner circle:\n\nName: ${name || '—'}\nEmail: ${mail}\n\n(Release-first emails, guestlist priority, WW merch drops.)`);
+    window.location.href = `mailto:booking@warrenwilliam.de?subject=${subject}&body=${body}`;
+    e.target.innerHTML = '<p style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.14em;padding:12px 0">✓ Your email draft has opened — hit send. Welcome in.</p>';
+  }
 });
 
 /* ── WHATSAPP FLOAT ─────────────────────── */
 const waBtn = document.getElementById('waFloat');
 window.addEventListener('scroll', () => waBtn.classList.toggle('show', window.scrollY > 500), { passive:true });
+
+/* ── HERO TICKER: seamless loop ─────────── */
+const mqTrack = document.getElementById('mqTrack');
+if(mqTrack) mqTrack.innerHTML += mqTrack.innerHTML;
 
 /* ── PACKAGE CTAs → preselect event type ── */
 document.querySelectorAll('.pkg-cta').forEach(a => a.addEventListener('click', () => {
