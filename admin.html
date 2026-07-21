@@ -29,10 +29,12 @@ button{font:inherit;cursor:pointer}
 .logo .name{font-family:var(--bebas);font-size:18px;letter-spacing:.16em}
 .badge{font-family:var(--mono);font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#fffdf8;background:var(--ink);
   padding:4px 9px;border-radius:100px}
+.badge.gold{background:var(--gold)}
 #genAt{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.08em;display:none}
 .tbtn{border:1px solid var(--line);background:var(--paper);border-radius:100px;padding:8px 14px;
   font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);transition:.2s}
 .tbtn:hover{border-color:var(--gold);color:var(--gold)}
+.tbtn.gold{background:var(--gold);border-color:var(--gold);color:#fffdf8}
 #topBtns{display:none;gap:8px;margin-left:auto}
 @media(max-width:640px){#genAt{display:none!important}}
 
@@ -51,6 +53,9 @@ button{font:inherit;cursor:pointer}
   padding:15px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;transition:.2s}
 .gate-card button:hover{background:var(--ink);border-color:var(--ink)}
 .gate-err{display:none;margin-top:12px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--red);text-transform:uppercase}
+.gate-roles{display:flex;gap:8px;margin-top:18px}
+.gate-roles span{flex:1;font-family:var(--mono);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);
+  border:1px dashed var(--line);border-radius:10px;padding:7px 4px}
 .gate-card.shake{animation:shake .4s}
 @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 
@@ -129,6 +134,36 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 .wa-stat span{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);border-radius:100px;padding:6px 11px;color:var(--ink2)}
 .wa-stat span b{color:var(--green);font-weight:400}
 
+/* ── warren (client) view ── */
+#wview{display:none;padding:26px 20px calc(48px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto}
+.whello{font-family:var(--bebas);font-size:clamp(40px,11vw,56px);line-height:.92;letter-spacing:.02em}
+.whello span{color:var(--gold)}
+.wsub{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink2);margin-top:10px}
+.wstats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:24px 0 4px}
+.wstat{background:var(--paper);border:1px solid var(--line-soft);border-radius:18px;padding:18px 16px}
+.wstat .n{font-family:var(--bebas);font-size:34px;line-height:1}
+.wstat .n.gold{color:var(--gold)}
+.wstat .l{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink2);margin-top:6px}
+.wgig{background:var(--paper);border:1px solid var(--line-soft);border-radius:18px;padding:16px 18px;margin-bottom:10px;display:flex;gap:16px;align-items:center}
+.wgig .date{font-family:var(--bebas);font-size:32px;line-height:.9;text-align:center;color:var(--gold);min-width:56px;flex:none}
+.wgig .date small{display:block;font-size:11px;letter-spacing:.2em;color:var(--ink2);margin-top:3px}
+.wgig .w{font-weight:500;font-size:16px}
+.wgig .s{font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.wgig .r{margin-left:auto;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.wgig .fee{font-family:var(--bebas);font-size:22px}
+.wtask{display:flex;gap:10px;align-items:baseline;padding:11px 2px;border-bottom:1px solid var(--line-soft)}
+.wtask:last-child{border-bottom:none}
+.wtask .d{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);min-width:58px;flex:none}
+.wtask .t{font-size:13.5px;line-height:1.5}
+.wtask .t b{font-weight:500}
+.wask{background:#fdf8ec;border:1px solid rgba(169,133,62,.35);border-radius:14px;padding:13px 15px;margin-bottom:8px;font-size:13.5px}
+.wask b{color:var(--gold);font-weight:500}
+.wlinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.wlinks a{flex:1;min-width:140px;text-align:center;border:1px solid var(--line);background:var(--paper);border-radius:100px;padding:13px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;transition:.2s}
+.wlinks a:hover{border-color:var(--gold);color:var(--gold)}
+.wlinks a.gold{background:var(--gold);border-color:var(--gold);color:#fffdf8}
+.wfoot{text-align:center;margin-top:20px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);line-height:2}
+
 #err{display:none;background:#fdf0ee;border:1px solid var(--red);color:var(--red);border-radius:14px;
   padding:14px 16px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;margin-bottom:16px}
 </style>
@@ -137,9 +172,10 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 
 <div id="top">
   <a class="logo" href="index.html"><span class="mark">WW</span><span class="name">ADMIN</span></a>
-  <span class="badge">Booking CRM</span>
+  <span class="badge" id="roleBadge">Booking CRM</span>
   <span id="genAt"></span>
   <div id="topBtns">
+    <button class="tbtn gold" id="btnView" type="button" style="display:none">Warren view →</button>
     <button class="tbtn" id="btnRefresh" type="button">↻ Refresh</button>
     <button class="tbtn" id="btnLogout" type="button">Log out</button>
   </div>
@@ -150,14 +186,15 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
   <form class="gate-card" id="gateForm">
     <div class="mark">WW</div>
     <h1>BOOKING CRM</h1>
-    <p>Warren Will · team access only</p>
-    <input type="password" id="gateKey" placeholder="Passphrase" autocomplete="current-password" autofocus/>
+    <p>Warren Will · one passphrase each</p>
+    <input type="password" id="gateKey" placeholder="Your passphrase" autocomplete="current-password" autofocus/>
     <button type="submit" id="gateBtn">Open dashboard →</button>
+    <div class="gate-roles"><span>Lutho · team view</span><span>Warren · client view</span></div>
     <p class="gate-err" id="gateErr">Wrong passphrase — try again</p>
   </form>
 </div>
 
-<!-- ── dashboard ── -->
+<!-- ── ops dashboard (Lutho / agent loops) ── -->
 <main id="dash">
   <div id="err"></div>
 
@@ -201,9 +238,35 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
   <div id="interactions"></div>
 </main>
 
+<!-- ── warren (client) view ── -->
+<main id="wview">
+  <div class="whello">SERVUS,<br/><span>WARREN.</span></div>
+  <div class="wsub">Your booking business — live · <span id="wGen"></span></div>
+
+  <div class="wstats" id="wStats"></div>
+
+  <h2>YOUR GIGS <span class="cnt" id="wGigCnt"></span></h2>
+  <div id="wGigs"></div>
+
+  <h2>WE'RE WORKING ON <span class="cnt" id="wFqCnt"></span></h2>
+  <div class="card" id="wTasks" style="padding:6px 16px"></div>
+
+  <h2>WE NEED FROM YOU</h2>
+  <div id="wAsks"></div>
+
+  <h2>LATEST MOVEMENT</h2>
+  <div class="card" id="wMoves" style="padding:6px 16px"></div>
+
+  <div class="wlinks">
+    <a href="index.html">Website →</a>
+    <a class="gold" href="https://warren-will-v3.vercel.app/epk.html" target="_blank" rel="noopener">Press kit →</a>
+  </div>
+  <p class="wfoot">Questions or something to add?<br/>Just WhatsApp Lutho — that's the whole process.</p>
+</main>
+
 <script>
 const EP = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/crm-dashboard';
-const SK = 'wwAdminKey';
+const SK = 'wwAdminKey', SR = 'wwAdminRole';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const digits = s => String(s ?? '').replace(/\D/g, '');
@@ -228,8 +291,12 @@ function contactActs(c){
   if(em && !todo(em) && em.includes('@')) h += `<a class="act" href="mailto:${esc(em)}">Email →</a>`;
   return h ? `<div class="acts">${h}</div>` : '';
 }
+const dayOf = d => String(d || '').slice(0, 10);
 
-let KEY = sessionStorage.getItem(SK) || '';
+let KEY = localStorage.getItem(SK) || '';
+let ROLE = localStorage.getItem(SR) || '';
+let DATA = null;
+let teamView = 'ops'; // team can toggle: 'ops' | 'client'
 
 async function load(){
   $('gateErr').style.display = 'none';
@@ -237,8 +304,8 @@ async function load(){
   try{ r = await fetch(EP, { headers: { 'x-admin-key': KEY } }); }
   catch(_){ $('err').style.display = 'block'; $('err').textContent = 'Network error — could not reach the CRM. Check connection and refresh.'; return; }
   if(r.status === 401){
-    sessionStorage.removeItem(SK); KEY = '';
-    $('dash').style.display = 'none'; $('topBtns').style.display = 'none';
+    localStorage.removeItem(SK); localStorage.removeItem(SR); KEY = ''; ROLE = '';
+    $('dash').style.display = 'none'; $('wview').style.display = 'none'; $('topBtns').style.display = 'none';
     $('gate').style.display = 'grid';
     $('gateErr').style.display = 'block';
     const gc = document.querySelector('.gate-card'); gc.classList.remove('shake'); void gc.offsetWidth; gc.classList.add('shake');
@@ -246,20 +313,34 @@ async function load(){
   }
   const d = await r.json();
   if(!d.ok){ $('err').style.display = 'block'; $('err').textContent = 'CRM error: ' + (d.error || 'unknown'); return; }
-  sessionStorage.setItem(SK, KEY);
+  DATA = d;
+  ROLE = d.role === 'client' ? 'client' : 'team';
+  localStorage.setItem(SK, KEY);
+  localStorage.setItem(SR, ROLE);
   $('gate').style.display = 'none';
-  $('dash').style.display = 'block';
   $('topBtns').style.display = 'flex';
   $('genAt').style.display = 'inline';
   $('genAt').textContent = 'updated ' + fmtDT(d.generated_at);
-  render(d);
+  $('roleBadge').textContent = ROLE === 'client' ? 'Warren · Client' : 'Booking CRM · Team';
+  $('roleBadge').classList.toggle('gold', ROLE === 'client');
+  $('btnView').style.display = ROLE === 'team' ? 'inline-block' : 'none';
+  showView(ROLE === 'client' ? 'client' : teamView);
 }
 
+function showView(v){
+  const isW = v === 'client';
+  $('dash').style.display = isW ? 'none' : 'block';
+  $('wview').style.display = isW ? 'block' : 'none';
+  $('btnView').textContent = isW ? '← Ops view' : 'Warren view →';
+  if(isW) renderWarren(DATA); else render(DATA);
+}
+
+/* ═══════════ OPS VIEW (Lutho) ═══════════ */
 function render(d){
   const c = d.counts || {}, p = c.pipeline || {};
   const active = (p.new||0)+(p.contacted||0)+(p.replied||0)+(p.negotiating||0);
   const todayISO = new Date().toISOString().slice(0,10);
-  const revenue = (d.gigs || []).reduce((s, x) => s + ((x.deposit_received || (x.date && String(x.date).slice(0,10) <= todayISO)) ? (+x.fee || 0) : 0), 0);
+  const revenue = (d.gigs || []).reduce((s, x) => s + ((x.deposit_received || dayOf(x.date) < todayISO) ? (+x.fee || 0) : 0), 0);
   const pv = (d.pipeline || []).reduce((s, o) => s + (['played','rebook','lost'].includes(o.stage) ? 0 : (+o.fee_quote || 0)), 0);
   $('kpis').innerHTML = [
     { n: c.followups_due ?? 0, l: 'Follow-ups due', cls: (c.followups_due|0) > 0 ? 'alert' : '' },
@@ -345,9 +426,11 @@ function render(d){
     ${contactActs(x)}
   </div></div>`).join('') : '<p class="empty">No inner-circle contacts yet.</p>';
 
-  /* gigs */
-  const g = d.gigs || [];
-  $('gigCnt').textContent = g.length;
+  /* gigs — function returns the full year; upcoming section filters forward */
+  const gAll = d.gigs || [];
+  const g = gAll.filter(x => dayOf(x.date) >= todayISO);
+  const playedCount = gAll.length - g.length;
+  $('gigCnt').textContent = g.length + ' upcoming · ' + playedCount + ' played';
   $('gigs').innerHTML = g.length ? g.map(x => {
     const vn = x.venues || {};
     return `<div class="card"><div class="row">
@@ -367,6 +450,69 @@ function render(d){
   </div></div>`).join('') : '<p class="empty">No interactions logged yet.</p>';
 }
 
+/* ═══════════ WARREN VIEW (client) ═══════════ */
+function renderWarren(d){
+  const c = d.counts || {}, p = c.pipeline || {};
+  const todayISO = new Date().toISOString().slice(0,10);
+  const gigs = d.gigs || [];
+  const upcoming = gigs.filter(x => dayOf(x.date) >= todayISO);
+  const played = gigs.filter(x => dayOf(x.date) < todayISO);
+  const earned = played.reduce((s, x) => s + (+x.fee || 0), 0);
+  const revenue = gigs.reduce((s, x) => s + ((x.deposit_received || dayOf(x.date) < todayISO) ? (+x.fee || 0) : 0), 0);
+  const active = (p.new||0)+(p.contacted||0)+(p.replied||0)+(p.negotiating||0)+(p.confirmed||0);
+  const next = upcoming[0] || null;
+
+  $('wGen').textContent = 'updated ' + fmtDT(d.generated_at);
+  $('wStats').innerHTML = [
+    { n: '€' + revenue.toLocaleString('en-GB'), l: 'earned + secured ' + todayISO.slice(0,4), gold: true },
+    { n: upcoming.length, l: 'gigs confirmed' },
+    { n: next ? fmtD(next.date) : '—', l: next ? 'next · ' + String((next.venues || {}).name || 'TBC') : 'next gig', gold: !!next },
+    { n: active, l: 'booking conversations live' },
+  ].map(k => `<div class="wstat"><div class="n ${k.gold ? 'gold' : ''}">${esc(k.n)}</div><div class="l">${esc(k.l)}</div></div>`).join('');
+
+  /* gigs */
+  $('wGigCnt').textContent = upcoming.length ? upcoming.length + ' confirmed' : '';
+  $('wGigs').innerHTML = upcoming.length ? upcoming.map(x => {
+    const vn = x.venues || {};
+    const t = new Date(x.date);
+    const day = isNaN(t) ? '—' : t.toLocaleDateString('en-GB', { day:'2-digit' });
+    const mon = isNaN(t) ? '' : t.toLocaleDateString('en-GB', { month:'short' }).toUpperCase();
+    return `<div class="wgig"><div class="date">${day}<small>${mon}</small></div>
+      <div><div class="w">${esc(vn.name || 'Venue TBC')}</div>
+      <div class="s">${esc(vn.city || '')}${x.package ? ' · ' + esc(x.package) : ''}${x.set_length ? ' · ' + esc(x.set_length) : ''}</div></div>
+      <div class="r">${x.fee ? `<div class="fee">€${esc(x.fee)}</div>` : ''}<span class="chip ${x.deposit_received ? 'wa' : 'red'}">${x.deposit_received ? 'deposit ✓' : 'deposit open'}</span></div>
+    </div>`;
+  }).join('') + (played.length ? `<p class="empty">+ ${played.length} played this year · €${earned.toLocaleString('en-GB')} earned</p>` : '')
+    : '<p class="empty">No confirmed dates yet — the booking engine is on it.<br/>Your next gigs land here first.</p>';
+
+  /* this week's work */
+  const in7 = Date.now() + 7 * 86400000;
+  const fq = (d.followup_queue || []).filter(s => new Date(s.due_at).getTime() <= in7);
+  $('wFqCnt').textContent = fq.length ? fq.length + ' this week' : 'all clear';
+  $('wTasks').innerHTML = fq.length ? fq.slice(0, 8).map(s => {
+    const ct = s.contacts || {};
+    const ch = s.channel === 'whatsapp' ? 'WhatsApp' : 'Email';
+    return `<div class="wtask"><span class="d">${fmtD(s.due_at)}</span><span class="t">${ch} follow-up with <b>${esc(ct.name || '—')}</b></span></div>`;
+  }).join('') : '<p class="empty">This week is clear — new outreach starts Monday.</p>';
+
+  /* asks */
+  const asks = [];
+  (d.contacts || []).forEach(x => {
+    if(!['promoter','booker','manager'].includes(x.role)) return;
+    if(todo(x.phone_whatsapp) && (x.preferred_channel === 'whatsapp' || todo(x.email))) asks.push(`<b>${esc(x.name)}</b> — send us their number`);
+    else if(todo(x.email) && x.preferred_channel !== 'whatsapp') asks.push(`<b>${esc(x.name)}</b> — send us their email`);
+  });
+  $('wAsks').innerHTML = asks.length
+    ? asks.slice(0, 6).map(a => `<div class="wask">${a}</div>`).join('') + '<p class="empty">Send on WhatsApp to Lutho — 30 seconds, done.</p>'
+    : '<p class="empty">Nothing right now — you\'re all caught up. ✓</p>';
+
+  /* latest movement */
+  const mv = (d.interactions || []).slice(0, 5);
+  $('wMoves').innerHTML = mv.length ? mv.map(x =>
+    `<div class="wtask"><span class="d">${fmtD(x.created_at)}</span><span class="t"><b>${esc((x.contacts || {}).name || '—')}</b> · ${esc(x.summary || '')}</span></div>`
+  ).join('') : '<p class="empty">Quiet week — the engine keeps running.</p>';
+}
+
 /* gate + topbar events */
 $('gateForm').addEventListener('submit', e => {
   e.preventDefault();
@@ -376,7 +522,8 @@ $('gateForm').addEventListener('submit', e => {
   load().finally(() => { $('gateBtn').textContent = 'Open dashboard →'; });
 });
 $('btnRefresh').addEventListener('click', load);
-$('btnLogout').addEventListener('click', () => { sessionStorage.removeItem(SK); KEY = ''; location.reload(); });
+$('btnView').addEventListener('click', () => { teamView = teamView === 'ops' ? 'client' : 'ops'; showView(teamView); });
+$('btnLogout').addEventListener('click', () => { localStorage.removeItem(SK); localStorage.removeItem(SR); KEY = ''; ROLE = ''; location.reload(); });
 
 /* auto-login if key stored */
 if(KEY){ load(); }
