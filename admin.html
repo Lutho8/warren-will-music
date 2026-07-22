@@ -134,6 +134,53 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 .wa-stat span{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);border-radius:100px;padding:6px 11px;color:var(--ink2)}
 .wa-stat span b{color:var(--green);font-weight:400}
 
+/* ── client board (shared) ── */
+.cbh{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:18px 0 8px}
+.brd-title{font-weight:500;font-size:15px}
+.brd-det{font-size:12.5px;color:var(--ink2);margin-top:5px;line-height:1.6}
+.brd-price{font-family:var(--bebas);font-size:22px;color:var(--gold);letter-spacing:.02em}
+.brd-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.bbtn{border-radius:100px;padding:9px 15px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--line);background:var(--paper);color:var(--ink2);transition:.2s}
+.bbtn:hover{border-color:var(--gold);color:var(--gold)}
+.bbtn.gold{background:var(--gold);border-color:var(--gold);color:#fffdf8}
+.bbtn.gold:hover{background:var(--ink);border-color:var(--ink)}
+.bbtn.green{border-color:#2ea84f;color:var(--green)}
+.bbtn.green:hover{background:var(--green);color:#fff}
+.bbtn.red{border-color:var(--red);color:var(--red)}
+.bbtn.red:hover{background:var(--red);color:#fff}
+.bbtn:disabled{opacity:.5;cursor:wait}
+.brd-cmt{margin-top:11px;background:#fdf8ec;border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:9px 12px;font-size:12.5px;line-height:1.55}
+.brd-cmt b{color:var(--gold);font-weight:400;font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:3px}
+.brd-reply{display:none;margin-top:11px}
+.brd-reply.open{display:block}
+.brd-reply textarea,.brd-edit input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+  font:inherit;font-size:14px;background:var(--ivory);color:var(--ink);outline:none;resize:vertical}
+.brd-reply textarea:focus,.brd-edit input:focus{border-color:var(--gold)}
+.brd-edit{display:none;margin-top:11px;flex-direction:column;gap:8px}
+.brd-edit.open{display:flex}
+.st{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;border-radius:100px;padding:4px 10px;border:1px solid var(--line);color:var(--ink2);flex:none}
+.st.prog{border-color:var(--gold);color:var(--gold)}
+.st.done{border-color:var(--green);color:var(--green)}
+.st.approved{background:var(--gold);border-color:var(--gold);color:#fffdf8}
+.st.declined{border-color:var(--red);color:var(--red)}
+
+/* ── forms (warren + ops) ── */
+.wform{background:var(--paper);border:1px solid var(--line-soft);border-radius:18px;padding:18px;margin-bottom:10px}
+.wform .fl{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink2);margin:12px 0 5px}
+.wform .fl:first-child{margin-top:0}
+.wform input,.wform select{width:100%;background:var(--ivory);border:1px solid var(--line);border-radius:12px;
+  padding:13px 14px;font:inherit;font-size:16px;color:var(--ink);outline:none}
+.wform input:focus,.wform select:focus{border-color:var(--gold)}
+.wform .frow{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+@media(max-width:560px){.wform .frow{grid-template-columns:1fr}}
+.wform .sub{font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.08em;margin-top:10px;line-height:1.7}
+.wform button{width:100%;margin-top:14px;background:var(--gold);color:#fffdf8;border:1px solid var(--gold);border-radius:100px;
+  padding:14px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;transition:.2s}
+.wform button:hover{background:var(--ink);border-color:var(--ink)}
+.wform button:disabled{opacity:.5;cursor:wait}
+.fok{display:none;margin-top:10px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--green);text-transform:uppercase}
+
 /* ── warren (client) view ── */
 #wview{display:none;padding:26px 20px calc(48px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto}
 .whello{font-family:var(--bebas);font-size:clamp(40px,11vw,56px);line-height:.92;letter-spacing:.02em}
@@ -156,8 +203,6 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 .wtask .d{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);min-width:58px;flex:none}
 .wtask .t{font-size:13.5px;line-height:1.5}
 .wtask .t b{font-weight:500}
-.wask{background:#fdf8ec;border:1px solid rgba(169,133,62,.35);border-radius:14px;padding:13px 15px;margin-bottom:8px;font-size:13.5px}
-.wask b{color:var(--gold);font-weight:500}
 .wlinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
 .wlinks a{flex:1;min-width:140px;text-align:center;border:1px solid var(--line);background:var(--paper);border-radius:100px;padding:13px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;transition:.2s}
 .wlinks a:hover{border-color:var(--gold);color:var(--gold)}
@@ -205,6 +250,21 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 
   <div class="kpis" id="kpis"></div>
 
+  <h2>CLIENT BOARD <span class="cnt" id="cbCnt"></span></h2>
+  <div class="card" style="padding:14px 16px">
+    <div class="wform" style="border:none;padding:0;background:none;margin:0">
+      <div class="frow" style="grid-template-columns:170px 1fr">
+        <div><div class="fl">Type</div>
+          <select id="nbKind"><option value="work">Work — we're on it</option><option value="ask">Ask — need Warren</option><option value="approval">Approval — purchase</option></select></div>
+        <div><div class="fl">Title</div><input id="nbTitle" placeholder="e.g. PostPilot experiment"/></div>
+      </div>
+      <div class="fl">Details (Warren sees this)</div><input id="nbDetails" placeholder="One or two lines, plain language"/>
+      <div class="fl">Price (approvals only)</div><input id="nbPrice" placeholder="e.g. €19/mo — leave empty otherwise"/>
+      <button id="nbAdd" type="button">+ Add to Warren's board</button>
+    </div>
+  </div>
+  <div id="cbLists"></div>
+
   <h2>LIFECYCLE <span class="cnt" id="lcCnt"></span></h2>
   <div class="card" style="padding:18px 16px 14px">
     <div class="funnel" id="funnel"></div>
@@ -247,12 +307,46 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 
   <h2>YOUR GIGS <span class="cnt" id="wGigCnt"></span></h2>
   <div id="wGigs"></div>
+  <div class="wform" id="gigForm">
+    <div class="fl" style="font-size:9px;color:var(--gold)">＋ Add a confirmed gig</div>
+    <div class="frow">
+      <div><div class="fl">Date</div><input type="date" id="gDate"/></div>
+      <div><div class="fl">Fee € (optional)</div><input type="number" id="gFee" min="0" step="50" placeholder="400"/></div>
+    </div>
+    <div class="fl">Venue / event</div><input id="gVenue" placeholder="e.g. Pracht, Frankfurt"/>
+    <div class="fl">City</div><input id="gCity" placeholder="Frankfurt"/>
+    <div class="fl">Set length (optional)</div><input id="gSet" placeholder="e.g. 23:00–01:00"/>
+    <button type="button" id="gAdd">Add to my gigs →</button>
+    <p class="fok" id="gOk">✓ Added — it's on your dashboard & in the CRM</p>
+    <p class="sub">Confirmed dates only. This lands in the CRM instantly — the team handles deposit + contract follow-up from there.</p>
+  </div>
 
-  <h2>WE'RE WORKING ON <span class="cnt" id="wFqCnt"></span></h2>
-  <div class="card" id="wTasks" style="padding:6px 16px"></div>
+  <h2>YOUR CALL <span class="cnt" id="wApprCnt"></span></h2>
+  <div id="wApprovals"></div>
 
-  <h2>WE NEED FROM YOU</h2>
+  <h2>WE NEED FROM YOU <span class="cnt" id="wAskCnt"></span></h2>
   <div id="wAsks"></div>
+
+  <div class="wform" id="contactForm">
+    <div class="fl" style="font-size:9px;color:var(--gold)">＋ Add a contact (promoter, venue, anyone)</div>
+    <div class="fl">Name</div><input id="cName" placeholder="e.g. Klaus Pfeiffer"/>
+    <div class="frow">
+      <div><div class="fl">WhatsApp number</div><input id="cPhone" placeholder="+49 170 …"/></div>
+      <div><div class="fl">Email</div><input id="cEmail" placeholder="name@club.de"/></div>
+    </div>
+    <div class="fl">Role</div>
+    <select id="cRole"><option value="promoter">Promoter</option><option value="booker">Venue booker</option><option value="club_manager">Club manager</option><option value="dj">DJ</option><option value="other">Other</option></select>
+    <div class="fl">Note (optional)</div><input id="cNote" placeholder="e.g. books Pracht, met at Terrasse gig"/>
+    <button type="button" id="cAdd">Add to CRM →</button>
+    <p class="fok" id="cOk">✓ Added — the follow-up loop has it from here</p>
+    <p class="sub">Promoters & bookers automatically get a follow-up task. Easiest: forward whole WhatsApp threads to the "WW CRM Log" group — we extract the rest.</p>
+  </div>
+
+  <h2>WE'RE WORKING ON <span class="cnt" id="wWorkCnt"></span></h2>
+  <div id="wWork"></div>
+
+  <h2>COMPLETED</h2>
+  <div class="card" id="wDone" style="padding:6px 16px"></div>
 
   <h2>LATEST MOVEMENT</h2>
   <div class="card" id="wMoves" style="padding:6px 16px"></div>
@@ -266,6 +360,7 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 
 <script>
 const EP = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/crm-dashboard';
+const EP_UPDATE = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/crm-update';
 const SK = 'wwAdminKey', SR = 'wwAdminRole';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -296,7 +391,7 @@ const dayOf = d => String(d || '').slice(0, 10);
 let KEY = localStorage.getItem(SK) || '';
 let ROLE = localStorage.getItem(SR) || '';
 let DATA = null;
-let teamView = 'ops'; // team can toggle: 'ops' | 'client'
+let teamView = 'ops';
 
 async function load(){
   $('gateErr').style.display = 'none';
@@ -335,6 +430,33 @@ function showView(v){
   if(isW) renderWarren(DATA); else render(DATA);
 }
 
+/* ── write path: one helper for every board action ── */
+async function post(body){
+  const r = await fetch(EP_UPDATE, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': KEY }, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({ ok:false, error:'bad response' }));
+  if(!d.ok) throw new Error(d.error || 'failed');
+  return d;
+}
+async function act(body, btn){
+  if(btn){ btn.disabled = true; btn.textContent = '…'; }
+  try{ await post(body); await load(); return true; }
+  catch(e){ if(btn){ btn.disabled = false; btn.textContent = 'Error — tap to retry'; } return false; }
+}
+
+/* ── shared board renderers ── */
+function cmtHtml(x){
+  return x.warren_comment ? `<div class="brd-cmt"><b>Warren</b>${esc(x.warren_comment)}</div>` : '';
+}
+function replyHtml(id){
+  return `<div class="brd-reply" id="rp-${id}"><textarea rows="2" placeholder="Your comment…"></textarea>
+    <div class="brd-actions"><button class="bbtn gold" data-sendc="${id}">Send</button><button class="bbtn" data-cancelr="${id}">Cancel</button></div></div>`;
+}
+function stChip(x){
+  const m = { open:'open', in_progress:'in progress', done:'done', approved:'approved', declined:'declined' };
+  const cls = x.status === 'in_progress' ? 'prog' : x.status;
+  return `<span class="st ${cls}">${m[x.status] || x.status}</span>`;
+}
+
 /* ═══════════ OPS VIEW (Lutho) ═══════════ */
 function render(d){
   const c = d.counts || {}, p = c.pipeline || {};
@@ -342,18 +464,58 @@ function render(d){
   const todayISO = new Date().toISOString().slice(0,10);
   const revenue = (d.gigs || []).reduce((s, x) => s + ((x.deposit_received || dayOf(x.date) < todayISO) ? (+x.fee || 0) : 0), 0);
   const pv = (d.pipeline || []).reduce((s, o) => s + (['played','rebook','lost'].includes(o.stage) ? 0 : (+o.fee_quote || 0)), 0);
+  const board = d.board || [];
+  const openBoard = board.filter(x => x.status === 'open' || x.status === 'in_progress');
   $('kpis').innerHTML = [
     { n: c.followups_due ?? 0, l: 'Follow-ups due', cls: (c.followups_due|0) > 0 ? 'alert' : '' },
     { n: active, l: 'Active opportunities', cls: active > 0 ? 'hot' : '' },
     { n: '€' + revenue.toLocaleString('en-GB'), l: 'Revenue made', cls: revenue > 0 ? 'hot' : '' },
     { n: '€' + pv.toLocaleString('en-GB'), l: 'Pipeline value' },
+    { n: openBoard.length, l: 'Open board items', cls: openBoard.length > 0 ? 'hot' : '' },
     { n: c.booking_leads ?? 0, l: 'Booking leads' },
     { n: c.whatsapp_contacts ?? 0, l: 'WhatsApp contacts' },
-    { n: c.inner_circle ?? 0, l: 'Inner circle' },
     { n: c.gigs_upcoming ?? 0, l: 'Upcoming gigs', cls: 'hot' },
     { n: c.venues_total ?? 0, l: 'Venues in CRM' },
     { n: c.contacts_total ?? 0, l: 'Contacts total' },
   ].map(k => `<div class="kpi ${k.cls}"><div class="n">${k.n}</div><div class="l">${k.l}</div></div>`).join('');
+
+  /* client board (ops manager) */
+  const groups = [
+    ['approval', 'APPROVALS — Warren decides'],
+    ['ask', 'ASKS — we need from Warren'],
+    ['work', 'WORK — we\'re on it'],
+  ];
+  let html = '';
+  groups.forEach(([kind, label]) => {
+    const open = board.filter(x => x.kind === kind && (x.status === 'open' || x.status === 'in_progress'));
+    html += `<div class="cbh">${label} · ${open.length}</div>`;
+    html += open.length ? open.map(x => `<div class="card">
+      <div class="row"><div class="brd-title">${esc(x.title)}</div><div class="acts">${x.price ? `<span class="brd-price">${esc(x.price)}</span>` : ''}${stChip(x)}</div></div>
+      ${x.details ? `<div class="brd-det">${esc(x.details)}</div>` : ''}
+      ${cmtHtml(x)}
+      <div class="brd-actions">
+        ${x.kind === 'work' && x.status === 'open' ? `<button class="bbtn" data-start="${x.id}">Start →</button>` : ''}
+        ${x.kind === 'work' ? `<button class="bbtn green" data-complete="${x.id}">Complete ✓</button>` : ''}
+        <button class="bbtn" data-edit="${x.id}">✎ Edit</button>
+        <button class="bbtn red" data-del="${x.id}">✕</button>
+      </div>
+      <div class="brd-edit" id="be-${x.id}">
+        <input id="bet-${x.id}" value="${esc(x.title)}"/>
+        <input id="bed-${x.id}" value="${esc(x.details || '')}" placeholder="Details"/>
+        <input id="bep-${x.id}" value="${esc(x.price || '')}" placeholder="Price (optional)"/>
+        <div class="brd-actions" style="margin-top:2px"><button class="bbtn gold" data-save="${x.id}">Save</button><button class="bbtn" data-cancele="${x.id}">Cancel</button></div>
+      </div>
+    </div>`).join('') : '<p class="empty" style="padding:8px 2px">—</p>';
+  });
+  const done = board.filter(x => ['done','approved','declined'].includes(x.status))
+    .sort((a, b) => String(b.done_at || '').localeCompare(String(a.done_at || ''))).slice(0, 10);
+  html += `<div class="cbh">COMPLETED · ${done.length}</div>`;
+  html += done.length ? done.map(x => `<div class="card"><div class="row">
+    <div class="brd-title" style="opacity:.65">${esc(x.title)}</div>
+    <div class="acts">${stChip(x)}<span class="chip">${fmtD(x.done_at)}</span><button class="bbtn" data-reopen="${x.id}">Reopen</button></div>
+  </div>${cmtHtml(x)}</div>`).join('') : '<p class="empty" style="padding:8px 2px">Nothing completed yet.</p>';
+  $('cbLists').innerHTML = html;
+  $('cbCnt').textContent = openBoard.length + ' open · ' + done.length + ' done';
 
   /* follow-up queue */
   const fq = d.followup_queue || [];
@@ -413,7 +575,7 @@ function render(d){
   $('waCnt').textContent = waList.length;
   $('whatsapp').innerHTML = waList.length ? waList.map(x => `<div class="card"><div class="row">
     <span class="chip wa">WA</span>
-    <div><div class="who">${esc(x.name)}</div><div class="sub">${esc(x.role || '')} · ${esc(x.status || '')}${todo(x.phone_whatsapp) ? ' · ⚠ number needed' : ''}</div></div>
+    <div><div class="who">${esc(x.name)}</div><div class="sub">${esc(x.role || '')} · ${esc(x.status || '')}${todo(x.phone_whatsapp) ? ' · ⚠ number needed' : ''}${x.source === 'warren-dashboard' ? ' · added by Warren' : ''}</div></div>
     ${contactActs(x)}
   </div></div>`).join('') : '<p class="empty">No WhatsApp contacts yet.</p>';
 
@@ -426,7 +588,7 @@ function render(d){
     ${contactActs(x)}
   </div></div>`).join('') : '<p class="empty">No inner-circle contacts yet.</p>';
 
-  /* gigs — function returns the full year; upcoming section filters forward */
+  /* gigs */
   const gAll = d.gigs || [];
   const g = gAll.filter(x => dayOf(x.date) >= todayISO);
   const playedCount = gAll.length - g.length;
@@ -443,7 +605,7 @@ function render(d){
   /* interactions */
   const ia = d.interactions || [];
   $('interactions').innerHTML = ia.length ? ia.map(x => `<div class="card"><div class="row">
-    <span class="chip ${x.channel === 'whatsapp' ? 'wa' : ''}">${esc(x.channel || '—')}</span>
+    <span class="chip ${x.channel === 'whatsapp' ? 'wa' : x.channel === 'dashboard' ? 'gold' : ''}">${esc(x.channel || '—')}</span>
     <div><div class="who">${esc((x.contacts || {}).name || '—')} <span class="sub">${esc(x.direction || '')}</span></div>
     <div class="sub">${esc(x.summary || '')}</div></div>
     <div class="acts"><span class="chip">${fmtDT(x.created_at)}</span></div>
@@ -461,6 +623,7 @@ function renderWarren(d){
   const revenue = gigs.reduce((s, x) => s + ((x.deposit_received || dayOf(x.date) < todayISO) ? (+x.fee || 0) : 0), 0);
   const active = (p.new||0)+(p.contacted||0)+(p.replied||0)+(p.negotiating||0)+(p.confirmed||0);
   const next = upcoming[0] || null;
+  const board = d.board || [];
 
   $('wGen').textContent = 'updated ' + fmtDT(d.generated_at);
   $('wStats').innerHTML = [
@@ -483,28 +646,49 @@ function renderWarren(d){
       <div class="r">${x.fee ? `<div class="fee">€${esc(x.fee)}</div>` : ''}<span class="chip ${x.deposit_received ? 'wa' : 'red'}">${x.deposit_received ? 'deposit ✓' : 'deposit open'}</span></div>
     </div>`;
   }).join('') + (played.length ? `<p class="empty">+ ${played.length} played this year · €${earned.toLocaleString('en-GB')} earned</p>` : '')
-    : '<p class="empty">No confirmed dates yet — the booking engine is on it.<br/>Your next gigs land here first.</p>';
+    : '<p class="empty">No confirmed dates yet — add your first one below.</p>';
 
-  /* this week's work */
-  const in7 = Date.now() + 7 * 86400000;
-  const fq = (d.followup_queue || []).filter(s => new Date(s.due_at).getTime() <= in7);
-  $('wFqCnt').textContent = fq.length ? fq.length + ' this week' : 'all clear';
-  $('wTasks').innerHTML = fq.length ? fq.slice(0, 8).map(s => {
-    const ct = s.contacts || {};
-    const ch = s.channel === 'whatsapp' ? 'WhatsApp' : 'Email';
-    return `<div class="wtask"><span class="d">${fmtD(s.due_at)}</span><span class="t">${ch} follow-up with <b>${esc(ct.name || '—')}</b></span></div>`;
-  }).join('') : '<p class="empty">This week is clear — new outreach starts Monday.</p>';
+  /* approvals — his call */
+  const appr = board.filter(x => x.kind === 'approval' && x.status === 'open');
+  $('wApprCnt').textContent = appr.length ? appr.length + ' waiting on you' : 'all decided';
+  $('wApprovals').innerHTML = appr.length ? appr.map(x => `<div class="card">
+    <div class="row"><div class="brd-title">${esc(x.title)}</div><div class="acts">${x.price ? `<span class="brd-price">${esc(x.price)}</span>` : ''}</div></div>
+    ${x.details ? `<div class="brd-det">${esc(x.details)}</div>` : ''}
+    ${cmtHtml(x)}
+    <div class="brd-actions">
+      <button class="bbtn gold" data-appr="${x.id}">Approve ✓</button>
+      <button class="bbtn red" data-decl="${x.id}">Decline</button>
+      <button class="bbtn" data-reply="${x.id}">Reply</button>
+    </div>${replyHtml(x.id)}
+  </div>`).join('') : '<p class="empty">Nothing waiting — every purchase decision is made. ✓</p>';
 
   /* asks */
-  const asks = [];
-  (d.contacts || []).forEach(x => {
-    if(!['promoter','booker','manager'].includes(x.role)) return;
-    if(todo(x.phone_whatsapp) && (x.preferred_channel === 'whatsapp' || todo(x.email))) asks.push(`<b>${esc(x.name)}</b> — send us their number`);
-    else if(todo(x.email) && x.preferred_channel !== 'whatsapp') asks.push(`<b>${esc(x.name)}</b> — send us their email`);
-  });
-  $('wAsks').innerHTML = asks.length
-    ? asks.slice(0, 6).map(a => `<div class="wask">${a}</div>`).join('') + '<p class="empty">Send on WhatsApp to Lutho — 30 seconds, done.</p>'
-    : '<p class="empty">Nothing right now — you\'re all caught up. ✓</p>';
+  const asks = board.filter(x => x.kind === 'ask' && x.status === 'open');
+  $('wAskCnt').textContent = asks.length ? asks.length + ' open' : 'all clear';
+  $('wAsks').innerHTML = asks.length ? asks.map(x => `<div class="card">
+    <div class="brd-title">${esc(x.title)}</div>
+    ${x.details ? `<div class="brd-det">${esc(x.details)}</div>` : ''}
+    ${cmtHtml(x)}
+    <div class="brd-actions">
+      <button class="bbtn green" data-done="${x.id}">Done ✓</button>
+      <button class="bbtn" data-reply="${x.id}">Reply</button>
+    </div>${replyHtml(x.id)}
+  </div>`).join('') : '<p class="empty">Nothing right now — you\'re all caught up. ✓</p>';
+
+  /* work in progress */
+  const work = board.filter(x => x.kind === 'work' && (x.status === 'open' || x.status === 'in_progress'));
+  $('wWorkCnt').textContent = work.length + ' active';
+  $('wWork').innerHTML = work.length ? work.map(x => `<div class="card"><div class="row">
+    <div class="brd-title">${esc(x.title)}</div><div class="acts">${stChip(x)}</div></div>
+    ${x.details ? `<div class="brd-det">${esc(x.details)}</div>` : ''}${cmtHtml(x)}
+  </div>`).join('') : '<p class="empty">Quiet — new work lands here.</p>';
+
+  /* completed */
+  const done = board.filter(x => ['done','approved','declined'].includes(x.status))
+    .sort((a, b) => String(b.done_at || '').localeCompare(String(a.done_at || ''))).slice(0, 8);
+  $('wDone').innerHTML = done.length ? done.map(x =>
+    `<div class="wtask"><span class="d">${fmtD(x.done_at)}</span><span class="t"><b>${esc(x.title)}</b> ${x.status === 'approved' ? '· approved ✓' : x.status === 'declined' ? '· declined' : '· done ✓'}${x.warren_comment ? `<br/><span style="color:var(--ink2)">"${esc(x.warren_comment)}"</span>` : ''}</span></div>`
+  ).join('') : '<p class="empty">Nothing completed yet — it starts filling up this week.</p>';
 
   /* latest movement */
   const mv = (d.interactions || []).slice(0, 5);
@@ -512,6 +696,66 @@ function renderWarren(d){
     `<div class="wtask"><span class="d">${fmtD(x.created_at)}</span><span class="t"><b>${esc((x.contacts || {}).name || '—')}</b> · ${esc(x.summary || '')}</span></div>`
   ).join('') : '<p class="empty">Quiet week — the engine keeps running.</p>';
 }
+
+/* ═══════════ events ═══════════ */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele]');
+  if(!t) return;
+  const a = t.dataset;
+  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele;
+  if(a.appr) return act({ action:'approve', id }, t);
+  if(a.decl) return act({ action:'decline', id }, t);
+  if(a.done) return act({ action:'ask_done', id }, t);
+  if(a.reply){ const el = $('rp-' + id); if(el) el.classList.toggle('open'); return; }
+  if(a.cancelr){ const el = $('rp-' + id); if(el) el.classList.remove('open'); return; }
+  if(a.sendc){
+    const ta = $('rp-' + id) && $('rp-' + id).querySelector('textarea');
+    const comment = ta ? ta.value.trim() : '';
+    if(!comment) return;
+    return act({ action:'comment', id, comment }, t);
+  }
+  if(a.start) return act({ action:'update', id, status:'in_progress' }, t);
+  if(a.complete) return act({ action:'update', id, status:'done' }, t);
+  if(a.reopen) return act({ action:'update', id, status:'open' }, t);
+  if(a.del){ if(confirm('Remove this board item?')) return act({ action:'remove', id }, t); return; }
+  if(a.edit){ const el = $('be-' + id); if(el) el.classList.toggle('open'); return; }
+  if(a.cancele){ const el = $('be-' + id); if(el) el.classList.remove('open'); return; }
+  if(a.save){
+    return act({ action:'update', id,
+      title: $('bet-' + id).value.trim(),
+      details: $('bed-' + id).value.trim(),
+      price: $('bep-' + id).value.trim() }, t);
+  }
+});
+
+/* ops: new board item */
+$('nbAdd').addEventListener('click', () => {
+  const title = $('nbTitle').value.trim();
+  if(!title){ $('nbTitle').focus(); return; }
+  act({ action:'create', kind: $('nbKind').value, title,
+        details: $('nbDetails').value.trim(), price: $('nbPrice').value.trim() }, $('nbAdd'))
+    .then(ok => { if(!ok) return; $('nbTitle').value = ''; $('nbDetails').value = ''; $('nbPrice').value = ''; });
+});
+
+/* warren: add gig */
+$('gAdd').addEventListener('click', () => {
+  const date = $('gDate').value, venue = $('gVenue').value.trim();
+  if(!date || !venue){ (!date ? $('gDate') : $('gVenue')).focus(); return; }
+  act({ action:'add_gig', date, venue_name: venue, city: $('gCity').value.trim(),
+        fee: $('gFee').value, set_length: $('gSet').value.trim() }, $('gAdd'))
+    .then(ok => { if(!ok) return; $('gOk').style.display = 'block'; $('gDate').value = ''; $('gVenue').value = ''; $('gCity').value = ''; $('gFee').value = ''; $('gSet').value = '';
+                  setTimeout(() => { $('gOk').style.display = 'none'; }, 5000); });
+});
+
+/* warren: add contact */
+$('cAdd').addEventListener('click', () => {
+  const name = $('cName').value.trim();
+  if(!name){ $('cName').focus(); return; }
+  act({ action:'add_contact', name, phone_whatsapp: $('cPhone').value.trim(),
+        email: $('cEmail').value.trim(), role: $('cRole').value, note: $('cNote').value.trim() }, $('cAdd'))
+    .then(ok => { if(!ok) return; $('cOk').style.display = 'block'; $('cName').value = ''; $('cPhone').value = ''; $('cEmail').value = ''; $('cNote').value = '';
+                  setTimeout(() => { $('cOk').style.display = 'none'; }, 5000); });
+});
 
 /* gate + topbar events */
 $('gateForm').addEventListener('submit', e => {
