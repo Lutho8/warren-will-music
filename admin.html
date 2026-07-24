@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#f7f4ee"/>
 <meta name="robots" content="noindex,nofollow"/>
+<link rel="manifest" href="/admin.webmanifest"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="WW CRM"/>
+<link rel="apple-touch-icon" href="/assets/pwa/icon-180.png"/>
 <title>Warren Will — Admin · Booking CRM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -771,6 +777,25 @@ $('btnLogout').addEventListener('click', () => { localStorage.removeItem(SK); lo
 
 /* auto-login if key stored */
 if(KEY){ load(); }
+
+/* PWA: register service worker (shell cache only — CRM data is never cached) */
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw-admin.js').catch(() => {}); }
+
+/* iPhone hint: show "Add to Home Screen" tip on the login gate until installed */
+(function(){
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone = window.navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  if(ios && !standalone && !localStorage.getItem('wwA2hsDismissed')){
+    const gate = document.querySelector('#gateForm');
+    if(gate){
+      const tip = document.createElement('p');
+      tip.style.cssText = 'margin-top:14px;font-size:12px;line-height:1.5;color:var(--ink2,#4a443a)';
+      tip.innerHTML = '📲 <b>Als App nutzen:</b> In Safari auf <b>Teilen</b> → <b>Zum Home-Bildschirm</b> — dann liegt das CRM als Icon auf deinem Handy. <a href="#" id="a2hsX" style="text-decoration:underline">Ausblenden</a>';
+      gate.appendChild(tip);
+      tip.querySelector('#a2hsX').addEventListener('click', e => { e.preventDefault(); localStorage.setItem('wwA2hsDismissed','1'); tip.remove(); });
+    }
+  }
+})();
 </script>
 </body>
 </html>
