@@ -661,7 +661,10 @@ function render(d){
   $('invoices').innerHTML = inv.length ? inv.map(x => {
     const acts = [];
     acts.push(`<button class="bbtn" data-invpdf="${x.id}" data-invno="${esc(x.invoice_number)}">PDF</button>`);
-    if(x.status === 'draft') acts.push(`<button class="bbtn gold" data-invsent="${x.id}">Mark sent</button>`);
+    if(x.status === 'draft'){
+      acts.push(`<button class="bbtn gold" data-invemail="${x.id}">✉ Senden</button>`);
+      acts.push(`<button class="bbtn" data-invsent="${x.id}" title="ohne E-Mail, z. B. persönlich übergeben">nur als gesendet markieren</button>`);
+    }
     if(x.status === 'sent') acts.push(`<button class="bbtn green" data-invpaid="${x.id}">Mark paid</button>`);
     if(x.status === 'sent' || x.status === 'paid') acts.push(`<button class="bbtn red" data-invstorno="${x.id}">Storno</button>`);
     return `<div class="card"><div class="row">
@@ -788,11 +791,35 @@ function renderWarren(d){
 
 /* ═══════════ events ═══════════ */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele],[data-invsent],[data-invpaid],[data-invstorno],[data-invpdf],[data-invform],[data-invcreate],[data-invcancel]');
+  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele],[data-invsent],[data-invpaid],[data-invstorno],[data-invpdf],[data-invemail],[data-invform],[data-invcreate],[data-invcancel]');
   if(!t) return;
   const a = t.dataset;
-  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele || a.invsent || a.invpaid || a.invstorno || a.invpdf || a.invform || a.invcreate || a.invcancel;
+  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele || a.invsent || a.invpaid || a.invstorno || a.invpdf || a.invemail || a.invform || a.invcreate || a.invcancel;
   /* ── invoice actions (team) ── */
+  if(a.invemail){
+    return (async () => {
+      t.disabled = true; t.textContent = '…';
+      try{
+        const r = await fetch(EP_UPDATE, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': KEY }, body: JSON.stringify({ action:'send_invoice_email', invoice_id:id }) });
+        const d = await r.json().catch(() => ({}));
+        if(r.ok && d.ok){
+          t.textContent = 'Gesendet ✓';
+          if(d.to) t.title = 'an ' + d.to;
+          setTimeout(load, 1800);
+          return;
+        }
+        if(r.ok && d.error === 'email_not_configured' && d.mailto){
+          window.location.href = d.mailto;
+          t.disabled = false; t.textContent = '✉ Senden';
+          if(confirm('E-Mail-Entwurf wurde in deinem Mailprogramm geöffnet (Resend ist noch nicht eingerichtet).\n\nBitte das Rechnungs-PDF über den PDF-Button manuell anhängen.\n\nRechnung jetzt als gesendet markieren?')){
+            return act({ action:'update_invoice_status', invoice_id:id, status:'sent' }, t);
+          }
+          return;
+        }
+        throw new Error(d.error || ('http ' + r.status));
+      }catch(_){ t.disabled = false; t.textContent = 'Error — retry'; }
+    })();
+  }
   if(a.invpdf){
     return (async () => {
       t.disabled = true; t.textContent = '…';
