@@ -396,6 +396,7 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 <script>
 const EP = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/crm-dashboard';
 const EP_UPDATE = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/crm-update';
+const EP_PDF = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/invoice-pdf';
 const SK = 'wwAdminKey', SR = 'wwAdminRole';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -659,6 +660,7 @@ function render(d){
   $('invCnt').textContent = inv.length ? inv.length + ' total' : '';
   $('invoices').innerHTML = inv.length ? inv.map(x => {
     const acts = [];
+    acts.push(`<button class="bbtn" data-invpdf="${x.id}" data-invno="${esc(x.invoice_number)}">PDF</button>`);
     if(x.status === 'draft') acts.push(`<button class="bbtn gold" data-invsent="${x.id}">Mark sent</button>`);
     if(x.status === 'sent') acts.push(`<button class="bbtn green" data-invpaid="${x.id}">Mark paid</button>`);
     if(x.status === 'sent' || x.status === 'paid') acts.push(`<button class="bbtn red" data-invstorno="${x.id}">Storno</button>`);
@@ -786,11 +788,27 @@ function renderWarren(d){
 
 /* ═══════════ events ═══════════ */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele],[data-invsent],[data-invpaid],[data-invstorno],[data-invform],[data-invcreate],[data-invcancel]');
+  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele],[data-invsent],[data-invpaid],[data-invstorno],[data-invpdf],[data-invform],[data-invcreate],[data-invcancel]');
   if(!t) return;
   const a = t.dataset;
-  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele || a.invsent || a.invpaid || a.invstorno || a.invform || a.invcreate || a.invcancel;
+  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele || a.invsent || a.invpaid || a.invstorno || a.invpdf || a.invform || a.invcreate || a.invcancel;
   /* ── invoice actions (team) ── */
+  if(a.invpdf){
+    return (async () => {
+      t.disabled = true; t.textContent = '…';
+      try{
+        const r = await fetch(EP_PDF, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': KEY }, body: JSON.stringify({ invoice_id:id }) });
+        if(!r.ok) throw new Error('pdf ' + r.status);
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = (a.invno || 'invoice') + '.pdf';
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        t.disabled = false; t.textContent = 'PDF';
+      }catch(_){ t.disabled = false; t.textContent = 'Error — retry'; }
+    })();
+  }
   if(a.invsent) return act({ action:'update_invoice_status', invoice_id:id, status:'sent' }, t);
   if(a.invpaid) return act({ action:'update_invoice_status', invoice_id:id, status:'paid' }, t);
   if(a.invstorno){ if(confirm('Storno this invoice? A negative Storno document is created (GoBD) — this cannot be undone.')) return act({ action:'storno_invoice', invoice_id:id }, t); return; }
