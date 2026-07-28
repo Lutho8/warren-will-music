@@ -104,6 +104,7 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 .act.wa{border-color:#2ea84f;color:var(--green)}
 .act.wa:hover{background:var(--green);color:#fff}
 .meta{font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.08em;margin-top:8px;line-height:1.8}
+.sentline{display:block;font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.1em;text-transform:uppercase;margin-top:8px}
 .due{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase}
 .due.over{color:var(--red);font-weight:700}
 .due.soon{color:var(--gold)}
@@ -403,6 +404,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const digits = s => String(s ?? '').replace(/\D/g, '');
 const todo = s => !s || /TODO/i.test(String(s));
 const fmtD = d => { if(!d) return '—'; const t = new Date(d); return isNaN(t) ? '—' : t.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }); };
+const fmtDE = d => { if(!d) return ''; const t = new Date(d); return isNaN(t) ? '' : t.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' }); };
 const fmtDT = d => { if(!d) return '—'; const t = new Date(d); return isNaN(t) ? '—' : t.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) + ' ' + t.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }); };
 function dueMeta(due){
   if(!due) return { cls:'', label:'no date' };
@@ -673,7 +675,7 @@ function render(d){
       <div><div class="who">${esc(x.contact_name || x.recipient_name || '—')}</div>
       <div class="sub">${esc(x.issue_date || '')}${x.venue_name ? ' · ' + esc(x.venue_name) : ''}</div></div>
       <div class="acts"><span class="brd-price">${eurC(x.gross_cents)}</span><span class="st ${INV_ST_CLS[x.status] || ''}">${esc(x.status)}</span></div>
-    </div>${acts.length ? `<div class="brd-actions">${acts.join('')}</div>` : ''}</div>`;
+    </div>${acts.length ? `<div class="brd-actions">${acts.join('')}</div>` : ''}${x.sent_at ? `<span class="sentline">Versendet: ${fmtDE(x.sent_at)} → ${esc(x.sent_to || '')}</span>` : ''}</div>`;
   }).join('') : '<p class="empty">No invoices yet — create one from a gig above (Rechnung button).</p>';
 
   /* business settings form */
@@ -737,7 +739,7 @@ function renderWarren(d){
   const wInv = d.invoices || [];
   $('wInvCnt').textContent = wInv.length ? wInv.length : '';
   $('wInvoices').innerHTML = wInv.length ? wInv.map(x =>
-    `<div class="wtask"><span class="d">${fmtD(x.issue_date)}</span><span class="t"><b>${esc(x.invoice_number)}</b> · ${eurC(x.gross_cents)} <span class="st ${INV_ST_CLS[x.status] || ''}" style="margin-left:6px">${INV_ST_DE[x.status] || esc(x.status)}</span></span></div>`
+    `<div class="wtask"><span class="d">${fmtD(x.issue_date)}</span><span class="t"><b>${esc(x.invoice_number)}</b> · ${eurC(x.gross_cents)} <span class="st ${INV_ST_CLS[x.status] || ''}" style="margin-left:6px">${INV_ST_DE[x.status] || esc(x.status)}</span>${x.sent_at ? `<span class="sentline">Versendet am ${fmtDE(x.sent_at)} → ${esc(x.sent_to || '')}</span>` : ''}</span></div>`
   ).join('') : '<p class="empty">Noch keine Rechnungen.</p>';
 
   /* approvals — his call */
