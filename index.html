@@ -89,19 +89,19 @@
       #hbg{display:block}
     }
 
-    /* ── HERO ─────────────────────────────── */
-    #hero{position:relative;min-height:100svh;display:flex;align-items:flex-end;overflow:hidden;background:var(--black)}
-    .hero-media,.hero-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    /* ── HERO — full-screen video, centered menu (reference: realblackcoffee.net) ── */
+    #hero{position:relative;min-height:100svh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--black)}
+    .hero-media,.hero-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center}
     .hero-media{background:#050505 url('assets/hero-poster.jpg') center/cover no-repeat}
     .hero-media video{z-index:1}
     .hero-media::after{content:'';position:absolute;inset:0;z-index:2;
-      background:linear-gradient(180deg,rgba(5,5,5,.45) 0%,rgba(5,5,5,.25) 40%,rgba(5,5,5,.82) 100%)}
-    .hero-inner{position:relative;z-index:3;width:100%;padding:0 28px 42px;max-width:1400px;margin:0 auto}
-    .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
-    h1{font-family:var(--bebas);font-weight:400;font-size:clamp(56px,12.5vw,168px);line-height:.9;letter-spacing:.015em;margin:10px 0 8px;white-space:nowrap}
-    h1 em{color:var(--gold);font-style:normal}
-    .hero-sub{max-width:400px;color:#ddd8cf;font-size:14px;line-height:1.5;margin-bottom:26px;border-left:2px solid var(--gold);padding-left:14px}
-    .hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+      background:radial-gradient(ellipse at center,rgba(5,5,5,.26) 0%,rgba(5,5,5,.5) 62%,rgba(5,5,5,.8) 100%)}
+    .hero-menu{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:4px;padding:88px 24px 40px;text-align:center}
+    .hero-menu a.hm{font-family:var(--bebas);font-weight:400;font-size:clamp(38px,7.2vw,72px);line-height:1.05;letter-spacing:.14em;
+      text-transform:uppercase;color:rgba(242,239,233,.94);text-shadow:0 2px 22px rgba(0,0,0,.6);transition:color .25s,letter-spacing .25s}
+    .hero-menu a.hm:hover{color:var(--gold);letter-spacing:.22em}
+    .hero-menu .hero-book{margin-top:30px}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
     .btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;
       text-transform:uppercase;padding:15px 26px;cursor:pointer;border:1px solid var(--gold);transition:.25s}
     .btn-gold{background:var(--gold);color:#000}
@@ -109,28 +109,16 @@
     .btn-ghost{background:transparent;color:var(--text);border-color:#444}
     .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
     .btn svg{width:14px;height:14px;fill:currentColor}
-    .hero-meta{position:absolute;right:28px;bottom:42px;z-index:3;text-align:right;font-family:var(--mono);
-      font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.55);text-transform:uppercase;line-height:2}
-    @media(max-width:700px){.hero-meta{display:none}}
-    .scroll-cue{display:none}
-    @keyframes cue{0%{opacity:0}30%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(8px)}}
 
     /* ── beat pulse CTA — 122 BPM, every 2 beats ── */
     .btn-gold.pulse{animation:beat .984s infinite}
     @keyframes beat{0%,100%{box-shadow:0 0 0 0 rgba(200,169,110,.42)}50%{box-shadow:0 0 0 13px rgba(200,169,110,0)}}
 
-    /* ── hero ticker ── */
-    .ticker{position:absolute;left:0;right:0;bottom:0;z-index:4;border-top:1px solid var(--line);
-      background:rgba(5,5,5,.5);backdrop-filter:blur(8px);overflow:hidden;padding:9px 0}
-    .ticker-track{display:inline-block;white-space:nowrap;font-family:var(--mono);font-size:9px;
-      letter-spacing:.26em;text-transform:uppercase;color:var(--muted);animation:tick 30s linear infinite}
-    .ticker-track b{color:var(--gold);font-weight:400}
-    @keyframes tick{from{transform:none}to{transform:translateX(-50%)}}
-
     /* ── SECTIONS ─────────────────────────── */
     section{padding:88px 28px;max-width:1400px;margin:0 auto}
     .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:44px;border-bottom:1px solid var(--line);padding-bottom:18px}
     .sec-tag{font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.2em}
+    .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
     h2{font-family:var(--bebas);font-weight:400;font-size:clamp(44px,7vw,88px);line-height:.95;letter-spacing:.02em}
     .sec-note{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase}
     @media(max-width:700px){.sec-note{display:none}}
@@ -293,11 +281,8 @@
     }
     @media(max-width:700px){
       section{padding:64px 20px}
-      .hero-inner{padding:0 20px 40px}
-      h1{font-size:clamp(40px,13vw,84px);letter-spacing:.01em}
-      .hero-sub{font-size:14px}
-      .hero-cta{flex-direction:column;align-items:stretch}
-      .hero-cta .btn{justify-content:center;width:100%}
+      .hero-menu{gap:2px}
+      .hero-menu .hero-book{width:calc(100% - 40px);justify-content:center}
       .sec-head{flex-wrap:wrap;gap:10px;margin-bottom:34px}
       .fi{font-size:16px} /* stops iOS focus-zoom */
       .sc-embed iframe{height:300px}
@@ -317,7 +302,6 @@
     @media(prefers-reduced-motion:reduce){
       .reveal{opacity:1!important;transform:none!important}
       .btn-gold.pulse{animation:none}
-      .ticker-track{animation:none}
     }
   </style>
 </head>
@@ -350,22 +334,17 @@
       <source src="assets/hero-1080.mp4" type="video/mp4"/>
     </video>
   </div>
-  <div class="hero-inner">
-    <p class="eyebrow">// munich · tech house</p>
-    <h1>WARREN <em>WILL</em></h1>
-    <p class="hero-sub">Groovy, bass-driven Tech House — from Munich clubs to mountain dancefloors.</p>
-    <div class="hero-cta">
-      <a href="#booking" class="btn btn-gold pulse">Book Warren
-        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-      </a>
-      <a href="#music" class="btn btn-ghost">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        Play Vol2 — Berlin Techno
-      </a>
-    </div>
-  </div>
-  <div class="hero-meta">20+ tracks released<br>±50 gigs / year<br>munich · DACH · worldwide</div>
-  <div class="ticker" aria-hidden="true"><span class="ticker-track" id="mqTrack">TECH HOUSE <b>·</b> MUNICH <b>·</b> CLUBS <b>·</b> FESTIVALS <b>·</b> MOUNTAIN DANCEFLOORS <b>·</b> VOL2 — BERLIN TECHNO <b>·</b> BOOKINGS OPEN <b>·</b> </span></div>
+  <h1 class="sr-only">Warren Will — DJ &amp; Producer, Munich · groovy, bass-driven Tech House</h1>
+  <nav class="hero-menu" aria-label="Section menu">
+    <a class="hm" href="#tour">Tour</a>
+    <a class="hm" href="#music">Music</a>
+    <a class="hm" href="#booking">Booking</a>
+    <a class="hm" href="#community">Community</a>
+    <a class="hm" href="#contact">Contact</a>
+    <a href="#booking" class="btn btn-gold pulse hero-book">Book Warren
+      <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    </a>
+  </nav>
 </header>
 
 <main>
@@ -373,7 +352,6 @@
 <!-- ═══════════════ TOUR ═══════════════ -->
 <section id="tour" aria-labelledby="tour-h">
   <div class="sec-head">
-    <span class="sec-tag">// 01</span>
     <h2 id="tour-h">TOUR DATES</h2>
     <span class="sec-note">synced via bandsintown</span>
   </div>
@@ -437,7 +415,6 @@
 <!-- ═══════════════ MUSIC ═══════════════ -->
 <section id="music" aria-labelledby="music-h">
   <div class="sec-head">
-    <span class="sec-tag">// 02</span>
     <h2 id="music-h">THE SOUND</h2>
     <span class="sec-note">soundcloud · spotify · youtube</span>
   </div>
@@ -469,7 +446,6 @@
 <section id="booking" aria-labelledby="book-h">
   <div class="inner">
     <div class="sec-head">
-      <span class="sec-tag">// 03</span>
       <h2 id="book-h">BOOKINGS</h2>
       <span class="sec-note">clubs · festivals · private</span>
     </div>
@@ -555,7 +531,6 @@
 <!-- ═══════════════ COMMUNITY ═══════════════ -->
 <section id="community" aria-labelledby="comm-h">
   <div class="sec-head">
-    <span class="sec-tag">// 04</span>
     <h2 id="comm-h">INNER CIRCLE</h2>
     <span class="sec-note">music first · guestlist priority</span>
   </div>
@@ -586,7 +561,6 @@
 <!-- ═══════════════ ABOUT ═══════════════ -->
 <section id="about" aria-labelledby="about-h">
   <div class="sec-head">
-    <span class="sec-tag">// 05</span>
     <h2 id="about-h">THE ARTIST</h2>
   </div>
   <div class="about-grid">
@@ -606,7 +580,6 @@
 <!-- ═══════════════ CONTACT ═══════════════ -->
 <section id="contact" aria-labelledby="contact-h">
   <div class="sec-head">
-    <span class="sec-tag">// 06</span>
     <h2 id="contact-h">CONTACT</h2>
   </div>
   <div class="contact-wrap">
@@ -821,10 +794,6 @@ document.getElementById('nlForm').addEventListener('submit', async (e) => {
 const waBtn = document.getElementById('waFloat');
 window.addEventListener('scroll', () => waBtn.classList.toggle('show', window.scrollY > 500), { passive:true });
 
-/* ── HERO TICKER: seamless loop ─────────── */
-const mqTrack = document.getElementById('mqTrack');
-if(mqTrack) mqTrack.innerHTML += mqTrack.innerHTML;
-
 /* ── PACKAGE CTAs → preselect event type ── */
 document.querySelectorAll('.pkg-cta').forEach(a => a.addEventListener('click', () => {
   const sel = document.getElementById('bkType');
@@ -843,7 +812,7 @@ window.addEventListener('scroll', updateMCta, { passive:true });
 if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'
    && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
   gsap.registerPlugin(ScrollTrigger);
-  gsap.from('.hero-inner > *', { y:34, opacity:0, duration:1, stagger:.12, ease:'power3.out', delay:.25 });
+  gsap.from('.hero-menu > *', { y:34, opacity:0, duration:1, stagger:.12, ease:'power3.out', delay:.25 });
   document.querySelectorAll('section .sec-head, .pkg, .track-row, .comm-card, .about-grid, .bit-wrap, .book-split').forEach(el => {
     el.classList.add('reveal');
     gsap.to(el, { opacity:1, y:0, duration:.8, ease:'power2.out',
