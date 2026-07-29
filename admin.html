@@ -392,6 +392,14 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
   <h2>WE NEED FROM YOU <span class="cnt" id="wAskCnt"></span></h2>
   <div id="wAsks"></div>
 
+  <div class="wform" id="vcfImportCard" style="text-align:center;border:1px dashed var(--gold)">
+    <div class="fl" style="font-size:9px;color:var(--gold)">📇 NEUER KONTAKT PER VISITENKARTE</div>
+    <p class="sub" style="margin-bottom:4px">NameDrop oder Kontakte-Export (.vcf) — prüfen, einmal tippen, im CRM.</p>
+    <label class="vcf-btn" id="wVcfBtn" style="font-size:11px;padding:15px 14px;border-style:solid">📇 Visitenkarte importieren<input type="file" id="wVcf" accept=".vcf,.vcard,text/vcard,text/x-vcard"/></label>
+    <div id="wVcfList" style="text-align:left"></div>
+    <p class="vcf-msg" id="wVcfMsg"></p>
+  </div>
+
   <div class="wform" id="contactForm">
     <div class="fl" style="font-size:9px;color:var(--gold)">＋ Add a contact (promoter, venue, anyone)</div>
     <div class="fl">Name</div><input id="cName" placeholder="e.g. Klaus Pfeiffer"/>
@@ -1020,7 +1028,10 @@ $('cAdd').addEventListener('click', () => {
                   setTimeout(() => { $('cOk').style.display = 'none'; }, 5000); });
 });
 
-/* ── .vcf import: zero-dependency vCard parser → prefill for review ── */
+/* ── .vcf import: zero-dependency vCard parser (vCard 2.1 + 3.0, Apple quirks) ──
+   Handles: itemN.TEL/itemN.X-ABLabel prefixes, type=CELL/IPHONE priority over WORK/HOME,
+   PHOTO;ENCODING=b base64 (skipped before decode), quoted-printable UTF-8 umlauts,
+   RFC line folding + QP soft-breaks (= at EOL), multi-contact files. Returns an ARRAY. */
 function qpDecode(s){
   const bytes = [];
   for(let i = 0; i < s.length; i++){
@@ -1029,42 +1040,186 @@ function qpDecode(s){
   }
   try{ return new TextDecoder('utf-8').decode(new Uint8Array(bytes)); }catch(_){ return s; }
 }
+function guessRole(org, title){
+  const s = ((org || '') + ' ' + (title || '')).toLowerCase();
+  if(/book/.test(s)) return 'booker';
+  if(/manager|venue/.test(s)) return 'club_manager';
+  if(/club|event|promo/.test(s)) return 'promoter';
+  return 'other';
+}
 function parseVcf(text){
+  /* 1) unfold: RFC folding (leading space/tab) + QP soft-breaks (trailing = inside QP property) */
+  const raw = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   const lines = [];
-  text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').forEach(l => {
-    if(/^[ \t]/.test(l) && lines.length) lines[lines.length - 1] += l.slice(1); /* folded continuation */
-    else lines.push(l);
+  raw.forEach(l => {
+    const last = lines[lines.length - 1];
+    if(lines.length && /=$/.test(last) && /ENCODING=QUOTED-PRINTABLE/i.test(last)){
+      lines[lines.length - 1] = last.slice(0, -1) + l; return; /* QP soft-break (wins over RFC fold) */
+    }
+    if(/^[ \t]/.test(l) && lines.length){ lines[lines.length - 1] += l.slice(1); return; }
+    lines.push(l);
   });
-  const out = { fn:'', tel:'', email:'', org:'', title:'', note:'' };
+  /* 2) split into vCard blocks */
+  const cards = []; let cur = null;
   lines.forEach(l => {
-    const m = /^([A-Za-z-]+)((?:;[^:]*)?):(.*)$/.exec(l);
+    if(/^\s*BEGIN:VCARD/i.test(l)){ cur = []; return; }
+    if(/^\s*END:VCARD/i.test(l)){ if(cur) cards.push(cur); cur = null; return; }
+    if(cur) cur.push(l);
+  });
+  if(!cards.length && lines.some(l => /^FN[;:]/i.test(l))) cards.push(lines); /* loose single card */
+  /* 3) parse each card */
+  return cards.map(parseVcfCard).filter(c => c.fn || c.tel || c.email);
+}
+function parseVcfCard(lines){
+  const out = { fn:'', tel:'', email:'', org:'', title:'', note:'' };
+  const labels = {}, tels = [], emails = [];
+  let nName = '';
+  lines.forEach(l => {
+    const m = /^(?:item(\d+)\.)?([A-Za-z][A-Za-z0-9-]*)((?:;[^:]*)?):(.*)$/.exec(l);
     if(!m) return;
-    const name = m[1].toUpperCase(), params = m[2] || '';
-    let val = m[3].trim();
-    if(/ENCODING=QUOTED-PRINTABLE/i.test(params)) val = qpDecode(val);
+    const grp = m[1] || '', name = m[2].toUpperCase(), params = (m[3] || '').toUpperCase();
+    if(!/^(FN|N|TEL|EMAIL|ORG|TITLE|NOTE|X-ABLABEL)$/.test(name)) return; /* PHOTO/REV/PRODID/ADR/URL… skipped before any decode work */
+    if(name === 'X-ABLABEL'){ if(grp) labels[grp] = m[4]; return; }
+    let val = m[4].trim();
+    if(/ENCODING=QUOTED-PRINTABLE/.test(params)) val = qpDecode(val);
     else val = val.replace(/\\n/gi, '\n').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\');
     if(name === 'FN' && !out.fn) out.fn = val;
-    if(name === 'TEL' && !out.tel) out.tel = val;
-    if(name === 'EMAIL' && !out.email) out.email = val;
-    if(name === 'ORG' && !out.org) out.org = val.replace(/;.*$/, '');
-    if(name === 'TITLE' && !out.title) out.title = val;
-    if(name === 'NOTE' && !out.note) out.note = val;
+    else if(name === 'N' && !nName) nName = val;
+    else if(name === 'TEL') tels.push({ val, params, grp });
+    else if(name === 'EMAIL') emails.push({ val, pref: /PREF/.test(params) });
+    else if(name === 'ORG' && !out.org) out.org = val.split(';').map(x => x.trim()).filter(Boolean)[0] || '';
+    else if(name === 'TITLE' && !out.title) out.title = val;
+    else if(name === 'NOTE' && !out.note) out.note = val;
   });
+  if(!out.fn && nName){ const p = nName.split(';'); out.fn = ((p[1] || '') + ' ' + (p[0] || '')).trim(); }
+  /* mobile/cell/iPhone first (X-ABLabel-aware), then pref, then file order */
+  tels.forEach(t => {
+    t.score = (/(CELL|MOBILE|IPHONE)/.test(t.params) ? 3 : 0)
+      + (t.grp && /mobile|handy|cell|iphone/i.test(labels[t.grp] || '') ? 3 : 0)
+      + (/PREF/.test(t.params) ? 1 : 0);
+  });
+  tels.sort((a, b) => b.score - a.score);
+  if(tels.length) out.tel = tels[0].val;
+  emails.sort((a, b) => (b.pref ? 1 : 0) - (a.pref ? 1 : 0));
+  if(emails.length) out.email = emails[0].val;
   return out;
 }
+
+/* ── Warren: Visitenkarten-Import (NameDrop) — review card, dup guard, multi-select ── */
+const VCF_ROLES = [['promoter', 'Promoter'], ['booker', 'Booker (Club/Venue)'], ['club_manager', 'Club-Manager'], ['dj', 'DJ'], ['other', 'Sonstiges']];
+const vcfRoleOpts = sel => VCF_ROLES.map(([v, l]) => `<option value="${v}"${v === sel ? ' selected' : ''}>${l}</option>`).join('');
+const vcfStamp = () => { const d = new Date(); return '(NameDrop-Import ' + String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.)'; };
+const vcfDigits = s => String(s || '').replace(/\D/g, '');
+function vcfDup(c){
+  const cs = (DATA && DATA.contacts) || [];
+  const tel = vcfDigits(c.tel);
+  return cs.find(x => (tel && vcfDigits(x.phone_whatsapp) === tel) ||
+    (c.fn && String(x.name || '').trim().toLowerCase() === c.fn.trim().toLowerCase())) || null;
+}
+function vcfMsg(t){ const m = $('wVcfMsg'); m.textContent = t; m.style.display = 'block'; }
+function vcfDone(html){
+  $('wVcfList').innerHTML = `<p class="fok" style="display:block">${html}</p>
+    <button type="button" id="vAgain">📇 Weitere importieren</button>`;
+  $('vAgain').addEventListener('click', () => { $('wVcfList').innerHTML = ''; $('wVcfMsg').style.display = 'none'; $('wVcf').click(); });
+}
+function vcfNote(parts){ return parts.filter(Boolean).join(' · ').slice(0, 240); }
+async function vcfSave(cc, btn){
+  const note = vcfNote([cc.note, cc.org, cc.title, vcfStamp()]);
+  const ok = await act({ action:'add_contact', name: cc.fn, role: cc.role, phone_whatsapp: cc.tel, email: cc.email, note }, btn);
+  if(!ok) return false;
+  const fu = ['promoter', 'booker', 'club_manager'].includes(cc.role) ? ' — Follow-up angelegt' : '';
+  vcfDone('✓ ' + esc(cc.fn) + ' ist im CRM' + fu);
+  return true;
+}
+function vcfBindSingle(){
+  $('vSave').addEventListener('click', () => {
+    const cc = { fn: $('vName').value.trim(), tel: $('vTel').value.trim(), email: $('vMail').value.trim(),
+                 org: $('vOrg').value.trim(), note: $('vNote').value.trim(), title: '', role: $('vRole').value };
+    if(!cc.fn){ $('vName').focus(); return; }
+    const dup = vcfDup(cc);
+    if(dup && !$('vDup').dataset.ok){
+      $('vDup').innerHTML = `<p class="sub" style="color:var(--gold)">⚠ Existiert bereits: ${esc(dup.name)} — trotzdem speichern?</p>
+        <div class="frow"><button type="button" id="vDupSkip" style="background:var(--paper);color:var(--ink2);border-color:var(--line)">Überspringen</button><button type="button" id="vDupSave">Trotzdem speichern</button></div>`;
+      $('vDupSkip').addEventListener('click', () => vcfDone('— ' + esc(cc.fn) + ' übersprungen (existiert bereits).'));
+      $('vDupSave').addEventListener('click', () => { $('vDup').dataset.ok = '1'; $('vDup').innerHTML = ''; vcfSave(cc, $('vSave')); });
+      return;
+    }
+    vcfSave(cc, $('vSave'));
+  });
+}
+function vcfBindMulti(arr){
+  $('vSaveMulti').addEventListener('click', async () => {
+    const ticks = Array.from(document.querySelectorAll('.vTick')).filter(t => t.checked);
+    if(!ticks.length) return;
+    const btn = $('vSaveMulti'); btn.disabled = true;
+    let done = 0, failed = 0;
+    for(const t of ticks){
+      const c = arr[+t.dataset.i];
+      const label = (c.fn || c.tel || c.email || 'Unbekannt').trim();
+      btn.textContent = '… ' + (done + failed + 1) + '/' + ticks.length + ': ' + label;
+      const note = vcfNote([c.note, c.org, c.title, vcfStamp()]);
+      try{ await post({ action:'add_contact', name: label, role: guessRole(c.org, c.title), phone_whatsapp: c.tel, email: c.email, note }); done++; }
+      catch(e){ failed++; }
+    }
+    await load();
+    vcfDone('✓ ' + done + (done === 1 ? ' Kontakt ist' : ' Kontakte sind') + ' im CRM — Follow-ups angelegt' + (failed ? ' · ' + failed + ' fehlgeschlagen' : ''));
+  });
+}
+$('wVcf').addEventListener('change', async () => {
+  const f = $('wVcf').files && $('wVcf').files[0];
+  if(!f) return;
+  try{
+    const arr = parseVcf(await f.text());
+    if(!arr.length){ vcfMsg('Keine Kontakte in der Datei gefunden.'); return; }
+    if(arr.length === 1){
+      const c = arr[0];
+      $('wVcfList').innerHTML = `<div class="card" style="margin-top:10px">
+        <div class="fl">Name</div><input id="vName" value="${esc(c.fn)}"/>
+        <div class="frow">
+          <div><div class="fl">Handynummer</div><input id="vTel" value="${esc(c.tel)}"/></div>
+          <div><div class="fl">E-Mail</div><input id="vMail" value="${esc(c.email)}"/></div>
+        </div>
+        <div class="fl">Firma / Club</div><input id="vOrg" value="${esc(c.org)}"/>
+        <div class="fl">Notiz</div><input id="vNote" value="${esc(c.note)}"/>
+        <div class="fl">Rolle</div><select id="vRole">${vcfRoleOpts(guessRole(c.org, c.title))}</select>
+        <div id="vDup"></div>
+        <button type="button" id="vSave">✓ Speichern</button>
+      </div>`;
+      vcfBindSingle();
+    }else{
+      $('wVcfList').innerHTML = `<div class="card" style="margin-top:10px;padding:8px 14px">` +
+        arr.map((c, i) => {
+          const dup = vcfDup(c);
+          return `<label style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line-soft);cursor:pointer">
+            <input type="checkbox" class="vTick" data-i="${i}" ${dup ? '' : 'checked'} style="width:18px;height:18px;margin-top:3px"/>
+            <span style="flex:1;font-size:14px"><b>${esc(c.fn || c.tel || c.email || 'Unbekannt')}</b><br/>
+              <span style="font-size:11px;color:var(--ink2)">${esc([c.tel, c.email, c.org].filter(Boolean).join(' · '))}</span>
+              ${dup ? `<br/><span style="font-size:11px;color:var(--gold)">⚠ Existiert bereits: ${esc(dup.name)} — anhaken = trotzdem speichern</span>` : ''}
+            </span></label>`;
+        }).join('') +
+        `<button type="button" id="vSaveMulti" style="margin-top:12px">✓ Ausgewählte speichern</button></div>`;
+      vcfBindMulti(arr);
+    }
+  }catch(_){ vcfMsg('Konnte die Datei nicht lesen.'); }
+  $('wVcf').value = '';
+});
+
+/* ── in-form .vcf import (same parser — prefills the manual form for review) ── */
 $('cVcf').addEventListener('change', async () => {
   const f = $('cVcf').files && $('cVcf').files[0];
   const msg = $('cVcfMsg');
   if(!f) return;
   try{
-    const v = parseVcf(await f.text());
+    const arr = parseVcf(await f.text());
+    const v = arr[0] || {};
     if(!v.fn){ msg.textContent = 'Kein Name (FN) in der Datei gefunden.'; msg.style.display = 'block'; return; }
     $('cName').value = v.fn;
     if(v.tel) $('cPhone').value = v.tel;
     if(v.email) $('cEmail').value = v.email;
+    $('cRole').value = guessRole(v.org, v.title);
     const bits = [v.org, v.title, v.note].filter(Boolean).join(' · ');
     if(bits) $('cNote').value = bits.slice(0, 200);
-    msg.textContent = '✓ ' + v.fn + ' übernommen — bitte prüfen, Rolle wählen, dann „Add to CRM".';
+    msg.textContent = '✓ ' + v.fn + ' übernommen — bitte prüfen, dann „Add to CRM".' + (arr.length > 1 ? ' (+' + (arr.length - 1) + ' weitere in der Datei — Haupt-Import oben nutzen)' : '');
     msg.style.display = 'block';
   }catch(_){ msg.textContent = 'Konnte die Datei nicht lesen.'; msg.style.display = 'block'; }
   $('cVcf').value = '';
