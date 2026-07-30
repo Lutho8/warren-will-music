@@ -42,8 +42,7 @@
       "https://soundcloud.com/warrenwillmusic",
       "https://www.youtube.com/@warrenwillmusic",
       "https://www.tiktok.com/@warrenwillmusic",
-      "https://www.instagram.com/warrenwillmusic/",
-      "https://open.spotify.com/artist/6wMr4zKPrrR0UVz08WtUWc"
+      "https://www.instagram.com/warrenwillmusic/"
     ]
   }
   </script>
@@ -131,8 +130,9 @@
     @media(max-width:700px){.sec-note{display:none}}
 
     /* ── MUSIC ────────────────────────────── */
-    .music-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:start}
-    @media(max-width:900px){.music-grid{grid-template-columns:1fr}}
+    .music-cols{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+    @media(max-width:900px){.music-cols{grid-template-columns:1fr}}
+    .mu-col-h{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
     .feat-label{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
     .feat-label b{color:var(--gold);font-weight:400}
     .sc-embed{border:1px solid var(--line);background:var(--panel)}
@@ -142,15 +142,15 @@
       text-transform:uppercase;border:1px solid var(--line);padding:10px 16px;color:var(--muted);transition:.25s}
     .plat:hover{border-color:var(--gold);color:var(--gold)}
     .plat svg{width:14px;height:14px;fill:currentColor}
-    .mu-tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:34px}
-    .mu-tab{flex:1;background:none;border:0;padding:14px 8px;font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);cursor:pointer;position:relative;transition:color .25s}
-    .mu-tab:hover{color:var(--text)}
-    .mu-tab:focus-visible{outline:1px solid var(--gold);outline-offset:-2px}
-    .mu-tab.on{color:var(--gold)}
-    .mu-tab.on::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--gold)}
     .mu-load{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:30px 0}
+    .yt-pl-grid{display:grid;grid-template-columns:1fr;gap:22px}
+    @media(min-width:560px){.yt-pl-grid{grid-template-columns:repeat(2,1fr)}}
+    .yt-pl-card{display:block;background:none;border:0;padding:0;text-align:left;cursor:pointer;width:100%;min-height:44px}
+    .yt-pl-count{position:absolute;right:8px;bottom:8px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text);background:rgba(5,5,5,.72);padding:4px 8px}
+    .yt-sub{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin:28px 0 16px;padding-top:22px;border-top:1px solid var(--line)}
     .yt-grid{display:grid;grid-template-columns:1fr;gap:26px}
-    @media(min-width:700px){.yt-grid{grid-template-columns:repeat(2,1fr)}}
+    .yt-grid.compact{gap:18px}
+    @media(min-width:700px){.yt-grid{grid-template-columns:repeat(2,1fr)}.yt-grid.compact{grid-template-columns:repeat(3,1fr)}}
     @media(min-width:1020px){.yt-grid{grid-template-columns:repeat(3,1fr)}}
     .yt-card{display:block;background:none;border:0;padding:0;text-align:left;cursor:pointer;width:100%}
     .yt-thumb{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
@@ -463,15 +463,11 @@
 <section id="music" aria-labelledby="music-h">
   <div class="sec-head">
     <h2 id="music-h">THE SOUND</h2>
-    <span class="sec-note">soundcloud · spotify · youtube</span>
+    <span class="sec-note">soundcloud · youtube</span>
   </div>
-  <div class="mu-tabs" role="tablist" aria-label="Sound sources">
-    <button class="mu-tab on" id="tab-sc" role="tab" aria-selected="true" aria-controls="panel-sc" data-tab="sc" type="button">SoundCloud</button>
-    <button class="mu-tab" id="tab-yt" role="tab" aria-selected="false" aria-controls="panel-yt" data-tab="yt" type="button" tabindex="-1">Live on YouTube</button>
-  </div>
-  <div id="panel-sc" role="tabpanel" aria-labelledby="tab-sc">
-  <div class="music-grid">
-    <div>
+  <div class="music-cols">
+    <div class="mu-col">
+      <h3 class="mu-col-h">SoundCloud</h3>
       <p class="feat-label" id="featLabel">Featured — <b>Howler Recording 4 · Live</b></p>
       <div class="sc-embed">
         <iframe id="scFrame" title="Warren Will — SoundCloud player" scrolling="no" allow="autoplay"
@@ -482,22 +478,21 @@
         <a class="plat" href="https://soundcloud.com/warrenwillmusic" target="_blank" rel="noopener">
           <svg viewBox="0 0 32 32"><path d="M1 20c0 .9.7 1.6 1.6 1.6.4 0 .8-.2 1.1-.4l.1-4.7c-.3-.3-.7-.4-1.1-.4C1.7 16 1 16.9 1 20zm4.2 2.4c.5.4 1 .6 1.7.6s1.2-.2 1.7-.6V14c-.5-.4-1-.6-1.7-.6s-1.2.2-1.7.6v8.4zm4.6.9c.5.3 1 .4 1.6.4s1.1-.1 1.6-.4V11.7c-.5-.3-1-.4-1.6-.4s-1.1.1-1.6.4v11.6zm4.5.4c.5.2 1 .3 1.5.3s1-.1 1.5-.3V9.2c-.5-.2-1-.3-1.5-.3s-1 .1-1.5.3v14.5zm4.4.1h.1c.5 0 1-.1 1.4-.3l.1-15c-.5-.2-1-.3-1.5-.3l-.1 15.6zm4.4-.5c.4.3.9.5 1.4.5 2.2 0 4-1.8 4-4s-1.8-4-4-4c-.3 0-.5 0-.8.1C23.6 12 21.5 10 19 10c-.4 0-.7 0-1 .1v13.3h.1z"/></svg>
           SoundCloud</a>
-        <a class="plat" href="https://open.spotify.com/artist/6wMr4zKPrrR0UVz08WtUWc" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.4-.7.5-1 .3-2.9-1.8-6.5-2.2-10.8-1.2-.4.1-.8-.2-.9-.6-.1-.4.2-.8.6-.9 4.6-1 8.6-.6 11.8 1.4.4.2.5.7.3 1zm1.5-3.3c-.3.4-.8.6-1.3.3-3.3-2-8.3-2.6-12.2-1.4-.5.1-1-.1-1.2-.6-.1-.5.1-1 .6-1.2 4.4-1.3 9.9-.7 13.7 1.6.4.3.6.9.4 1.3zm.1-3.4C15.2 8.3 8.9 8.1 5.2 9.2c-.6.2-1.2-.1-1.4-.7-.2-.6.1-1.2.7-1.4 4.3-1.3 11.3-1 15.7 1.6.5.3.7 1 .4 1.5-.3.5-1 .7-1.5.4z"/></svg>
-          Spotify</a>
         <a class="plat" href="https://www.youtube.com/@warrenwillmusic" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
           YouTube</a>
       </div>
+      <div id="trackList" aria-label="Selected tracks and sets"></div>
     </div>
-    <div id="trackList" aria-label="Selected tracks and sets"></div>
-  </div>
-  </div>
-  <div id="panel-yt" role="tabpanel" aria-labelledby="tab-yt" hidden>
-    <p class="mu-load" id="ytLoad" hidden>Loading latest mixes…</p>
-    <div class="yt-grid" id="ytGrid"></div>
-    <p class="yt-fb" id="ytFallback" hidden><a href="https://www.youtube.com/@warrenwillmusic" target="_blank" rel="noopener">Watch the latest mixes on YouTube →</a></p>
-    <p class="yt-cap">YouTube videos load only when you click a thumbnail — no connection to Google is made before that. Details: <a href="datenschutz.html">Datenschutzerklärung</a>.</p>
+    <div class="mu-col" id="ytCol">
+      <h3 class="mu-col-h">Live on YouTube</h3>
+      <p class="mu-load" id="ytLoad" hidden>Loading latest mixes…</p>
+      <div class="yt-pl-grid" id="ytPlaylists"></div>
+      <p class="yt-sub" id="ytUpLabel" hidden>Latest uploads</p>
+      <div class="yt-grid" id="ytGrid"></div>
+      <p class="yt-fb" id="ytFallback" hidden><a href="https://www.youtube.com/@warrenwillmusic" target="_blank" rel="noopener">Watch the latest mixes on YouTube →</a></p>
+      <p class="yt-cap">YouTube videos load only when you click a thumbnail — no connection to Google is made before that. Details: <a href="datenschutz.html">Datenschutzerklärung</a>.</p>
+    </div>
   </div>
 </section>
 
@@ -739,49 +734,49 @@ function playTrack(i){
   if(window.innerWidth < 900) document.getElementById('scFrame').scrollIntoView({ behavior:'smooth', block:'center' });
 }
 
-/* ── SOUND TABS — SoundCloud / Live on YouTube (lazy RSS grid) ── */
+/* ── THE SOUND — SoundCloud (static) + Live on YouTube (lazy feed, side by side) ── */
 const YT_FEED = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/yt-feed';
 const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtYTD = iso => { const t = new Date(iso); return isNaN(t) ? '' : t.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); };
-const muTabs = [...document.querySelectorAll('.mu-tab')];
-const muPanels = { sc: document.getElementById('panel-sc'), yt: document.getElementById('panel-yt') };
 let ytRequested = false;
-function activateMuTab(key){
-  muTabs.forEach(b => {
-    const on = b.dataset.tab === key;
-    b.classList.toggle('on', on);
-    b.setAttribute('aria-selected', on ? 'true' : 'false');
-    b.tabIndex = on ? 0 : -1;
-  });
-  Object.keys(muPanels).forEach(k => { if(muPanels[k]) muPanels[k].hidden = k !== key; });
-  if(key === 'yt' && !ytRequested){ ytRequested = true; loadYTGrid(); }
-}
-muTabs.forEach(b => b.addEventListener('click', () => activateMuTab(b.dataset.tab)));
-const muTablist = document.querySelector('.mu-tabs');
-if(muTablist) muTablist.addEventListener('keydown', e => {
-  if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-  const i = muTabs.indexOf(document.activeElement);
-  if(i < 0) return;
-  const n = muTabs[(i + (e.key === 'ArrowRight' ? 1 : muTabs.length - 1)) % muTabs.length];
-  e.preventDefault();
-  n.focus();
-  activateMuTab(n.dataset.tab);
-});
-async function loadYTGrid(){
-  const load = document.getElementById('ytLoad'), grid = document.getElementById('ytGrid'), fb = document.getElementById('ytFallback');
+const ytVideoCard = v => `<button class="yt-card" type="button" data-yt="${escH(v.id)}" aria-label="Play video: ${escH(v.title)}">
+  <span class="yt-thumb"><img src="${escH(v.thumb || ('https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg'))}" alt="" loading="lazy"><span class="yt-play" aria-hidden="true"><i>▶</i></span></span>
+  <span class="yt-title">${escH(v.title)}</span>
+  <span class="yt-date">${escH(fmtYTD(v.published))}</span>
+</button>`;
+const ytPlCard = p => `<button class="yt-pl-card" type="button" data-pl="${escH(p.id)}" aria-label="Play playlist: ${escH(p.title)}">
+  <span class="yt-thumb"><img src="${escH(p.thumb || '')}" alt="" loading="lazy"><span class="yt-play" aria-hidden="true"><i>▶</i></span>${p.count ? `<span class="yt-pl-count">${escH(p.count)}</span>` : ''}</span>
+  <span class="yt-title">${escH(p.title)}</span>
+  <span class="yt-date">Playlist</span>
+</button>`;
+async function loadYTPanel(){
+  const load = document.getElementById('ytLoad'), grid = document.getElementById('ytGrid'),
+        pls = document.getElementById('ytPlaylists'), upLabel = document.getElementById('ytUpLabel'),
+        fb = document.getElementById('ytFallback');
   if(!grid) return;
   if(load) load.hidden = false;
   try{
     const r = await fetch(YT_FEED);
     if(!r.ok) throw new Error('http ' + r.status);
     const d = await r.json();
-    const vids = (d.videos || []).filter(v => v && v.id).slice(0, 6);
-    if(!vids.length) throw new Error('empty feed');
-    grid.innerHTML = vids.map(v => `<button class="yt-card" type="button" data-yt="${escH(v.id)}" aria-label="Play video: ${escH(v.title)}">
-      <span class="yt-thumb"><img src="${escH(v.thumb || ('https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg'))}" alt="" loading="lazy"><span class="yt-play" aria-hidden="true"><i>▶</i></span></span>
-      <span class="yt-title">${escH(v.title)}</span>
-      <span class="yt-date">${escH(fmtYTD(v.published))}</span>
-    </button>`).join('');
+    const lists = (d.playlists || []).filter(p => p && p.id && p.title).slice(0, 4);
+    const vids = (d.videos || []).filter(v => v && v.id);
+    if(lists.length){
+      /* playlists found → cards + compact „Latest uploads" row beneath */
+      pls.innerHTML = lists.map(ytPlCard).join('');
+      const up = vids.slice(0, 3);
+      if(up.length){
+        if(upLabel) upLabel.hidden = false;
+        grid.classList.add('compact');
+        grid.innerHTML = up.map(ytVideoCard).join('');
+      }
+    }else{
+      /* no playlists → classic latest-videos grid + link to the channel's playlist page */
+      const six = vids.slice(0, 6);
+      if(!six.length) throw new Error('empty feed');
+      pls.innerHTML = `<p class="yt-fb" style="padding:0 0 22px"><a href="https://www.youtube.com/@warrenwillmusic/playlists" target="_blank" rel="noopener">Playlists auf YouTube →</a></p>`;
+      grid.innerHTML = six.map(ytVideoCard).join('');
+    }
   }catch(_){
     grid.innerHTML = '';
     if(fb) fb.hidden = false;
@@ -789,14 +784,27 @@ async function loadYTGrid(){
     if(load) load.hidden = true;
   }
 }
-const ytGridEl = document.getElementById('ytGrid');
-if(ytGridEl) ytGridEl.addEventListener('click', e => {
-  const card = e.target.closest('.yt-card');
+/* lazy: load when #music approaches the viewport (was: on tab activation) */
+const musicSec = document.getElementById('music');
+if(musicSec && 'IntersectionObserver' in window){
+  const io = new IntersectionObserver(es => {
+    if(!es.some(e => e.isIntersecting) || ytRequested) return;
+    ytRequested = true; io.disconnect(); loadYTPanel();
+  }, { rootMargin: '600px 0px' });
+  io.observe(musicSec);
+}else{ ytRequested = true; loadYTPanel(); }
+/* two-click DSGVO play — videos + playlists (youtube-nocookie only, after explicit tap) */
+const ytColEl = document.getElementById('ytCol');
+if(ytColEl) ytColEl.addEventListener('click', e => {
+  const card = e.target.closest('.yt-card, .yt-pl-card');
   if(!card || card.dataset.on) return;
   card.dataset.on = '1';
   card.removeAttribute('aria-label');
   const th = card.querySelector('.yt-thumb');
-  if(th) th.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(card.dataset.yt)}?autoplay=1" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  const src = card.dataset.yt
+    ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(card.dataset.yt)}?autoplay=1`
+    : `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(card.dataset.pl)}&autoplay=1`;
+  if(th) th.innerHTML = `<iframe src="${src}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
 });
 
 /* ── TOUR VIDEO CAROUSEL ────────────────── */
