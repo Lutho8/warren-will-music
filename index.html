@@ -278,15 +278,11 @@
     .stat .n{font-family:var(--bebas);font-size:42px;color:var(--gold)}
     .stat .l{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
 
-    /* ── CONTACT ──────────────────────────── */
-    #contact .contact-wrap{display:flex;justify-content:center;align-items:center;gap:30px;flex-wrap:wrap;text-align:center}
-    .big-mail{font-family:var(--bebas);font-size:clamp(26px,4.5vw,54px);letter-spacing:.02em;transition:color .25s}
-    .big-mail:hover{color:var(--gold)}
-    .soc-row{display:flex;gap:12px}
-    .soc{width:44px;height:44px;border:1px solid var(--line);display:grid;place-items:center;transition:.25s}
-    .soc svg{width:18px;height:18px;fill:var(--muted);transition:.25s}
-    .soc:hover{border-color:var(--gold)}
-    .soc:hover svg{fill:var(--gold)}
+    /* ── DIRECT CONTACT ZONE (merged into the booking rail, #contact anchor) ── */
+    .direct-zone{margin-top:30px;padding-top:26px;border-top:1px solid var(--line)}
+    .dz-label{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+    .dz-mail{justify-content:center;width:100%;max-width:420px;padding:16px 20px;font-size:13px;letter-spacing:.06em;overflow-wrap:anywhere}
+    .dz-sub{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:14px}
 
     /* ── FOOTER ───────────────────────────── */
     footer{border-top:1px solid var(--line);padding:34px 28px;display:flex;align-items:center;justify-content:space-between;
@@ -332,7 +328,6 @@
       .pkg{padding:24px 20px}
       .stats{gap:26px}
       .stat .n{font-size:34px}
-      .big-mail{font-size:clamp(21px,6.2vw,30px);overflow-wrap:anywhere}
       .comm-card{padding:26px 20px}
       .about-grid{gap:28px}
       .about-img{max-width:220px;margin:0 auto}
@@ -547,6 +542,13 @@
         <p>One email. Date, city, venue type — you get a reply within 48 hours with availability, a tailored offer and the rider.</p>
         <p style="font-size:13px">Für Anfragen auf Deutsch — einfach schreiben.</p>
         <p class="deposit">50% deposit secures the date<br>erste Option holds a date for 7 days</p>
+        <div class="direct-zone" id="contact">
+          <p class="dz-label">Lieber direkt? / Prefer email?</p>
+          <a class="btn btn-ghost dz-mail" href="mailto:booking@warrenwilliam.de?subject=Booking%20Inquiry%20—%20Warren%20Will">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            booking@warrenwilliam.de</a>
+          <p class="dz-sub">…or WhatsApp — the green button, bottom right.</p>
+        </div>
       </div>
       <form class="form-col" id="bookForm" novalidate>
         <input type="text" id="bkWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"/>
@@ -631,16 +633,6 @@
   </div>
 </section>
 
-<!-- ═══════════════ CONTACT ═══════════════ -->
-<section id="contact" aria-labelledby="contact-h">
-  <div class="sec-head">
-    <h2 id="contact-h">CONTACT</h2>
-  </div>
-  <div class="contact-wrap">
-    <a class="big-mail" href="mailto:booking@warrenwilliam.de">booking@warrenwilliam.de</a>
-  </div>
-</section>
-
 </main>
 
 <!-- ═══════════════ FOOTER ═══════════════ -->
@@ -693,7 +685,10 @@ const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => nav.classList.toggle('solid', window.scrollY > 40), { passive:true });
 
 /* Active link highlighting (hero menu + any .nav-links) */
-const SECS = ['music','tour','booking','community','contact'];
+/* Active link highlighting (hero menu + any .nav-links)
+   Contact lives inside #booking now (rail zone) — Booking lights up for the whole
+   merged block, so the two menu items never fight over one scroll range. */
+const SECS = ['music','tour','booking','community'];
 window.addEventListener('scroll', () => {
   const y = window.scrollY + 140;
   SECS.forEach(id => {
