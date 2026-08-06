@@ -90,8 +90,8 @@
 
     /* ── HERO — full-screen video, centered menu (reference: realblackcoffee.net) ── */
     #hero{position:relative;min-height:100svh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--black)}
-    .hero-media,.hero-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center}
-    .hero-media{background:#050505 url('assets/hero-poster.jpg') center/cover no-repeat}
+    .hero-media,.hero-media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 35%}
+    .hero-media{background:#050505 url('assets/hero-poster.jpg') center 35%/cover no-repeat}
     .hero-media video{z-index:1}
     .hero-media::after{content:'';position:absolute;inset:0;z-index:2;
       background:linear-gradient(90deg,rgba(5,5,5,.78) 0%,rgba(5,5,5,.3) 46%,rgba(5,5,5,.16) 72%),
@@ -359,7 +359,6 @@
 <header id="hero" aria-label="Warren Will — DJ and producer, Munich">
   <div class="hero-media" aria-hidden="true">
     <video id="heroVideo" autoplay muted loop playsinline preload="auto" poster="assets/hero-poster.jpg">
-      <source src="assets/hero-1080.webm" type="video/webm"/>
       <source src="assets/hero-1080.mp4" type="video/mp4"/>
     </video>
   </div>
@@ -673,7 +672,6 @@
     v.removeAttribute('autoplay'); v.remove(); return; // poster shows via CSS bg fallback
   }
   if(small){
-    v.querySelector('source[type="video/webm"]').remove();
     v.querySelector('source[type="video/mp4"]').src = 'assets/hero-720.mp4';
     v.load();
   }
