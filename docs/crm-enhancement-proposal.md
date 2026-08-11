@@ -3,6 +3,9 @@
 **Prepared for:** Lutho (Expatrio) · **Date:** 11 Aug 2026
 **Scope:** Turn the working admin dashboard into a fuller CRM with (1) tasks + clear ownership, (2) a client overview for promoters/venues/bookers, and (3) a timeline.
 
+> **Status:** Round 1 (Timeline / Tasks-by-owner / Clients) shipped and live. Board table confirmed as `client_board`; `owner` column + `crm-update` change deployed to production.
+> **Round 2 (this update):** mobile-first polish, colour-coded structure, and a fix to the contact-add flow — see §6.
+
 ---
 
 ## 1. What you already have (and it's good)
@@ -69,10 +72,10 @@ To make task ownership editable and persistent, add an `owner` column and let `c
 
 ```sql
 -- board items get an explicit owner
-alter table board_items
+alter table client_board
   add column if not exists owner text;             -- 'warren' | 'lutho' | 'team' | null
 
-comment on column board_items.owner is 'Responsible person for this task';
+comment on column client_board.owner is 'Responsible person for this task';
 ```
 
 **`crm-update` Edge Function — accept `owner` on create/update:**
@@ -83,12 +86,12 @@ const ALLOWED_OWNERS = new Set(['warren', 'lutho', 'team']);
 const owner = ALLOWED_OWNERS.has(body.owner) ? body.owner : null;
 
 // create:
-await supabase.from('board_items').insert({ /* …existing… */, owner });
+await supabase.from('client_board').insert({ /* …existing… */, owner });
 
 // update (only overwrite when provided):
 const patch = { /* …existing fields… */ };
 if ('owner' in body) patch.owner = ALLOWED_OWNERS.has(body.owner) ? body.owner : null;
-await supabase.from('board_items').update(patch).eq('id', id);
+await supabase.from('client_board').update(patch).eq('id', id);
 ```
 
 `crm-dashboard` already returns full board rows, so once the column exists the owner flows to the UI automatically. No change needed there.
@@ -111,3 +114,24 @@ await supabase.from('board_items').update(patch).eq('id', id);
 ## 5. Delivery & deploy
 
 The three sections and the owner controls are implemented in `admin.html`. Because a push to `main` **auto-deploys to production on Vercel**, the safe path is a **feature branch → preview deploy → review → merge**, rather than pushing straight to `main`. Exact git steps and the branch are provided alongside this doc.
+
+---
+
+## 6. Round 2 — mobile, colour-coding & contact-add flow
+
+### Critical bug fixed: the "Add to CRM" CTA that died after one add
+`act()` (the shared write helper) disabled the button and set its label to `…` while saving, but **never restored it on success** — only on error. For the static form buttons (Add to CRM, Add to my gigs, Add to Warren's board, Save business settings) that aren't re-rendered, this left the button permanently stuck at `…`/disabled after the first successful add, so the user had to reload / re-login to add another contact.
+
+Fix: `act()` now caches the original label (`data-label`) and restores the button (enabled + original text) on success, guarded by `isConnected` so rebuilt board-card buttons are left alone. This unsticks **every** add CTA at once. Verified with an automated test doing three consecutive contact adds — the button stays live each time.
+
+### Swift contact adding
+After a successful add the form clears, the confirmation names the contact just added ("✓ <name> added — ready for the next one"), and the cursor jumps back to **Name** so the next contact can be typed immediately. **Enter** in any contact field now submits, for fast keyboard entry.
+
+### Mobile-first (Warren views on his phone)
+A `max-width:600px` layer: header no longer clips (REFRESH / LOG OUT fit), single-column swimlanes and stacked client rows, larger thumb-friendly tap targets (buttons/chips/inputs), tighter padding, and **zero horizontal overflow** at 390px (verified).
+
+### Colour-coded structure
+A coloured tab before every section header, and left-accent bars on Warren's cards by nature — **gold** for approvals & gigs, **green** for work-in-progress, **red** for overdue asks — plus the existing owner colours (Warren = green, Lutho = gold, Team = ink) and stage colours (won = green, lost = red, active = gold). The contact-add card is gold-bordered so it stands out.
+
+### Still open (needs a small backend action)
+Inline **editing** of existing contacts requires an `update_contact` action in `crm-update` (like the `owner` change), which needs a browser/CLI deploy. Adding is fully handled; editing is the next step.

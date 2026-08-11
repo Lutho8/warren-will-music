@@ -10,10 +10,10 @@ column-whitelisting `crm-update` simply ignores it, so shipping the UI first is 
 Run in the Supabase SQL editor (or add as a migration file):
 
 ```sql
-alter table board_items
+alter table client_board
   add column if not exists owner text;   -- 'warren' | 'lutho' | 'team' | null
 
-comment on column board_items.owner is 'Responsible person for this task';
+comment on column client_board.owner is 'Responsible person for this task';
 ```
 
 > If your board table is named differently (e.g. `board` or `client_board`), adjust the table name.
@@ -36,7 +36,7 @@ const insert = {
   due_date: body.due_date ?? null,
   owner: ALLOWED_OWNERS.has(body.owner) ? body.owner : null,   // <-- add
 };
-await supabase.from('board_items').insert(insert);
+await supabase.from('client_board').insert(insert);
 
 // --- update branch ---
 const patch = {};
@@ -47,7 +47,7 @@ if ('priority' in body)  patch.priority = body.priority;
 if ('due_date' in body)  patch.due_date = body.due_date;
 if ('status' in body)    patch.status = body.status;
 if ('owner' in body)     patch.owner = ALLOWED_OWNERS.has(body.owner) ? body.owner : null; // <-- add
-await supabase.from('board_items').update(patch).eq('id', body.id);
+await supabase.from('client_board').update(patch).eq('id', body.id);
 ```
 
 ## 3. Deploy
@@ -62,6 +62,6 @@ dashboard and the "Tasks · who's responsible" swimlanes with no further change.
 ## Optional: seed sensible owners for existing tasks
 
 ```sql
-update board_items set owner = 'warren' where owner is null and kind in ('ask','approval');
-update board_items set owner = 'team'   where owner is null and kind = 'work';
+update client_board set owner = 'warren' where owner is null and kind in ('ask','approval');
+update client_board set owner = 'team'   where owner is null and kind = 'work';
 ```

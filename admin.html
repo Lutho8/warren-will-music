@@ -306,6 +306,54 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 .tev .td{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
 .tev .tx{font-size:13px;line-height:1.4;margin-top:2px}
 .tev .tx b{font-weight:600}
+
+/* ═══ CRM 2.2: colour-coded structure + mobile-first polish ═══ */
+/* scannable coloured tab before every section header */
+h2{position:relative}
+#dash h2::before,#wview h2::before{content:'';position:absolute;left:-13px;top:52%;transform:translateY(-50%);
+  width:4px;height:15px;border-radius:3px;background:var(--gold)}
+/* colour-code Warren's cards by nature via a left accent bar */
+.wgig{border-left:4px solid var(--gold)}
+#wApprovals .card{border-left:4px solid var(--gold)}
+#wAsks .card{border-left:4px solid var(--ink2)}
+#wWork .card{border-left:4px solid var(--green)}
+/* make the contact-add form and its CTA unmissable */
+#contactForm{border:1px solid var(--gold)}
+#cAdd{font-size:13px;letter-spacing:.1em}
+#cOk{transition:opacity .3s}
+
+/* ── MOBILE: Warren primarily views this on his phone ── */
+@media(max-width:600px){
+  #top{padding:10px 13px;gap:8px;flex-wrap:wrap}
+  .logo .name{font-size:16px}
+  #topBtns{gap:6px;margin-left:auto}
+  .tbtn{padding:10px 12px;font-size:9px}
+  #dash{padding:16px 13px calc(40px + env(safe-area-inset-bottom))}
+  #wview{padding:18px 13px calc(48px + env(safe-area-inset-bottom))}
+  h2{font-size:22px;margin:22px 0 10px}
+  #dash h2::before,#wview h2::before{display:none}
+  .kpis{grid-template-columns:repeat(2,1fr);gap:10px}
+  .kpi{padding:14px 12px}
+  .kpi .n{font-size:32px}
+  .wstats{grid-template-columns:repeat(2,1fr);gap:10px}
+  .wstat{padding:15px 13px}
+  .lanes{grid-template-columns:1fr}
+  /* larger, thumb-friendly tap targets */
+  .bbtn{padding:11px 14px;font-size:11px}
+  .act{padding:12px 15px;font-size:10px}
+  .wform button,.gate-card button{padding:16px;font-size:12px}
+  .fchip{padding:9px 13px}
+  .csearch{padding:11px 14px}
+  /* client rows stack cleanly, stage/value drop below */
+  .cli{gap:10px}
+  .cli .cbody{flex:1 1 62%;min-width:0}
+  .cli .cstage{margin-left:0;flex-basis:100%;flex-direction:row;justify-content:flex-start;gap:8px;align-items:center}
+  .cli .cav{width:38px;height:38px;font-size:18px}
+  /* gigs a touch more compact */
+  .wgig{gap:12px;padding:14px}
+  .wgig .date{font-size:26px;min-width:44px}
+  .wgig .w{font-size:15px}
+}
 </style>
 </head>
 <body>
@@ -637,8 +685,9 @@ async function post(body){
   return d;
 }
 async function act(body, btn){
-  if(btn){ btn.disabled = true; btn.textContent = '…'; }
-  try{ await post(body); await load(); return true; }
+  let orig;
+  if(btn){ orig = btn.dataset.label || btn.textContent; btn.dataset.label = orig; btn.disabled = true; btn.textContent = '…'; }
+  try{ await post(body); await load(); if(btn && btn.isConnected){ btn.disabled = false; btn.textContent = orig; } return true; }
   catch(e){ if(btn){ btn.disabled = false; btn.textContent = 'Error — tap to retry'; } return false; }
 }
 
@@ -1228,8 +1277,17 @@ $('cAdd').addEventListener('click', () => {
   if(!name){ $('cName').focus(); return; }
   act({ action:'add_contact', name, phone_whatsapp: $('cPhone').value.trim(),
         email: $('cEmail').value.trim(), role: $('cRole').value, note: $('cNote').value.trim() }, $('cAdd'))
-    .then(ok => { if(!ok) return; $('cOk').style.display = 'block'; $('cName').value = ''; $('cPhone').value = ''; $('cEmail').value = ''; $('cNote').value = ''; $('cVcfMsg').style.display = 'none';
-                  setTimeout(() => { $('cOk').style.display = 'none'; }, 5000); });
+    .then(ok => { if(!ok) return;
+                  const ok2 = $('cOk'); ok2.textContent = '✓ ' + name + ' added — ready for the next one';
+                  ok2.style.display = 'block';
+                  $('cName').value = ''; $('cPhone').value = ''; $('cEmail').value = ''; $('cNote').value = ''; $('cRole').value = 'promoter'; $('cVcfMsg').style.display = 'none';
+                  $('cName').focus();  /* swift: cursor back in Name for the next contact — CTA stays live */
+                  setTimeout(() => { ok2.style.display = 'none'; }, 4000); });
+});
+/* Enter-to-add from any text field in the contact form (fast keyboard entry) */
+['cName','cPhone','cEmail','cNote'].forEach(id => {
+  const el = $(id);
+  if(el) el.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $('cAdd').click(); } });
 });
 
 /* ── .vcf import: zero-dependency vCard parser (vCard 2.1 + 3.0, Apple quirks) ──
