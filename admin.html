@@ -321,6 +321,14 @@ h2{position:relative}
 #contactForm{border:1px solid var(--gold)}
 #cAdd{font-size:13px;letter-spacing:.1em}
 #cOk{transition:opacity .3s}
+/* inline contact edit panel in the Clients directory */
+.cedit{display:none;flex-basis:100%;margin-top:10px;border-top:1px solid var(--line-soft);padding-top:11px}
+.cedit.open{display:block}
+.cedit input,.cedit select{width:100%;background:var(--ivory);border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;font:inherit;font-size:13px;color:var(--ink);outline:none;margin-top:7px}
+.cedit input:focus,.cedit select:focus{border-color:var(--gold)}
+.cedit .frow{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}
+@media(max-width:600px){.cedit .frow{grid-template-columns:1fr}}
 
 /* ── MOBILE: Warren primarily views this on his phone ── */
 @media(max-width:600px){
@@ -742,6 +750,8 @@ function renderOwnerLanes(board){
 }
 
 const STAGE_CLS = { confirmed:'won', played:'won', rebook:'won', lost:'lost', negotiating:'hot', replied:'hot', contacted:'hot', new:'' };
+const C_ROLES = [['promoter','Promoter'],['booker','Venue booker'],['club_manager','Club manager'],['dj','DJ'],['other','Other']];
+const cRoleOpts = sel => C_ROLES.map(([v,l]) => `<option value="${v}"${v === sel ? ' selected' : ''}>${l}</option>`).join('');
 function renderClients(d){
   const roles = new Set(['promoter', 'booker', 'club_manager']);
   const contacts = (d.contacts || []).filter(x => roles.has(x.role));
@@ -762,7 +772,7 @@ function applyClientFilter(){
     && (!q || String(k.c.name || '').toLowerCase().includes(q) || String(k.venue.name || '').toLowerCase().includes(q) || String(k.venue.city || '').toLowerCase().includes(q)));
   $('cliCnt').textContent = (list.length !== clients.length ? list.length + ' / ' + clients.length : list.length) + ' clients';
   $('clients').innerHTML = list.length ? list.map(k => {
-    const c = k.c, st = k.stage || '—';
+    const c = k.c, st = k.stage || '—', id = c.id;
     const nf = k.latest && k.latest.next_follow_up, overdue = nf && dayOf(nf) < TOD;
     return `<div class="cli">
       <div class="cav">${esc((String(c.name || '?').trim()[0] || '?').toUpperCase())}</div>
@@ -771,7 +781,14 @@ function applyClientFilter(){
         <div class="cmeta">last touch: ${fmtD((k.latest || {}).last_touch)}${nf ? ` · next: <b style="color:${overdue ? 'var(--red)' : 'var(--gold)'}">${fmtD(nf)}${overdue ? ' · überfällig' : ''}</b>` : ''}</div>
       </div>
       ${contactActs(c)}
-      <div class="cstage"><span class="stagechip ${STAGE_CLS[st] || ''}">${esc(st)}</span>${k.value ? `<span class="chip gold">€${k.value.toLocaleString('en-GB')}</span>` : ''}</div>
+      <div class="cstage"><span class="stagechip ${STAGE_CLS[st] || ''}">${esc(st)}</span>${k.value ? `<span class="chip gold">€${k.value.toLocaleString('en-GB')}</span>` : ''}${id ? `<button class="bbtn" data-cedit="${id}">✎ Edit</button>` : ''}</div>
+      ${id ? `<div class="cedit" id="ce-${id}">
+        <div class="frow"><input id="ce-name-${id}" value="${esc(c.name || '')}" placeholder="Name"/><input id="ce-phone-${id}" value="${esc(c.phone_whatsapp || '')}" placeholder="WhatsApp number"/></div>
+        <input id="ce-email-${id}" value="${esc(c.email || '')}" placeholder="Email"/>
+        <select id="ce-role-${id}">${cRoleOpts(c.role)}</select>
+        <input id="ce-note-${id}" value="${esc(c.notes || '')}" placeholder="Note"/>
+        <div class="brd-actions" style="margin-top:8px"><button class="bbtn gold" data-csave="${id}">Save contact</button><button class="bbtn" data-ccancel="${id}">Cancel</button></div>
+      </div>` : ''}
     </div>`;
   }).join('') : '<p class="empty">No clients match — adjust filters.</p>';
 }
@@ -1248,6 +1265,21 @@ $('cliFilters').addEventListener('click', e => {
   applyClientFilter();
 });
 $('cliSearch').addEventListener('input', e => { cliQuery = e.target.value; applyClientFilter(); });
+/* inline contact edit (delegated; #clients persists across re-renders) */
+$('clients').addEventListener('click', e => {
+  const t = e.target.closest('[data-cedit],[data-csave],[data-ccancel]');
+  if(!t) return;
+  const a = t.dataset;
+  if(a.cedit){ const el = $('ce-' + a.cedit); if(el){ el.classList.toggle('open'); if(el.classList.contains('open')) $('ce-name-' + a.cedit).focus(); } return; }
+  if(a.ccancel){ const el = $('ce-' + a.ccancel); if(el) el.classList.remove('open'); return; }
+  if(a.csave){
+    const id = a.csave, name = $('ce-name-' + id).value.trim();
+    if(!name){ $('ce-name-' + id).focus(); return; }
+    act({ action:'update_contact', contact_id:id, name,
+          phone_whatsapp: $('ce-phone-' + id).value.trim(), email: $('ce-email-' + id).value.trim(),
+          role: $('ce-role-' + id).value, note: $('ce-note-' + id).value.trim() }, t);
+  }
+});
 
 /* ops: save business settings */
 $('bsSave').addEventListener('click', () => {

@@ -1,0 +1,4 @@
+crm-round2.patch
+*.patch
+test-*.mjs
+verify*.png
