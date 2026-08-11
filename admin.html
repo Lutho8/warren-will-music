@@ -247,6 +247,65 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 
 #err{display:none;background:#fdf0ee;border:1px solid var(--red);color:var(--red);border-radius:14px;
   padding:14px 16px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;margin-bottom:16px}
+
+/* ═══ CRM 2.1: owner badges, task swimlanes, clients directory, timeline ═══ */
+.own{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;letter-spacing:.1em;
+  text-transform:uppercase;border-radius:100px;padding:3px 9px 3px 4px;border:1px solid var(--line);color:var(--ink2)}
+.own .dot{width:14px;height:14px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:8px;font-weight:700;color:#fffdf8;flex:none}
+.own.warren{border-color:var(--green);color:var(--green)} .own.warren .dot{background:var(--green)}
+.own.lutho{border-color:var(--gold);color:var(--gold)} .own.lutho .dot{background:var(--gold)}
+.own.team{border-color:var(--ink2);color:var(--ink2)} .own.team .dot{background:var(--ink2)}
+.own.none{border-style:dashed}.own.none .dot{background:var(--line);color:var(--ink2)}
+
+.lanes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.lane{background:var(--paper);border:1px solid var(--line-soft);border-radius:16px;padding:12px}
+.lane>h3{font-family:var(--bebas);font-weight:400;font-size:19px;letter-spacing:.03em;margin:0 0 10px;
+  display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line-soft);padding-bottom:8px}
+.lane>h3 b{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.12em;margin-left:auto}
+.lane>h3 .ov{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--red);border:1px solid var(--red);
+  border-radius:100px;padding:2px 7px}
+.ltask{border:1px solid var(--line-soft);border-radius:12px;padding:9px 11px;margin-bottom:7px;background:var(--ivory)}
+.ltask .tt{font-size:12.5px;font-weight:500;line-height:1.35;display:flex;gap:6px;align-items:baseline}
+.ltask .lm{display:flex;gap:7px;align-items:center;margin-top:6px;flex-wrap:wrap}
+
+.cfilters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.fchip{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;border-radius:100px;
+  padding:5px 11px;border:1px solid var(--line);color:var(--ink2);cursor:pointer;background:none;transition:.15s}
+.fchip:hover{border-color:var(--gold);color:var(--gold)}
+.fchip.on{background:var(--gold);border-color:var(--gold);color:#fffdf8}
+.csearch{flex:1;min-width:150px;border:1px solid var(--line);border-radius:100px;padding:7px 14px;font:inherit;
+  font-size:12px;background:var(--ivory);color:var(--ink);outline:none}
+.csearch:focus{border-color:var(--gold)}
+.cli{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line-soft);
+  border-radius:14px;padding:12px 14px;margin-bottom:8px}
+.cli .cav{width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fffdf8;display:flex;align-items:center;
+  justify-content:center;font-family:var(--bebas);font-size:17px;flex:none}
+.cli .cbody{min-width:120px}
+.cli .cbody .who{font-weight:500;font-size:14px}
+.cli .cmeta{font-family:var(--mono);font-size:9px;color:var(--ink2);letter-spacing:.08em;margin-top:3px}
+.cli .cstage{margin-left:auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.stagechip{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;border-radius:100px;
+  padding:3px 10px;border:1px solid var(--line);color:var(--ink2)}
+.stagechip.hot{border-color:var(--gold);color:var(--gold)}
+.stagechip.won{border-color:var(--green);color:var(--green)}
+.stagechip.lost{border-color:var(--red);color:var(--red)}
+
+.tl{position:relative;padding-left:20px}
+.tl::before{content:'';position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:var(--line)}
+.tlgrp{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);
+  margin:16px 0 10px;font-weight:700}
+.tlgrp:first-child{margin-top:2px}
+.tev{position:relative;padding:0 0 14px 4px}
+.tev::before{content:'';position:absolute;left:-18px;top:3px;width:11px;height:11px;border-radius:50%;
+  background:var(--paper);border:2px solid var(--gold)}
+.tev.gig::before{border-color:var(--gold);background:var(--gold)}
+.tev.task::before{border-color:var(--ink2)}
+.tev.invoice::before{border-color:var(--green)}
+.tev.contact::before{border-color:var(--red)}
+.tev .td{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.tev .tx{font-size:13px;line-height:1.4;margin-top:2px}
+.tev .tx b{font-weight:600}
 </style>
 </head>
 <body>
@@ -286,6 +345,16 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 
   <div class="kpis" id="kpis"></div>
 
+  <h2>TIMELINE <span class="cnt" id="tlCnt"></span></h2>
+  <div class="cfilters" id="tlFilters">
+    <button class="fchip on" data-tlf="all">All</button>
+    <button class="fchip" data-tlf="gig">Gigs</button>
+    <button class="fchip" data-tlf="task">Tasks</button>
+    <button class="fchip" data-tlf="invoice">Invoices</button>
+    <button class="fchip" data-tlf="contact">Contacts</button>
+  </div>
+  <div class="card" style="padding:16px 18px"><div class="tl" id="timeline"></div></div>
+
   <h2>CLIENT BOARD <span class="cnt" id="cbCnt"></span></h2>
   <div class="card" style="padding:14px 16px">
     <div class="wform" style="border:none;padding:0;background:none;margin:0">
@@ -296,7 +365,9 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
       </div>
       <div class="fl">Details (Warren sees this)</div><input id="nbDetails" placeholder="One or two lines, plain language"/>
       <div class="fl">Price (approvals only)</div><input id="nbPrice" placeholder="e.g. €19/mo — leave empty otherwise"/>
-      <div class="frow">
+      <div class="frow" style="grid-template-columns:1fr 1fr 1fr">
+        <div><div class="fl">Owner</div>
+          <select id="nbOwner"><option value="team">Team</option><option value="lutho">Lutho</option><option value="warren">Warren</option><option value="">Unassigned</option></select></div>
         <div><div class="fl">Priorität</div>
           <select id="nbPrio"><option value="normal">● Normal</option><option value="high">● Hoch</option><option value="low">● Niedrig</option></select></div>
         <div><div class="fl">Fällig bis (optional)</div><input id="nbDue" type="date"/></div>
@@ -305,6 +376,9 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
     </div>
   </div>
   <div id="cbLists"></div>
+
+  <h2>TASKS · WHO'S RESPONSIBLE <span class="cnt" id="ownCnt"></span></h2>
+  <div class="lanes" id="ownerLanes"></div>
 
   <h2>LIFECYCLE <span class="cnt" id="lcCnt"></span></h2>
   <div class="card" style="padding:18px 16px 14px">
@@ -317,6 +391,16 @@ h2 .cnt{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:.
 
   <h2>BOOKINGS PIPELINE <span class="cnt" id="ppCnt"></span></h2>
   <div class="pipe-scroll" id="pipeline"></div>
+
+  <h2>CLIENTS · PROMOTERS, VENUES &amp; BOOKERS <span class="cnt" id="cliCnt"></span></h2>
+  <div class="cfilters" id="cliFilters">
+    <button class="fchip on" data-clir="all">All</button>
+    <button class="fchip" data-clir="promoter">Promoters</button>
+    <button class="fchip" data-clir="booker">Bookers</button>
+    <button class="fchip" data-clir="club_manager">Club managers</button>
+    <input class="csearch" id="cliSearch" placeholder="Search name, venue, city…" autocomplete="off"/>
+  </div>
+  <div id="clients"></div>
 
   <h2>WHATSAPP BUSINESS</h2>
   <div class="card" id="waBiz"></div>
@@ -506,6 +590,7 @@ let KEY = localStorage.getItem(SK) || '';
 let ROLE = localStorage.getItem(SR) || '';
 let DATA = null;
 let teamView = 'ops';
+let tlFilter = 'all', cliRole = 'all', cliQuery = '';
 
 async function load(){
   $('gateErr').style.display = 'none';
@@ -571,6 +656,103 @@ function stChip(x){
   return `<span class="st ${cls}">${m[x.status] || x.status}</span>`;
 }
 
+/* ═══════════ CRM 2.1: owners · timeline · clients ═══════════ */
+const OWNERS = { warren:'Warren', lutho:'Lutho', team:'Team' };
+const fmtFull = d => { if(!d) return '—'; const t = new Date(d); return isNaN(t) ? '—' : t.toLocaleDateString('en-GB', { weekday:'short', day:'2-digit', month:'short', year:'2-digit' }); };
+function deriveOwner(x){
+  if(x.owner && OWNERS[x.owner]) return x.owner;
+  if(x.kind === 'ask' || x.kind === 'approval') return 'warren';
+  if(x.kind === 'work') return 'team';
+  return '';
+}
+function ownerBadge(o){
+  const cls = o || 'none';
+  const initial = o ? OWNERS[o][0] : '?';
+  const label = o ? OWNERS[o] : 'Unassigned';
+  return `<span class="own ${cls}"><span class="dot">${initial}</span>${label}</span>`;
+}
+const ownerOpts = sel => Object.entries(OWNERS).concat([['', 'Unassigned']])
+  .map(([v, l]) => `<option value="${v}"${v === sel ? ' selected' : ''}>${l}</option>`).join('');
+
+function renderOwnerLanes(board){
+  const live = board.filter(x => !x.archived_at && (x.status === 'open' || x.status === 'in_progress'));
+  const order = ['warren', 'lutho', 'team', ''];
+  const groups = {}; order.forEach(o => groups[o] = []);
+  live.forEach(x => { const o = deriveOwner(x); (groups[o] || groups['']).push(x); });
+  $('ownCnt').textContent = live.length + ' open';
+  const html = order.filter(o => groups[o].length).map(o => {
+    const items = groups[o].slice().sort(boardSort);
+    const overdue = items.filter(x => x.due_date && x.due_date < TOD).length;
+    const name = o ? OWNERS[o] : 'Unassigned';
+    return `<div class="lane"><h3>${ownerBadge(o)} ${esc(name)}${overdue ? ` <span class="ov">${overdue} überfällig</span>` : ''}<b>${items.length}</b></h3>`
+      + items.map(x => `<div class="ltask"><div class="tt">${priDot(x)}${esc(x.title)}</div>
+        <div class="lm">${stChip(x)}${dueBadge(x)}<span class="chip">${esc(x.kind)}</span></div></div>`).join('')
+      + `</div>`;
+  }).join('');
+  $('ownerLanes').innerHTML = html || '<p class="empty">No open tasks.</p>';
+}
+
+const STAGE_CLS = { confirmed:'won', played:'won', rebook:'won', lost:'lost', negotiating:'hot', replied:'hot', contacted:'hot', new:'' };
+function renderClients(d){
+  const roles = new Set(['promoter', 'booker', 'club_manager']);
+  const contacts = (d.contacts || []).filter(x => roles.has(x.role));
+  const opsByName = {};
+  (d.pipeline || []).forEach(o => { const nm = String((o.contacts || {}).name || '').trim().toLowerCase(); if(nm) (opsByName[nm] = opsByName[nm] || []).push(o); });
+  window.__clients = contacts.map(c => {
+    const cops = opsByName[String(c.name || '').trim().toLowerCase()] || [];
+    const latest = cops.slice().sort((a, b) => String(b.last_touch || '').localeCompare(String(a.last_touch || '')))[0] || null;
+    const value = cops.reduce((s, o) => s + (['played','rebook','lost'].includes(o.stage) ? 0 : (+o.fee_quote || 0)), 0);
+    return { c, latest, value, venue: (latest && latest.venues) || {}, stage: latest ? latest.stage : (c.status || '') };
+  });
+  applyClientFilter();
+}
+function applyClientFilter(){
+  const clients = window.__clients || [];
+  const q = cliQuery.trim().toLowerCase();
+  const list = clients.filter(k => (cliRole === 'all' || k.c.role === cliRole)
+    && (!q || String(k.c.name || '').toLowerCase().includes(q) || String(k.venue.name || '').toLowerCase().includes(q) || String(k.venue.city || '').toLowerCase().includes(q)));
+  $('cliCnt').textContent = (list.length !== clients.length ? list.length + ' / ' + clients.length : list.length) + ' clients';
+  $('clients').innerHTML = list.length ? list.map(k => {
+    const c = k.c, st = k.stage || '—';
+    const nf = k.latest && k.latest.next_follow_up, overdue = nf && dayOf(nf) < TOD;
+    return `<div class="cli">
+      <div class="cav">${esc((String(c.name || '?').trim()[0] || '?').toUpperCase())}</div>
+      <div class="cbody"><div class="who">${esc(c.name || '—')}</div>
+        <div class="cmeta">${esc(c.role || '')}${k.venue.name ? ' · ' + esc(k.venue.name) : ''}${k.venue.city ? ' (' + esc(k.venue.city) + ')' : ''}${c.preferred_channel ? ' · ' + esc(c.preferred_channel) : ''}</div>
+        <div class="cmeta">last touch: ${fmtD((k.latest || {}).last_touch)}${nf ? ` · next: <b style="color:${overdue ? 'var(--red)' : 'var(--gold)'}">${fmtD(nf)}${overdue ? ' · überfällig' : ''}</b>` : ''}</div>
+      </div>
+      ${contactActs(c)}
+      <div class="cstage"><span class="stagechip ${STAGE_CLS[st] || ''}">${esc(st)}</span>${k.value ? `<span class="chip gold">€${k.value.toLocaleString('en-GB')}</span>` : ''}</div>
+    </div>`;
+  }).join('') : '<p class="empty">No clients match — adjust filters.</p>';
+}
+
+function renderTimeline(d){
+  const evs = [];
+  (d.gigs || []).forEach(g => { if(!g.date) return; const vn = g.venues || {}; evs.push({ t:'gig', date:dayOf(g.date), label:`Gig · <b>${esc(vn.name || 'Venue TBC')}</b>${vn.city ? ' · ' + esc(vn.city) : ''}${g.fee ? ' · €' + esc(g.fee) : ''}` }); });
+  (d.invoices || []).forEach(iv => { const dt = iv.sent_at || iv.issue_date; if(!dt) return; evs.push({ t:'invoice', date:dayOf(dt), label:`Invoice <b>${esc(iv.invoice_number)}</b> · ${eurC(iv.gross_cents)} · ${esc(iv.status)}` }); });
+  (d.board || []).forEach(b => {
+    if(b.done_at) evs.push({ t:'task', date:dayOf(b.done_at), label:`Task ${b.status === 'approved' ? 'approved' : b.status === 'declined' ? 'declined' : 'done'}: <b>${esc(b.title)}</b>` });
+    if(!b.archived_at && (b.status === 'open' || b.status === 'in_progress') && b.due_date) evs.push({ t:'task', date:dayOf(b.due_date), label:`Task due: <b>${esc(b.title)}</b> · ${OWNERS[deriveOwner(b)] || 'Unassigned'}` });
+  });
+  (d.interactions || []).forEach(x => { if(!x.created_at) return; evs.push({ t:'contact', date:dayOf(x.created_at), label:`<b>${esc((x.contacts || {}).name || '—')}</b> · ${esc(x.summary || x.channel || '')}` }); });
+  (d.pipeline || []).forEach(o => { if(o.next_follow_up && !['played','lost','rebook'].includes(o.stage)) evs.push({ t:'contact', date:dayOf(o.next_follow_up), label:`Follow-up · <b>${esc((o.contacts || {}).name || '—')}</b> (${esc(o.stage || '')})` }); });
+  window.__tl = evs;
+  applyTlFilter();
+}
+function applyTlFilter(){
+  const evs = (window.__tl || []).filter(e => tlFilter === 'all' || e.t === tlFilter);
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const upcoming = evs.filter(e => e.date >= todayISO).sort((a, b) => a.date.localeCompare(b.date));
+  const past = evs.filter(e => e.date < todayISO).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 40);
+  $('tlCnt').textContent = upcoming.length + ' upcoming · ' + past.length + ' past';
+  const row = e => `<div class="tev ${e.t}"><div class="td">${fmtFull(e.date)}</div><div class="tx">${e.label}</div></div>`;
+  let html = '';
+  if(upcoming.length) html += `<div class="tlgrp">Upcoming</div>` + upcoming.map(row).join('');
+  if(past.length) html += `<div class="tlgrp">History</div>` + past.map(row).join('');
+  $('timeline').innerHTML = html || '<p class="empty">No events for this filter.</p>';
+}
+
 /* ═══════════ OPS VIEW (Lutho) ═══════════ */
 function render(d){
   const c = d.counts || {}, p = c.pipeline || {};
@@ -609,7 +791,7 @@ function render(d){
     const open = live.filter(x => x.kind === kind && (x.status === 'open' || x.status === 'in_progress')).sort(boardSort);
     html += `<div class="cbh">${label} · ${open.length}</div>`;
     html += open.length ? open.map(x => `<div class="card">
-      <div class="row"><div class="brd-title">${priDot(x)}${esc(x.title)}</div><div class="acts">${x.price ? `<span class="brd-price">${esc(x.price)}</span>` : ''}${stChip(x)}</div></div>
+      <div class="row"><div class="brd-title">${priDot(x)}${esc(x.title)}</div><div class="acts">${x.price ? `<span class="brd-price">${esc(x.price)}</span>` : ''}${ownerBadge(deriveOwner(x))}${stChip(x)}</div></div>
       ${x.details ? `<div class="brd-det">${esc(x.details)}</div>` : ''}
       ${pmeta(dueBadge(x), priBadge(x))}
       ${cmtHtml(x)}
@@ -632,6 +814,7 @@ function render(d){
           <option value="low"${x.priority === 'low' ? ' selected' : ''}>● Niedrig</option>
         </select>
         <input id="bedue-${x.id}" type="date" value="${esc(x.due_date || '')}"/>
+        <select id="beo-${x.id}">${ownerOpts(deriveOwner(x))}</select>
         <div class="brd-actions" style="margin-top:2px"><button class="bbtn gold" data-save="${x.id}">Save</button><button class="bbtn" data-cancele="${x.id}">Cancel</button></div>
       </div>
     </div>`).join('') : '<p class="empty" style="padding:8px 2px">—</p>';
@@ -785,6 +968,11 @@ function render(d){
     <div class="sub">${esc(x.summary || '')}</div></div>
     <div class="acts"><span class="chip">${fmtDT(x.created_at)}</span></div>
   </div></div>`).join('') : '<p class="empty">No interactions logged yet.</p>';
+
+  /* CRM 2.1 sections */
+  renderTimeline(d);
+  renderOwnerLanes(board);
+  renderClients(d);
 }
 
 /* ═══════════ WARREN VIEW (client) ═══════════ */
@@ -982,6 +1170,7 @@ document.addEventListener('click', e => {
       details: $('bed-' + id).value.trim(),
       price: $('bep-' + id).value.trim(),
       priority: $('bepr-' + id).value,
+      owner: $('beo-' + id).value,
       due_date: $('bedue-' + id).value || null }, t);
   }
 });
@@ -992,9 +1181,24 @@ $('nbAdd').addEventListener('click', () => {
   if(!title){ $('nbTitle').focus(); return; }
   act({ action:'create', kind: $('nbKind').value, title,
         details: $('nbDetails').value.trim(), price: $('nbPrice').value.trim(),
-        priority: $('nbPrio').value, due_date: $('nbDue').value || null }, $('nbAdd'))
-    .then(ok => { if(!ok) return; $('nbTitle').value = ''; $('nbDetails').value = ''; $('nbPrice').value = ''; $('nbPrio').value = 'normal'; $('nbDue').value = ''; });
+        priority: $('nbPrio').value, owner: $('nbOwner').value, due_date: $('nbDue').value || null }, $('nbAdd'))
+    .then(ok => { if(!ok) return; $('nbTitle').value = ''; $('nbDetails').value = ''; $('nbPrice').value = ''; $('nbPrio').value = 'normal'; $('nbOwner').value = 'team'; $('nbDue').value = ''; });
 });
+
+/* CRM 2.1: timeline + client filters (static controls, wired once) */
+$('tlFilters').addEventListener('click', e => {
+  const b = e.target.closest('[data-tlf]'); if(!b) return;
+  tlFilter = b.dataset.tlf;
+  $('tlFilters').querySelectorAll('.fchip').forEach(c => c.classList.toggle('on', c === b));
+  applyTlFilter();
+});
+$('cliFilters').addEventListener('click', e => {
+  const b = e.target.closest('[data-clir]'); if(!b) return;
+  cliRole = b.dataset.clir;
+  $('cliFilters').querySelectorAll('.fchip').forEach(c => c.classList.toggle('on', c === b));
+  applyClientFilter();
+});
+$('cliSearch').addEventListener('input', e => { cliQuery = e.target.value; applyClientFilter(); });
 
 /* ops: save business settings */
 $('bsSave').addEventListener('click', () => {
