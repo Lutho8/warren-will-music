@@ -713,6 +713,23 @@ function stChip(x){
   return `<span class="st ${cls}">${m[x.status] || x.status}</span>`;
 }
 
+/* ── shared gig edit form (Warren view prefix 'ge-', ops view prefix 'gea-') ── */
+function gigEditForm(x, p){
+  const vn = x.venues || {};
+  const sv = p === 'ge-' ? 'gsave' : 'gasave', cv = p === 'ge-' ? 'gcancel' : 'gacancel';
+  return `<div class="brd-edit" id="${p}${x.id}" style="margin:0 0 12px">
+    <div class="frow" style="display:grid;grid-template-columns:1fr 1fr;gap:0 10px">
+      <div><div class="fl">Date</div><input type="date" id="${p}date-${x.id}" value="${esc(dayOf(x.date))}"/></div>
+      <div><div class="fl">Fee €</div><input type="number" id="${p}fee-${x.id}" min="0" step="50" value="${x.fee ? String(+x.fee) : ''}" placeholder="400"/></div>
+    </div>
+    <div class="fl">Venue / event</div><input id="${p}venue-${x.id}" value="${esc(vn.name || '')}"/>
+    <div class="fl">City</div><input id="${p}city-${x.id}" value="${esc(vn.city || '')}"/>
+    <div class="fl">Set length</div><input id="${p}set-${x.id}" value="${esc(x.set_length || '')}" placeholder="e.g. 23:00–01:00"/>
+    <label style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);cursor:pointer"><input type="checkbox" id="${p}dep-${x.id}" ${x.deposit_received ? 'checked' : ''} style="width:auto"/> Deposit received ✓</label>
+    <div class="brd-actions" style="margin-top:2px"><button class="bbtn gold" data-${sv}="${x.id}">Save</button><button class="bbtn" data-${cv}="${x.id}">Cancel</button></div>
+  </div>`;
+}
+
 /* ═══════════ CRM 2.1: owners · timeline · clients ═══════════ */
 const OWNERS = { warren:'Warren', lutho:'Lutho', team:'Team' };
 const fmtFull = d => { if(!d) return '—'; const t = new Date(d); return isNaN(t) ? '—' : t.toLocaleDateString('en-GB', { weekday:'short', day:'2-digit', month:'short', year:'2-digit' }); };
@@ -982,8 +999,9 @@ function render(d){
     return `<div class="card"><div class="row">
       <span class="chip solid">${fmtD(x.date)}</span>
       <div><div class="who">${esc(vn.name || 'Venue TBC')}</div><div class="sub">${esc(vn.city || '')}${x.package ? ' · ' + esc(x.package) : ''}${x.set_length ? ' · ' + esc(x.set_length) : ''}</div></div>
-      <div class="acts">${x.fee ? `<span class="chip gold">€${esc(x.fee)}</span>` : ''}${x.deposit_received ? '<span class="chip wa">deposit ✓</span>' : '<span class="chip red">deposit open</span>'}<button class="bbtn" data-invform="${x.id}">Rechnung</button></div>
+      <div class="acts">${x.fee ? `<span class="chip gold">€${esc(x.fee)}</span>` : ''}${x.deposit_received ? '<span class="chip wa">deposit ✓</span>' : '<span class="chip red">deposit open</span>'}<button class="bbtn" data-gaedit="${x.id}">Edit</button><button class="bbtn" data-invform="${x.id}">Rechnung</button><button class="bbtn red" data-gadel="${x.id}" title="Delete gig">✕</button></div>
     </div>
+    ${gigEditForm(x, 'gea-')}
     <div class="brd-edit" id="gf-${x.id}">
       <div class="frow" style="display:grid;grid-template-columns:1fr 1fr;gap:0 10px">
         <div><div class="fl">Fee €</div><input type="number" id="gfee-${x.id}" min="1" step="25" value="${x.fee || 350}"/></div>
@@ -1062,7 +1080,7 @@ function renderWarren(d){
     { n: active, l: 'booking conversations live' },
   ].map(k => `<div class="wstat"><div class="n ${k.gold ? 'gold' : ''}">${esc(k.n)}</div><div class="l">${esc(k.l)}</div></div>`).join('');
 
-  /* gigs */
+  /* gigs — Warren can edit ✎ / delete ✕ his upcoming dates (shared gigEditForm helper) */
   $('wGigCnt').textContent = upcoming.length ? upcoming.length + ' confirmed' : '';
   $('wGigs').innerHTML = upcoming.length ? upcoming.map(x => {
     const vn = x.venues || {};
@@ -1072,8 +1090,9 @@ function renderWarren(d){
     return `<div class="wgig"><div class="date">${day}<small>${mon}</small></div>
       <div><div class="w">${esc(vn.name || 'Venue TBC')}</div>
       <div class="s">${esc(vn.city || '')}${x.package ? ' · ' + esc(x.package) : ''}${x.set_length ? ' · ' + esc(x.set_length) : ''}</div></div>
-      <div class="r">${x.fee ? `<div class="fee">€${esc(x.fee)}</div>` : ''}<span class="chip ${x.deposit_received ? 'wa' : 'red'}">${x.deposit_received ? 'deposit ✓' : 'deposit open'}</span></div>
-    </div>`;
+      <div class="r">${x.fee ? `<div class="fee">€${esc(x.fee)}</div>` : ''}<span class="chip ${x.deposit_received ? 'wa' : 'red'}">${x.deposit_received ? 'deposit ✓' : 'deposit open'}</span>
+      <div style="display:flex;gap:6px"><button class="bbtn" data-gedit="${x.id}">Edit</button><button class="bbtn red" data-gdel="${x.id}" title="Delete gig">✕</button></div></div>
+    </div>${gigEditForm(x, 'ge-')}`;
   }).join('') + (played.length ? `<p class="empty">+ ${played.length} played this year · €${earned.toLocaleString('en-GB')} earned</p>` : '')
     : '<p class="empty">No confirmed dates yet — add your first one below.</p>';
 
@@ -1137,10 +1156,10 @@ function renderWarren(d){
 
 /* ═══════════ events ═══════════ */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele],[data-invsent],[data-invpaid],[data-invstorno],[data-invpdf],[data-invemail],[data-invform],[data-invcreate],[data-invcancel],[data-arch],[data-unarch],[data-archall],[data-cmt],[data-cmtsend],[data-wreopen]');
+  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele],[data-invsent],[data-invpaid],[data-invstorno],[data-invpdf],[data-invemail],[data-invform],[data-invcreate],[data-invcancel],[data-arch],[data-unarch],[data-archall],[data-cmt],[data-cmtsend],[data-wreopen],[data-gedit],[data-gdel],[data-gsave],[data-gcancel],[data-gaedit],[data-gadel],[data-gasave],[data-gacancel]');
   if(!t) return;
   const a = t.dataset;
-  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele || a.invsent || a.invpaid || a.invstorno || a.invpdf || a.invemail || a.invform || a.invcreate || a.invcancel || a.arch || a.unarch || a.archall || a.cmt || a.cmtsend || a.wreopen;
+  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele || a.invsent || a.invpaid || a.invstorno || a.invpdf || a.invemail || a.invform || a.invcreate || a.invcancel || a.arch || a.unarch || a.archall || a.cmt || a.cmtsend || a.wreopen || a.gedit || a.gdel || a.gsave || a.gcancel || a.gaedit || a.gadel || a.gasave || a.gacancel;
   /* ── BOARD 2.0 actions ── */
   if(a.arch) return act({ action:'archive_item', id }, t);
   if(a.unarch) return act({ action:'unarchive_item', id }, t);
@@ -1238,6 +1257,28 @@ document.addEventListener('click', e => {
       priority: $('bepr-' + id).value,
       owner: $('beo-' + id).value,
       due_date: $('bedue-' + id).value || null }, t);
+  }
+  /* ── gig edit / delete (Warren view ge- · ops view gea-) ── */
+  if(a.gedit){ const el = $('ge-' + id); if(el) el.classList.toggle('open'); return; }
+  if(a.gcancel){ const el = $('ge-' + id); if(el) el.classList.remove('open'); return; }
+  if(a.gaedit){ const el = $('gea-' + id); if(el) el.classList.toggle('open'); return; }
+  if(a.gacancel){ const el = $('gea-' + id); if(el) el.classList.remove('open'); return; }
+  if(a.gsave || a.gasave){
+    const p = a.gsave ? 'ge-' : 'gea-';
+    const dateEl = $(p + 'date-' + id), venueEl = $(p + 'venue-' + id);
+    if(!dateEl || !venueEl) return;
+    const date = dateEl.value, venue = venueEl.value.trim();
+    if(!date || !venue){ (!date ? dateEl : venueEl).focus(); return; }
+    return act({ action:'edit_gig', id, date, venue_name: venue,
+      city: $(p + 'city-' + id).value.trim(),
+      fee: $(p + 'fee-' + id).value,
+      set_length: $(p + 'set-' + id).value.trim(),
+      deposit_received: $(p + 'dep-' + id).checked }, t);
+  }
+  if(a.gdel || a.gadel){
+    if(confirm('Gig wirklich löschen? Nur für falsch erfasste Dates — er verschwindet aus Kalender, Umsatz & Dashboard. Gigs mit Rechnung sind gesperrt (GoBD).'))
+      return act({ action:'delete_gig', id }, t);
+    return;
   }
 });
 
