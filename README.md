@@ -1,12 +1,12 @@
 # Warren Will — Official Website
 
-**Warren Will** is a Munich-based DJ & producer specialising in Afro House and bass-driven house music.
+**Warren Will** is a Munich-based DJ & producer specialising in groovy, bass-driven Tech House and Afro House.
 
 ## Live Site
 Deployed via Vercel at [warrenwill.de](https://warrenwill.de)
 
 ## About
-- **Sound:** Groovy, bass-driven Afro House
+- **Sound:** Groovy, bass-driven Tech House / Afro House — warm, physical, dancefloor-first
 - **Base:** Munich, Germany
 - **Booking:** booking@warrenwilliam.de
 - **SoundCloud:** [soundcloud.com/warrenwillmusic](https://soundcloud.com/warrenwillmusic)
@@ -28,4 +28,4 @@ Pure HTML/CSS/JS — zero dependencies, zero build step.
 This is a static site. Vercel auto-deploys on every push to `main`.
 
 ## SEO Keywords
-DJ Munich, Afro House Munich, House Music DJ München, DJ buchen München, Warren Will, Graf Rumford DJ, booking@warrenwilliam.de
+DJ Munich, Tech House Munich, Afro House Munich, House Music DJ München, DJ buchen München, Warren Will, booking@warrenwilliam.de
