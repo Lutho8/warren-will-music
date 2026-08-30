@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.warrenwill.de/sitemap.xml
+User-agent: Googlebot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+Sitemap: https://www.warrenwill.net/sitemap.xml

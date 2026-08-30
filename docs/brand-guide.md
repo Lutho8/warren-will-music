@@ -179,3 +179,33 @@ Three golds are live today. **Canonical: `#C8A96E`.**
 ```
 
 *Maintained by CRM_INFRASTRUCTURE · The Warren Will Company. Changes to tokens require updating this file + the site + admin.html in the same PR.*
+
+---
+
+## 9. Equipment Hire Extension
+
+**Public name:** WARREN WILL Equipment Hire
+
+**Primary local proposition:** Professional DJ and audio equipment rental in Munich for artists, venues and private events.
+
+**German search phrase:** *DJ-Equipment mieten München*
+
+**Canonical route:** `https://www.warrenwill.net/dj-equipment-mieten-muenchen.html`
+
+The rental offer is a service line inside WARREN WILL, not a separate visual brand. It uses the same DARK palette, WW monogram, type system and warm/direct voice. The distinction is functional: precise inventory, exact 24-hour rates, transparent deposits, itemized handover and reliable return handling.
+
+### Customer promise
+
+> Clubstandard-Technik. Transparent gebucht. Sicher übergeben.
+
+### Required rental language
+
+- An availability request is **not** a reservation.
+- A booking is confirmed only after the customer accepts the offer/rental agreement and required payments are received.
+- Every quote states equipment, quantity, accessories, rental window, logistics, rental fee and security deposit.
+- Every handover and return uses a timestamped condition record with serial numbers and photos.
+- Normal wear is not charged; deductions are documented and tied to repair, cleaning, replacement or evidenced follow-on loss.
+
+### Search and listing consistency
+
+Use the identical business name, phone, email, Munich service area and rental-page URL in the Google Business Profile, Bing Places, Apple Business Connect and relevant Munich/event-rental directories. Do not create a second domain or a detached rental identity. All listings should link directly to the canonical rental route.
