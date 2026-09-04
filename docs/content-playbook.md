@@ -1,6 +1,6 @@
 # WARREN WILL - Content Playbook
 
-**v1.2 · 2026-09-03 · For freelance videographers & shooters**
+**v1.3 · 2026-09-04 · For freelance videographers & shooters**
 
 This is the canonical text source for the WARREN WILL content playbook. The performance terminology is intentionally consistent: **PRE-SET · THE SET · POST-SET · CROSS-POST**. Use **booking** only for the commercial engagement / confirmed scope, not as a synonym for the performance.
 
@@ -14,7 +14,7 @@ Brand application follows `docs/brand-guide.md`: DARK surfaces, canonical gold `
 
 **PRE-SET · THE SET · POST-SET · CROSS-POST**
 
-`v1.2 · 2026-09-03 · For freelance videographers & shooters`
+`v1.3 · 2026-09-04 · For freelance videographers & shooters`
 
 Closing line:
 
@@ -234,7 +234,7 @@ You are a freelancer, not an employee - so here is the whole deal, in writing:
 - Scope changes: extra deliverables or hours only when pre-approved by text. You will not absorb scope creep, and we cannot accept surprise invoices.
 - Expenses (travel, parking) are pre-approved - send receipts with the invoice.
 - Invoice within 7 days of delivery to `booking@warrenwilliam.de`, booking date in the subject - paid within 14 days.
-- **Client cancellation:** more than 72 h before call time - no fee; 24-72 h - 50% of the pre-approved estimated on-site + edit hours; **under 24 h, or after travel has started - 100% of those estimated hours, plus any non-refundable pre-approved travel costs.**
+- **Client cancellation:** more than 72 h before call time - no fee; **24-72 h - €100 cancellation fee, payable only if the freelancer provides reasonable written evidence that, because they accepted this booking, they declined a conflicting paid booking for the same date/time and that opportunity is no longer available. Without such evidence, no cancellation fee is due.** **Under 24 h, or after travel has started - 100% of the pre-approved estimated on-site + edit hours, plus any non-refundable pre-approved travel costs.**
 - **Shooter cancellation:** no fee is payable. Notify us immediately and, where practical, help identify a suitable replacement.
 - Feedback: one consolidated round per deliverable within 48 h of delivery - no drip-feed notes.
 - Rebooking: freelancers who deliver on time and make the room look electric get rebooked. Simple as that.
@@ -254,4 +254,4 @@ Closing line:
 - Use Page 3's empty lower half for the six framing / angle references.
 - On Page 8, make the platform names and official handles actual PDF hyperlinks.
 - Keep venue/promoter tags dynamic; the booking brief supplies those handles.
-- Use the explicit Page 9 cancellation language above so "within 24 hours" cannot be misread.
+- Use the explicit Page 9 cancellation language above so the 24-72 h €100 fee is conditional on documented loss of a conflicting paid booking, while the under-24 h / travel-started rule remains unambiguous.
