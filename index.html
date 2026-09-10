@@ -470,7 +470,7 @@
 <section id="tour" aria-labelledby="tour-h">
   <div class="sec-head">
     <h2 id="tour-h">TOUR DATES</h2>
-    <span class="sec-note">synced via bandsintown</span>
+    <span class="sec-note">Upcoming shows</span>
   </div>
   <div class="tour-split">
     <div class="vid-car">
@@ -483,43 +483,15 @@
       <p class="vc-note">Recent dancefloors — filmed by the crowd &amp; crew</p>
     </div>
     <div class="up-next">
-      <p class="feat-label">Upcoming — <b>August 2026</b></p>
-      <div class="gig-row">
-        <div class="g-date"><span class="g-d">08</span><span class="g-m">AUG</span></div>
-        <div class="g-info"><h4>Pacha Munich</h4><p>Munich</p></div>
-        <span class="g-tag">Club</span>
-      </div>
-      <div class="gig-row">
-        <div class="g-date"><span class="g-d">14</span><span class="g-m">AUG</span></div>
-        <div class="g-info"><h4>Gateway Gardens Club</h4><p>Frankfurt</p></div>
-        <span class="g-tag">Club</span>
-      </div>
-      <div class="gig-row">
-        <div class="g-date"><span class="g-d">20</span><span class="g-m">AUG</span></div>
-        <div class="g-info"><h4>Pracht</h4><p>Frankfurt</p></div>
-        <span class="g-tag">Club</span>
-      </div>
+      <p class="feat-label">Upcoming — <b>September 2026</b></p>
+      <div class="gig-row" data-show-date="2026-09-11"><div class="g-date"><span class="g-d">11</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Moro Mou</h4><p>Munich · 19:00–00:00</p></div><span class="g-tag">Club</span></div>
+      <div class="gig-row" data-show-date="2026-09-16"><div class="g-date"><span class="g-d">16</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Moro Mou</h4><p>Munich · 19:00–00:00</p></div><span class="g-tag">Club</span></div>
+      <div class="gig-row" data-show-date="2026-09-18"><div class="g-date"><span class="g-d">18</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Gaswerk</h4><p>Augsburg · 21:00–23:00</p></div><span class="g-tag">Club</span></div>
+      <div class="gig-row" data-show-date="2026-09-23"><div class="g-date"><span class="g-d">23</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Herzog</h4><p>Munich · 02:00–04:00</p></div><span class="g-tag">Club</span></div>
+      <div class="gig-row" data-show-date="2026-09-24"><div class="g-date"><span class="g-d">24</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Moro Mou</h4><p>Munich · 19:00–00:00</p></div><span class="g-tag">Club</span></div>
+      <p id="noUpcomingShows" hidden>Neue Termine folgen.</p>
       <a class="gig-all" href="mailto:booking@warrenwilliam.de?subject=Booking%20Inquiry%20—%20Warren%20Will">+ your date here →</a>
     </div>
-  </div>
-  <div class="bit-wrap">
-    <a class="bit-widget-initializer"
-      data-artist-name="Warren Will"
-      data-background-color="0c0c0c"
-      data-separator-color="#222222"
-      data-text-color="#f2efe9"
-      data-font="Space Grotesk"
-      data-link-color="#c8a96e"
-      data-link-text-color="#050505"
-      data-display-lineup="false"
-      data-display-limit="8"
-      data-auto-style="false"
-      data-display-local-dates="false"
-      data-display-past-dates="false"
-      data-display-track-button="false"
-      data-display-logo="false"
-      data-display-play-my-city="true"
-      data-language="en">Upcoming Dates</a>
   </div>
   <div class="tour-book">
     <p>Want Warren at your club, festival or event?</p>
@@ -1038,6 +1010,14 @@ if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'
   gsap.from('.stats .n', { textContent:0, duration:1.4, snap:{ textContent:1 }, ease:'power2.out',
     scrollTrigger:{ trigger:'.stats', start:'top 85%' } });
 }
+</script>
+<script>
+(() => {
+  const today = new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Berlin'}).format(new Date());
+  const rows = [...document.querySelectorAll('[data-show-date]')];
+  rows.forEach(row => { if(row.dataset.showDate < today) row.style.display = 'none'; });
+  document.getElementById('noUpcomingShows').hidden = rows.some(row=>row.dataset.showDate >= today);
+})();
 </script>
 </body>
 </html>

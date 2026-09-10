@@ -362,7 +362,7 @@ h2{position:relative}
   .wgig .date{font-size:26px;min-width:44px}
   .wgig .w{font-size:15px}
 }
-</style>
+.gig-tools{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}.gig-tools label{flex:1;min-width:180px;font-size:14px}.gig-tools input,.gig-tools select{display:block;width:100%;padding:12px;margin-top:8px;border:1px solid var(--line-soft);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}.gig-history{margin:24px 0}.gig-history summary{cursor:pointer;font-size:16px;padding:12px 0}.wgig[hidden]{display:none}.wgig .s{font-size:12px}.wgig .r{flex-shrink:0}</style>
 </head>
 <body>
 
@@ -508,7 +508,8 @@ h2{position:relative}
   <div class="wstats" id="wStats"></div>
 
   <h2>YOUR GIGS <span class="cnt" id="wGigCnt"></span></h2>
-  <div id="wGigs"></div>
+  <div class="gig-tools"><label>Venue oder Stadt suchen<input id="gigSearch" type="search" placeholder="Alle kommenden Auftritte"/></label><label>Monat<select id="gigMonth"><option value="">Alle Monate</option></select></label></div><p id="gigFilterCount" role="status" class="empty"></p>
+  <div id="wGigs"></div><p class="empty">Gagen sind vereinbarte Beträge, kein Nachweis eines Zahlungseingangs. Anzahlungen werden separat angezeigt.</p><details class="gig-history"><summary>Vergangene Auftritte dieses Jahres</summary><div id="gigHistory"></div></details>
   <div class="wform" id="gigForm">
     <div class="fl" style="font-size:9px;color:var(--gold)">＋ Add a confirmed gig</div>
     <div class="frow">
@@ -635,6 +636,8 @@ function contactActs(c){
   return h ? `<div class="acts">${h}</div>` : '';
 }
 const dayOf = d => String(d || '').slice(0, 10);
+const crmToday = () => new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Berlin'}).format(new Date());
+const gigSort = (a,b) => dayOf(a.date).localeCompare(dayOf(b.date));
 /* German € formatting for invoice amounts (cents → "350,00 €") */
 const eurC = c => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format((+c || 0) / 100);
 /* invoice display maps */
@@ -840,15 +843,15 @@ function applyTlFilter(){
 function render(d){
   const c = d.counts || {}, p = c.pipeline || {};
   const active = (p.new||0)+(p.contacted||0)+(p.replied||0)+(p.negotiating||0);
-  const todayISO = new Date().toISOString().slice(0,10);
-  const revenue = (d.gigs || []).reduce((s, x) => s + ((x.deposit_received || dayOf(x.date) < todayISO) ? (+x.fee || 0) : 0), 0);
+  const todayISO = crmToday();
+  const revenue = (d.gigs || []).filter(x=>dayOf(x.date).slice(0,4)===todayISO.slice(0,4)).reduce((sum,x)=>sum+(+x.fee||0),0);
   const pv = (d.pipeline || []).reduce((s, o) => s + (['played','rebook','lost'].includes(o.stage) ? 0 : (+o.fee_quote || 0)), 0);
   const board = d.board || [];
   const openBoard = board.filter(x => !x.archived_at && (x.status === 'open' || x.status === 'in_progress'));
   $('kpis').innerHTML = [
     { n: c.followups_due ?? 0, l: 'Follow-ups due', cls: (c.followups_due|0) > 0 ? 'alert' : '' },
     { n: active, l: 'Active opportunities', cls: active > 0 ? 'hot' : '' },
-    { n: '€' + revenue.toLocaleString('en-GB'), l: 'Revenue made', cls: revenue > 0 ? 'hot' : '' },
+    { n: '€' + revenue.toLocaleString('en-GB'), l: 'Gebuchte Gagen '+todayISO.slice(0,4), cls: revenue > 0 ? 'hot' : '' },
     { n: eurC((d.revenue || {}).net_cents), l: 'Netto · invoices' },
     { n: eurC((d.revenue || {}).vat_cents), l: 'USt · invoices' },
     { n: eurC((d.revenue || {}).gross_cents), l: 'Brutto · invoices', cls: ((d.revenue || {}).gross_cents | 0) !== 0 ? 'hot' : '' },
@@ -991,7 +994,7 @@ function render(d){
 
   /* gigs */
   const gAll = d.gigs || [];
-  const g = gAll.filter(x => dayOf(x.date) >= todayISO);
+  const g = gAll.filter(x => dayOf(x.date) >= todayISO).sort(gigSort);
   const playedCount = gAll.length - g.length;
   $('gigCnt').textContent = g.length + ' upcoming · ' + playedCount + ' played';
   $('gigs').innerHTML = g.length ? g.map(x => {
@@ -1060,22 +1063,39 @@ function render(d){
 }
 
 /* ═══════════ WARREN VIEW (client) ═══════════ */
+function filterGigs(){
+  const query = $('gigSearch').value.trim().toLocaleLowerCase();
+  const month = $('gigMonth').value;
+  let visible = 0, total = 0;
+  document.querySelectorAll('#wGigs [data-gig-date]').forEach(el=>{
+    total++;
+    const show = el.dataset.gigSearch.toLocaleLowerCase().includes(query) && (!month || el.dataset.gigDate.startsWith(month));
+    el.hidden = !show; if(show) visible++;
+    if(!show && el.nextElementSibling) el.nextElementSibling.style.display='none';
+  });
+  $('gigFilterCount').textContent = visible + ' von ' + total + ' kommenden Auftritten';
+}
+$('gigSearch').addEventListener('input',filterGigs);
+$('gigMonth').addEventListener('change',filterGigs);
 function renderWarren(d){
   const c = d.counts || {}, p = c.pipeline || {};
-  const todayISO = new Date().toISOString().slice(0,10);
+  const todayISO = crmToday();
   const gigs = d.gigs || [];
-  const upcoming = gigs.filter(x => dayOf(x.date) >= todayISO);
-  const played = gigs.filter(x => dayOf(x.date) < todayISO);
+  const upcoming = gigs.filter(x => dayOf(x.date) >= todayISO).sort(gigSort);
+  const played = gigs.filter(x => dayOf(x.date) < todayISO && dayOf(x.date).slice(0,4) === todayISO.slice(0,4)).sort((a,b)=>gigSort(b,a));
   const earned = played.reduce((s, x) => s + (+x.fee || 0), 0);
-  const revenue = gigs.reduce((s, x) => s + ((x.deposit_received || dayOf(x.date) < todayISO) ? (+x.fee || 0) : 0), 0);
+  const secured = upcoming.filter(x=>dayOf(x.date).slice(0,4)===todayISO.slice(0,4)).reduce((sum,x)=>sum+(+x.fee||0),0);
+  const revenue = earned + secured;
   const active = (p.new||0)+(p.contacted||0)+(p.replied||0)+(p.negotiating||0)+(p.confirmed||0);
   const next = upcoming[0] || null;
   const board = d.board || [];
 
   $('wGen').textContent = 'updated ' + fmtDT(d.generated_at);
   $('wStats').innerHTML = [
-    { n: '€' + revenue.toLocaleString('en-GB'), l: 'earned + secured ' + todayISO.slice(0,4), gold: true },
-    { n: upcoming.length, l: 'gigs confirmed' },
+    { n: '€' + revenue.toLocaleString('en-GB'), l: 'Gebuchte Gagen ' + todayISO.slice(0,4), gold: true },
+    { n: eurC(earned * 100), l: 'Gagen vergangener Auftritte · '+todayISO.slice(0,4) },
+    { n: eurC(secured * 100), l: 'Gagen kommender Auftritte · '+todayISO.slice(0,4), gold:true },
+    { n: upcoming.length, l: 'Kommende Auftritte' },
     { n: next ? fmtD(next.date) : '—', l: next ? 'next · ' + String((next.venues || {}).name || 'TBC') : 'next gig', gold: !!next },
     { n: active, l: 'booking conversations live' },
   ].map(k => `<div class="wstat"><div class="n ${k.gold ? 'gold' : ''}">${esc(k.n)}</div><div class="l">${esc(k.l)}</div></div>`).join('');
@@ -1087,7 +1107,7 @@ function renderWarren(d){
     const t = new Date(x.date);
     const day = isNaN(t) ? '—' : t.toLocaleDateString('en-GB', { day:'2-digit' });
     const mon = isNaN(t) ? '' : t.toLocaleDateString('en-GB', { month:'short' }).toUpperCase();
-    return `<div class="wgig"><div class="date">${day}<small>${mon}</small></div>
+    return `<div class="wgig" data-gig-date="${esc(dayOf(x.date))}" data-gig-search="${esc((vn.name || '')+' '+(vn.city || ''))}"><div class="date">${day}<small>${mon}</small></div>
       <div><div class="w">${esc(vn.name || 'Venue TBC')}</div>
       <div class="s">${esc(vn.city || '')}${x.package ? ' · ' + esc(x.package) : ''}${x.set_length ? ' · ' + esc(x.set_length) : ''}</div></div>
       <div class="r">${x.fee ? `<div class="fee">€${esc(x.fee)}</div>` : ''}<span class="chip ${x.deposit_received ? 'wa' : 'red'}">${x.deposit_received ? 'deposit ✓' : 'deposit open'}</span>
@@ -1095,6 +1115,12 @@ function renderWarren(d){
     </div>${gigEditForm(x, 'ge-')}`;
   }).join('') + (played.length ? `<p class="empty">+ ${played.length} played this year · €${earned.toLocaleString('en-GB')} earned</p>` : '')
     : '<p class="empty">No confirmed dates yet — add your first one below.</p>';
+
+  const selectedMonth = $('gigMonth').value;
+  $('gigMonth').innerHTML = '<option value="">Alle Monate</option>' + [...new Set(upcoming.map(x=>dayOf(x.date).slice(0,7)))].map(m=>`<option value="${m}">${m.slice(5)}/${m.slice(0,4)}</option>`).join('');
+  $('gigMonth').value = selectedMonth;
+  $('gigHistory').innerHTML = played.map(x=>`<div class="wtask"><span class="d">${fmtD(x.date)}</span><span class="t">${esc((x.venues||{}).name||'Venue TBC')} · ${esc((x.venues||{}).city||'')} · ${x.fee == null ? 'Gage offen' : eurC(+x.fee*100)}</span></div>`).join('') || '<p class="empty">Noch keine vergangenen Auftritte in diesem Jahr.</p>';
+  filterGigs();
 
   /* rechnungen — read-only */
   const wInv = d.invoices || [];
