@@ -483,13 +483,10 @@
       <p class="vc-note">Recent dancefloors — filmed by the crowd &amp; crew</p>
     </div>
     <div class="up-next">
-      <p class="feat-label">Upcoming — <b>September 2026</b></p>
-      <div class="gig-row" data-show-date="2026-09-11"><div class="g-date"><span class="g-d">11</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Moro Mou</h4><p>Munich · 19:00–00:00</p></div><span class="g-tag">Club</span></div>
-      <div class="gig-row" data-show-date="2026-09-16"><div class="g-date"><span class="g-d">16</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Moro Mou</h4><p>Munich · 19:00–00:00</p></div><span class="g-tag">Club</span></div>
-      <div class="gig-row" data-show-date="2026-09-18"><div class="g-date"><span class="g-d">18</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Gaswerk</h4><p>Augsburg · 21:00–23:00</p></div><span class="g-tag">Club</span></div>
-      <div class="gig-row" data-show-date="2026-09-23"><div class="g-date"><span class="g-d">23</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Herzog</h4><p>Munich · 02:00–04:00</p></div><span class="g-tag">Club</span></div>
-      <div class="gig-row" data-show-date="2026-09-24"><div class="g-date"><span class="g-d">24</span><span class="g-m">SEP</span></div><div class="g-info"><h4>Moro Mou</h4><p>Munich · 19:00–00:00</p></div><span class="g-tag">Club</span></div>
-      <p id="noUpcomingShows" hidden>Neue Termine folgen.</p>
+      <p class="feat-label">Upcoming — <b>Live dates</b></p>
+      <div id="publicShows"></div>
+      <p id="publicShowStatus" role="status">Loading confirmed dates…</p>
+      <noscript>Please contact booking for upcoming dates.</noscript>
       <a class="gig-all" href="mailto:booking@warrenwilliam.de?subject=Booking%20Inquiry%20—%20Warren%20Will">+ your date here →</a>
     </div>
   </div>
@@ -1011,13 +1008,7 @@ if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'
     scrollTrigger:{ trigger:'.stats', start:'top 85%' } });
 }
 </script>
-<script>
-(() => {
-  const today = new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Berlin'}).format(new Date());
-  const rows = [...document.querySelectorAll('[data-show-date]')];
-  rows.forEach(row => { if(row.dataset.showDate < today) row.style.display = 'none'; });
-  document.getElementById('noUpcomingShows').hidden = rows.some(row=>row.dataset.showDate >= today);
-})();
-</script>
+
+<script src="public-gigs.js?v=20260911"></script>
 </body>
 </html>

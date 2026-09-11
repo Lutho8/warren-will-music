@@ -1,5 +1,5 @@
 /* WW CRM admin PWA — shell cache only. NEVER cache CRM data or API responses. */
-const CACHE = 'ww-admin-shell-v1';
+const CACHE = 'ww-admin-shell-v2';
 const SHELL = [
   '/admin.webmanifest',
   '/assets/pwa/icon-180.png',
@@ -14,7 +14,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('ww-admin-shell-') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

@@ -1,18 +1,51 @@
 {
-  "name": "Warren Will — Booking CRM",
-  "short_name": "WW CRM",
-  "description": "Warren Will booking pipeline, follow-ups and revenue dashboard.",
+  "name": "Warren Will — Künstler-App",
+  "short_name": "Warren Will",
+  "description": "Kontakte, Buchungen, Inhalte und nächste Schritte.",
   "id": "/admin.html",
-  "start_url": "/admin.html",
+  "start_url": "/admin.html#today",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f7f4ee",
   "theme_color": "#16130e",
   "icons": [
-    { "src": "/assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/assets/pwa/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/assets/pwa/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/assets/pwa/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/assets/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/pwa/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/pwa/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "de",
+  "shortcuts": [
+    {
+      "name": "Kontakte",
+      "url": "/admin.html#contacts"
+    },
+    {
+      "name": "Buchungen",
+      "url": "/admin.html#bookings"
+    },
+    {
+      "name": "Inhalte",
+      "url": "/admin.html#content"
+    }
   ]
 }

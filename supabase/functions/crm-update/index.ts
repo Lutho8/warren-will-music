@@ -51,10 +51,10 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ ok: false, error: "method_not_allowed" }, 405);
 
-  const ADMIN_KEY = Deno.env.get("ADMIN_DASH_KEY") ?? "ww-admin-starni-2026";
-  const CLIENT_KEY = Deno.env.get("CLIENT_DASH_KEY") ?? "ww-warren-2026";
+  const ADMIN_KEY = Deno.env.get("ADMIN_DASH_KEY") ?? "";
+  const CLIENT_KEY = Deno.env.get("CLIENT_DASH_KEY") ?? "";
   const provided = req.headers.get("x-admin-key") ?? "";
-  const role = provided === ADMIN_KEY ? "team" : provided === CLIENT_KEY ? "client" : null;
+  const role = provided && ADMIN_KEY && provided === ADMIN_KEY ? "team" : provided && CLIENT_KEY && provided === CLIENT_KEY ? "client" : null;
   if (!role) return json({ ok: false, error: "unauthorized" }, 401);
 
   let b: any;
@@ -326,6 +326,13 @@ Deno.serve(async (req: Request) => {
     /* ── send invoice e-mail with PDF attachment (Resend, graceful mailto fallback) ── */
     if (action === "send_invoice_email") {
       if (!isId(b.invoice_id)) return json({ ok: false, error: "invoice_id required" }, 400);
+      // Only a single claimed dispatch may reach the provider, including legacy callers.
+      if (!isId(b.delivery_token)) return json({ok:false,error:"use_artist_workspace_invoice_review"},403);
+      const dispatch = await sb.from("invoice_delivery")
+        .update({dispatch_started_at:new Date().toISOString()})
+        .eq("invoice_id",b.invoice_id).eq("dispatch_token",b.delivery_token)
+        .eq("state","sending").is("dispatch_started_at",null).select("invoice_id").single();
+      if (dispatch.error || !dispatch.data) return json({ok:false,error:"delivery_already_started"},409);
       const { data: invRows } = await sb.from("invoices").select("*").eq("id", b.invoice_id).limit(1);
       const inv = invRows?.[0];
       if (!inv) return json({ ok: false, error: "invoice not found" }, 404);
@@ -422,7 +429,7 @@ Deno.serve(async (req: Request) => {
 
       const rRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_KEY}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_KEY}`, "Idempotency-Key": `invoice-${inv.id}` },
         body: JSON.stringify({
           from: RESEND_FROM,
           to: [to],

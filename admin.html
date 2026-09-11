@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
@@ -363,6 +363,9 @@ h2{position:relative}
   .wgig .w{font-size:15px}
 }
 .gig-tools{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}.gig-tools label{flex:1;min-width:180px;font-size:14px}.gig-tools input,.gig-tools select{display:block;width:100%;padding:12px;margin-top:8px;border:1px solid var(--line-soft);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}.gig-history{margin:24px 0}.gig-history summary{cursor:pointer;font-size:16px;padding:12px 0}.wgig[hidden]{display:none}.wgig .s{font-size:12px}.wgig .r{flex-shrink:0}</style>
+<link rel="stylesheet" href="artist-app.css?v=20260911">
+<script src="artist-auth.js?v=20260911"></script>
+<script src="artist-app.js?v=20260911"></script>
 </head>
 <body>
 
@@ -372,22 +375,22 @@ h2{position:relative}
   <span id="genAt"></span>
   <div id="topBtns">
     <button class="tbtn gold" id="btnView" type="button" style="display:none">Warren view →</button>
-    <button class="tbtn" id="btnRefresh" type="button">↻ Refresh</button>
-    <button class="tbtn" id="btnLogout" type="button">Log out</button>
+    <button class="tbtn" id="btnRefresh" type="button">Aktualisieren</button>
+    <button class="tbtn" id="btnLogout" type="button">Abmelden</button>
   </div>
 </div>
 
 <!-- ── passphrase gate ── -->
 <div id="gate">
-  <form class="gate-card" id="gateForm">
+  <div class="gate-card"><form id="gateForm">
     <div class="mark">WW</div>
     <h1>BOOKING CRM</h1>
-    <p>Warren Will · one passphrase each</p>
-    <input type="password" id="gateKey" placeholder="Your passphrase" autocomplete="current-password" autofocus/>
-    <button type="submit" id="gateBtn">Open dashboard →</button>
+    <p>Warren Will · dein Arbeitsbereich</p>
+    <input type="password" id="gateKey" placeholder="Deine Passphrase" autocomplete="current-password" autofocus/>
+    <button type="submit" id="gateBtn">Dashboard öffnen</button>
     <div class="gate-roles"><span>Lutho · team view</span><span>Warren · client view</span></div>
-    <p class="gate-err" id="gateErr">Wrong passphrase — try again</p>
-  </form>
+    <p class="gate-err" id="gateErr">Anmeldung fehlgeschlagen — bitte erneut versuchen</p>
+  </form></div>
 </div>
 
 <!-- ── ops dashboard (Lutho / agent loops) ── -->
@@ -648,16 +651,16 @@ const INV_ST_DE = { draft: 'ENTWURF', sent: 'VERSENDET', paid: 'BEZAHLT', cancel
 let KEY = localStorage.getItem(SK) || '';
 let ROLE = localStorage.getItem(SR) || '';
 let DATA = null;
-let teamView = 'ops';
+let teamView = 'client';
 let tlFilter = 'all', cliRole = 'all', cliQuery = '';
 
 async function load(){
   $('gateErr').style.display = 'none';
   let r;
-  try{ r = await fetch(EP, { headers: { 'x-admin-key': KEY } }); }
+  try{ const personal = await window.artistLoadData(); r = personal ? new Response(JSON.stringify(personal), {status:personal.auth_expired ? 401 : 200}) : await fetch(EP, { headers: { 'x-admin-key': KEY } }); }
   catch(_){ $('err').style.display = 'block'; $('err').textContent = 'Network error — could not reach the CRM. Check connection and refresh.'; return; }
   if(r.status === 401){
-    localStorage.removeItem(SK); localStorage.removeItem(SR); KEY = ''; ROLE = '';
+    localStorage.removeItem(SK); localStorage.removeItem(SR); window.clearArtistSession(); window.hideArtistWorkspace(); KEY = ''; ROLE = '';
     $('dash').style.display = 'none'; $('wview').style.display = 'none'; $('topBtns').style.display = 'none';
     $('gate').style.display = 'grid';
     $('gateErr').style.display = 'block';
@@ -667,29 +670,30 @@ async function load(){
   const d = await r.json();
   if(!d.ok){ $('err').style.display = 'block'; $('err').textContent = 'CRM error: ' + (d.error || 'unknown'); return; }
   DATA = d;
-  ROLE = d.role === 'client' ? 'client' : 'team';
+  ROLE = ['client','team','social'].includes(d.role) ? d.role : 'client';
   localStorage.setItem(SK, KEY);
   localStorage.setItem(SR, ROLE);
   $('gate').style.display = 'none';
   $('topBtns').style.display = 'flex';
   $('genAt').style.display = 'inline';
   $('genAt').textContent = 'updated ' + fmtDT(d.generated_at);
-  $('roleBadge').textContent = ROLE === 'client' ? 'Warren · Client' : 'Booking CRM · Team';
+  $('roleBadge').textContent = ROLE === 'client' ? 'Warren' : ROLE === 'social' ? 'Social-Team' : 'Management';
   $('roleBadge').classList.toggle('gold', ROLE === 'client');
   $('btnView').style.display = ROLE === 'team' ? 'inline-block' : 'none';
-  showView(ROLE === 'client' ? 'client' : teamView);
+  showView(ROLE !== 'team' ? 'client' : teamView);
 }
 
 function showView(v){
   const isW = v === 'client';
   $('dash').style.display = isW ? 'none' : 'block';
   $('wview').style.display = isW ? 'block' : 'none';
-  $('btnView').textContent = isW ? '← Ops view' : 'Warren view →';
-  if(isW) renderWarren(DATA); else render(DATA);
+  $('btnView').textContent = isW ? 'Management-Ansicht' : 'Künstler-App';
+  if(isW) window.renderArtistWorkspace(DATA); else { window.hideArtistWorkspace(); render(DATA); }
 }
 
 /* ── write path: one helper for every board action ── */
 async function post(body){
+  if(window.hasArtistSession()){const r=await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace',{method:'POST',headers:{'Content-Type':'application/json',...window.artistAuthHeaders()},body:JSON.stringify({action:'legacy',payload:body})});const d=await r.json();if(!d.ok)throw new Error(d.error||'Speichern fehlgeschlagen');return d;}
   const r = await fetch(EP_UPDATE, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': KEY }, body: JSON.stringify(body) });
   const d = await r.json().catch(() => ({ ok:false, error:'bad response' }));
   if(!d.ok) throw new Error(d.error || 'failed');
@@ -1200,6 +1204,7 @@ document.addEventListener('click', e => {
   if(a.wreopen) return act({ action:'reopen_item', item_id:id }, t);
   /* ── invoice actions (team) ── */
   if(a.invemail){
+    if(window.artistOpenInvoice){window.artistOpenInvoice(id);return;}
     return (async () => {
       t.disabled = true; t.textContent = '…';
       try{
@@ -1592,14 +1597,14 @@ $('gateForm').addEventListener('submit', e => {
   KEY = $('gateKey').value.trim();
   if(!KEY) return;
   $('gateBtn').textContent = 'Opening…';
-  load().finally(() => { $('gateBtn').textContent = 'Open dashboard →'; });
+  load().finally(() => { $('gateBtn').textContent = 'Dashboard öffnen'; });
 });
 $('btnRefresh').addEventListener('click', load);
 $('btnView').addEventListener('click', () => { teamView = teamView === 'ops' ? 'client' : 'ops'; showView(teamView); });
-$('btnLogout').addEventListener('click', () => { localStorage.removeItem(SK); localStorage.removeItem(SR); KEY = ''; ROLE = ''; location.reload(); });
+$('btnLogout').addEventListener('click', async () => { await window.artistSignOut(); localStorage.removeItem(SK); localStorage.removeItem(SR); KEY = ''; ROLE = ''; location.reload(); });
 
 /* auto-login if key stored */
-if(KEY){ load(); }
+if(KEY || window.hasArtistSession()){ load(); }
 
 /* PWA: register service worker (shell cache only — CRM data is never cached) */
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw-admin.js').catch(() => {}); }

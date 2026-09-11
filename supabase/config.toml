@@ -1,0 +1,3 @@
+# Existing app uses custom server-side authentication; this function validates it itself.
+[functions.artist-workspace]
+verify_jwt = false
