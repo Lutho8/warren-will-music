@@ -4,3 +4,6 @@ test-*.mjs
 verify*.png
 
 supabase/.temp/
+node_modules/
+test-results/
+playwright-report/
