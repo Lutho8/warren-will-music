@@ -1,0 +1,65 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {chromium} from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('../',import.meta.url));
+test('Mobile equipment inquiry → reservation → handover → return → refund',async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[],writes=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  const d={ok:true,app_ready:true,role:'client',gigs:[],board:[],contacts:[],invoices:[],content:[],publications:[],metrics:[],rentals:[],inventory:[{code:'cdj3000',name:'CDJ-3000',quantity:2},{code:'v10',name:'DJM-V10',quantity:1}],offers:[{code:'club',name:'Club-Setup',price_cents:21500,components:{cdj3000:2,v10:1}}]};
+  await page.route('https://test.invalid/**',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><div id="wview"></div>'}));
+  await page.route('**/functions/v1/artist-workspace',async route=>{
+   const b=route.request().postDataJSON();
+   if(b.action==='dashboard')return route.fulfill({json:d});
+   writes.push(b);const rental={...b,version:b.version+1,total_cents:21500};d.rentals=[rental];await route.fulfill({json:{ok:true,rental}});
+  });
+  await page.goto('https://test.invalid/#bookings');
+  await page.addStyleTag({path:path.join(root,'artist-app.css')});
+  await page.addScriptTag({path:path.join(root,'equipment-workflow.js')});
+  await page.addScriptTag({path:path.join(root,'artist-app.js')});
+  await page.evaluate(data=>{window.artistAuthHeaders=()=>({'x-admin-key':'test-only'});window.load=()=>window.renderArtistWorkspace(data);return window.renderArtistWorkspace(data);},d);
+  // The legacy load hook refreshes the fixture through the same API response.
+  await page.evaluate(()=>window.load=async()=>window.renderArtistWorkspace(await (await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace',{method:'POST',body:JSON.stringify({action:'dashboard'})})).json()));
+  await page.getByRole('button',{name:'Equipment',exact:true}).click();
+  await page.getByRole('button',{name:'+ Vermietung'}).click();
+  await page.getByLabel('Kunde / Veranstaltung').fill('Mobile Test');
+  await page.getByLabel('Abholung',{exact:true}).fill('2027-01-01T12:00');
+  await page.getByLabel('Rückgabe',{exact:true}).fill('2027-01-02T12:00');
+  await page.getByLabel('Abholung / Lieferung').fill('München, 12 Uhr');
+  await page.getByLabel('Zubehör und Mengen').fill('3 Cases, 3 Stromkabel');
+  await page.getByLabel('Kaution in €').fill('200');
+  assert.match(await page.locator('#rentalQuote').innerText(),/215,00/);
+  await page.getByRole('button',{name:'Speichern',exact:true}).click();
+  await page.locator('#artistDialog').waitFor({state:'hidden'});
+  await page.getByRole('button',{name:'Reservieren',exact:true}).click();
+  assert.equal(await page.locator('#artistDialog').evaluate(el=>el.open),true,await page.locator('body').innerText());
+  await page.getByLabel('Mietzahlung').selectOption('paid');
+  await page.getByLabel('Kautionsstatus').selectOption('received');
+  await page.getByText('Kunde hat Mietangebot').check();
+  await page.getByRole('button',{name:'Speichern',exact:true}).click();
+  await page.locator('#artistDialog').waitFor({state:'hidden'});
+  await page.getByRole('button',{name:'Übergeben',exact:true}).click();
+  await page.getByLabel('Geräte, Mengen und Seriennummern').fill('CDJ A, CDJ B, V10 A');
+  await page.getByLabel('Zustand, Vollständigkeit und Funktion').fill('Vollständig und funktionsfähig');
+  await page.getByLabel('Fotolinks').fill('https://example.com/protected/photo');
+  await page.getByText('Geräte und Zubehör gemeinsam geprüft').check();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  fs.mkdirSync(path.join(root,'test-results'),{recursive:true});
+  await page.screenshot({path:path.join(root,'test-results/equipment-mobile.png'),fullPage:true});
+  await page.getByRole('button',{name:'Speichern',exact:true}).click();
+  await page.locator('#artistDialog').waitFor({state:'hidden'});
+  await page.getByRole('button',{name:'Zurücknehmen',exact:true}).click();
+  await page.getByLabel('Zustand, Vollständigkeit und Funktion').fill('Vollständig, keine neuen Schäden');
+  await page.getByLabel('Fotolinks').fill('https://example.com/protected/return');
+  await page.getByText('Geräte und Zubehör gemeinsam geprüft').check();
+  await page.getByLabel('Kautionsstatus').selectOption('returned');
+  await page.getByText('Abrechnung geprüft und verbleibende Kaution').check();
+  await page.getByRole('button',{name:'Speichern',exact:true}).click();
+  await page.locator('#artistDialog').waitFor({state:'hidden'});
+  assert.deepEqual(writes.map(x=>x.status),['draft','reserved','collected','returned']);assert.equal(writes[3].rental_details.refund_confirmed,true);assert.deepEqual(errors,[]);
+ }finally{await browser.close();}
+});

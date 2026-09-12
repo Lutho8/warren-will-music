@@ -49,3 +49,8 @@
 @media(prefers-reduced-motion:reduce){#artistApp *,#artistDialog *{scroll-behavior:auto!important;transition:none!important}}
 
 #artistNav[hidden],#artistApp[hidden],#artistToast[hidden]{display:none!important}
+
+#artistDialog .rental-record{padding:14px;margin-block:16px;border:1px solid var(--app-line);border-radius:10px;background:white;overflow-wrap:anywhere}
+#artistDialog .rental-record p{white-space:pre-wrap}
+#artistDialog section[hidden]{display:none!important}
+@media(max-width:640px){#artistApp .app-row:has([data-app="rental"]){align-items:flex-start;flex-direction:column}#artistApp .app-row:has([data-app="rental"]) .app-actions{margin-top:0;width:100%}#artistApp .app-row:has([data-app="rental"]) .app-actions button{flex:1}}

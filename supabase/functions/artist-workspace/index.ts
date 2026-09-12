@@ -44,7 +44,7 @@ Deno.serve(async(req)=>{
  if(action==='dashboard'){
  const base=role==='social'?{ok:true,role,contacts:[],gigs:[],board:[],invoices:[],pipeline:[],interactions:[]}:await(await legacy('crm-dashboard',role)).json();
  if(!base.ok)return response(base,502);
- const definitions=[['content','artist_content'],['publications','content_publications'],['metrics','artist_metrics']];
+ const definitions=[['content','artist_content'],['publications','content_publications'],['metrics','artist_metrics'],['channels','social_channels']];
  if(role!=='social')definitions.push(['rentals','equipment_bookings'],['offers','equipment_offers'],['inventory','equipment_inventory'],['contact_extensions','contacts'],['gig_extensions','gigs'],['invoice_extensions','invoices']);
  const extra:any={};
  for(const [key,table] of definitions){
@@ -58,7 +58,7 @@ Deno.serve(async(req)=>{
  base.contacts=extra.contact_extensions||base.contacts;delete extra.contact_extensions;delete extra.gig_extensions;delete extra.invoice_extensions;
  return response({...base,...extra,role,app_ready:true,generated_at:new Date().toISOString(),capabilities:{personal_login:actor.indexOf('legacy:')!==0,email:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),social_sync:false,music_sync:false}});
  }
- if(role==='social' && !['save_content','save_publication','save_metric'].includes(action))return response({ok:false,error:'Kein Zugriff auf Buchungs- oder Kontaktdaten.'},403);
+ if(role==='social' && !['save_content','save_publication','save_metric','save_channel'].includes(action))return response({ok:false,error:'Kein Zugriff auf Buchungs- oder Kontaktdaten.'},403);
  if(action==='save_gig'){
  if(!id(b.id)||!date(b.date)||!cut(b.venue_name)||!['draft','confirmed','cancelled'].includes(b.booking_status)||typeof b.is_public!=='boolean'||(b.fee!==null&&(!Number.isFinite(b.fee)||b.fee<0||b.fee>1000000)))throw new Error('Datum, Venue, Gage und Buchungsstatus prüfen.');
  await rpc('save_artist_gig',b);return response({ok:true});}
@@ -85,8 +85,12 @@ Deno.serve(async(req)=>{
  if(!id(b.id)||typeof b.is_public!=='boolean'||!['draft','confirmed','cancelled'].includes(b.booking_status))throw new Error('Ungültiger Buchungsstatus.');
  requireOK(await sb.from('gigs').update({is_public:b.is_public,booking_status:b.booking_status,updated_at:new Date().toISOString()}).eq('id',b.id).select('id').single());await audit(b.id);return response({ok:true});}
  if(action==='save_rental'){
- if(!id(b.id)||!cut(b.customer_name,120)||!Number.isInteger(b.version)||!Number.isInteger(b.deposit_cents)||b.deposit_cents<0)throw new Error('Kunde, Kaution und Version prüfen.');
- return response({ok:true,rental:await rpc('save_equipment_booking',{...b,customer_name:cut(b.customer_name,120),notes:cut(b.notes,1000)})});}
+ if(!id(b.id)||!cut(b.customer_name,120)||!Number.isInteger(b.version)||b.version<0||!Number.isInteger(b.deposit_cents)||b.deposit_cents<0||b.deposit_cents>100000000)throw new Error('Kunde, Kaution und Version prüfen.');
+ if(!['draft','reserved','collected','returned','cancelled'].includes(b.status)||!['open','received','returned'].includes(b.deposit_status)||!['open','partial','paid'].includes(b.payment_status)||!cut(b.offer_code,40))throw new Error('Mietstatus und Angebot prüfen.');
+ const start=Date.parse(b.starts_at),end=Date.parse(b.ends_at);
+ if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||end-start>365*86400000||(b.contact_id&&!id(b.contact_id)))throw new Error('Mietzeitraum und Kontakt prüfen.');
+ if(b.rental_details&&(typeof b.rental_details!=='object'||Array.isArray(b.rental_details)||JSON.stringify(b.rental_details).length>40000))throw new Error('Mietdetails prüfen.');
+ return response({ok:true,rental:await rpc('save_equipment_workflow',{...b,customer_name:cut(b.customer_name,120),notes:cut(b.notes,1000)})});}
  if(action==='save_inventory'){
  team();if(!Number.isInteger(b.quantity)||b.quantity<0||b.quantity>1000)throw new Error('Stückzahl zwischen 0 und 1000 eingeben.');
  // SQL row update shares the inventory lock used by reservations. Do not reduce below existing commitments.
@@ -99,15 +103,18 @@ Deno.serve(async(req)=>{
  if(!id(b.id)||!['approved','changes'].includes(b.approval))throw new Error('Ungültige Freigabe.');
  return response({ok:true,content:await rpc('save_artist_content',{id:b.id,version:b.version,approval:b.approval,review_note:cut(b.review_note,1000),operation:'review'})});}
  if(action==='save_publication'){
- contentTeam();if(!id(b.content_id)||!platformHosts[b.platform]||!['planned','published','failed'].includes(b.status))throw new Error('Plattform und Status prüfen.');
+ contentTeam();if(!id(b.content_id)||!cut(b.platform,80)||!['planned','published','failed'].includes(b.status))throw new Error('Plattform und Status prüfen.');
  if(b.status==='published'){
  if(!https(b.post_url)||!b.published_at||isNaN(Date.parse(b.published_at))||Date.parse(b.published_at)>Date.now())throw new Error('Beitragslink und tatsächlichen Veröffentlichungszeitpunkt eintragen.');
- const host=new URL(b.post_url).hostname;if(!platformHosts[b.platform].some(h=>host===h||host.endsWith('.'+h)))throw new Error('Beitragslink gehört nicht zur gewählten Plattform.');}
+ const host=new URL(b.post_url).hostname;const expected=platformHosts[b.platform];if(expected&&!expected.some(h=>host===h||host.endsWith('.'+h)))throw new Error('Beitragslink gehört nicht zur gewählten Plattform.');}
  if(b.status==='planned'&&(!b.scheduled_at||isNaN(Date.parse(b.scheduled_at))))throw new Error('Geplanten Zeitpunkt eingeben.');
  await rpc('save_publication',{...b,note:cut(b.note,500),post_url:cut(b.post_url,2000)});return response({ok:true});}
  if(action==='save_metric'){
- contentTeam();if(!['YouTube','Spotify','Apple Music','Instagram','TikTok','Facebook'].includes(b.platform)||!cut(b.metric,120)||!Number.isFinite(b.value)||b.value<0||!date(b.period_start)||!date(b.period_end)||!https(b.source_url))throw new Error('Kennzahl, Zeitraum und Quellenlink prüfen.');
+ contentTeam();if(!cut(b.platform,80)||!cut(b.metric,120)||!Number.isFinite(b.value)||b.value<0||!date(b.period_start)||!date(b.period_end)||!https(b.source_url))throw new Error('Kennzahl, Zeitraum und Quellenlink prüfen.');
  requireOK(await sb.from('artist_metrics').upsert({platform:b.platform,metric:cut(b.metric,120),value:b.value,period_start:b.period_start,period_end:b.period_end,source_url:cut(b.source_url,2000),note:cut(b.note,500),recorded_at:new Date().toISOString()},{onConflict:'platform,metric,period_start,period_end'}));await audit();return response({ok:true});}
+ if(action==='save_channel'){
+ contentTeam();if(!cut(b.platform,80)||!['manual','export','api'].includes(b.proof_method)||(b.profile_url&&!https(b.profile_url)))throw new Error('Plattform, Nachweisart und Kanal-Link prüfen.');
+ requireOK(await sb.from('social_channels').insert({platform:cut(b.platform,80),handle:cut(b.handle,120)||null,profile_url:cut(b.profile_url,2000)||null,proof_method:b.proof_method,note:cut(b.note,500)||null,created_by:actor}));await audit();return response({ok:true});}
  if(action==='invoice_pdf'){
  if(!id(b.invoice_id))throw new Error('Rechnung fehlt.');const r=await legacy('invoice-pdf','team',{invoice_id:b.invoice_id});return new Response(r.body,{status:r.status,headers:{...cors,'Content-Type':r.headers.get('content-type')||'application/pdf'}});}
  if(action==='send_invoice_email'){
