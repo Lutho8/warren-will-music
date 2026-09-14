@@ -879,7 +879,7 @@ function render(d){
   const live = board.filter(x => !x.archived_at);
   let html = '';
   groups.forEach(([kind, label]) => {
-    const open = live.filter(x => x.kind === kind && (x.status === 'open' || x.status === 'in_progress')).sort(boardSort);
+    const open = live.filter(x => x.kind === kind && (x.status === 'open' || x.status === 'in_progress' || x.status === 'review')).sort(boardSort);
     html += `<div class="cbh">${label} · ${open.length}</div>`;
     html += open.length ? open.map(x => `<div class="card">
       <div class="row"><div class="brd-title">${priDot(x)}${esc(x.title)}</div><div class="acts">${x.price ? `<span class="brd-price">${esc(x.price)}</span>` : ''}${ownerBadge(deriveOwner(x))}${stChip(x)}</div></div>
@@ -903,6 +903,14 @@ function render(d){
           <option value="high"${x.priority === 'high' ? ' selected' : ''}>● Hoch</option>
           <option value="normal"${!x.priority || x.priority === 'normal' ? ' selected' : ''}>● Normal</option>
           <option value="low"${x.priority === 'low' ? ' selected' : ''}>● Niedrig</option>
+        </select>
+        <select id="best-${x.id}" aria-label="Status">
+          <option value="open"${x.status === 'open' ? ' selected' : ''}>Open</option>
+          <option value="in_progress"${x.status === 'in_progress' ? ' selected' : ''}>In progress</option>
+          <option value="review"${x.status === 'review' ? ' selected' : ''}>Review</option>
+          <option value="done"${x.status === 'done' ? ' selected' : ''}>Done</option>
+          <option value="approved"${x.status === 'approved' ? ' selected' : ''}>Approved</option>
+          <option value="declined"${x.status === 'declined' ? ' selected' : ''}>Declined</option>
         </select>
         <input id="bedue-${x.id}" type="date" value="${esc(x.due_date || '')}"/>
         <select id="beo-${x.id}">${ownerOpts(deriveOwner(x))}</select>
@@ -1169,7 +1177,7 @@ function renderWarren(d){
   $('wWork').innerHTML = work.length ? work.map(x => `<div class="card"><div class="row">
     <div class="brd-title">${esc(x.title)}</div><div class="acts">${stChip(x)}</div></div>
     ${x.details ? `<div class="brd-det">${esc(x.details)}</div>` : ''}${cmtHtml(x)}
-    <div class="acts" style="margin-top:10px">${x.status === 'open' ? `<button class="bbtn" data-start="${x.id}">Start</button>` : ''}${x.status === 'in_progress' ? `<button class="bbtn" data-review="${x.id}">Submit for review</button>` : ''}${x.status === 'review' ? `<button class="bbtn green" data-complete="${x.id}">Complete</button>` : ''}<button class="bbtn" data-worklog="${x.id}">Add work evidence</button></div>
+    <div class="acts" style="margin-top:10px">${x.status === 'open' ? `<button class="bbtn" data-start="${x.id}">Start</button>` : ''}${x.status === 'in_progress' ? `<button class="bbtn" data-review="${x.id}">Submit for review</button>` : ''}${x.status === 'review' ? `<button class="bbtn green" data-complete="${x.id}">Complete</button>` : ''}<button class="bbtn" data-edit="${x.id}">Edit</button><button class="bbtn" data-worklog="${x.id}">Add work evidence</button></div>
   </div>`).join('') : '<p class="empty">Quiet — new work lands here.</p>';
 
   /* completed — erledigte Asks bekommen „Rückgängig" */
@@ -1290,6 +1298,7 @@ document.addEventListener('click', e => {
       details: $('bed-' + id).value.trim(),
       price: $('bep-' + id).value.trim(),
       priority: $('bepr-' + id).value,
+      status: $('best-' + id).value,
       owner: $('beo-' + id).value,
       due_date: $('bedue-' + id).value || null }, t);
   }
