@@ -37,7 +37,7 @@ Deno.serve(async (req: Request) => {
       .select("id,name,email,phone_whatsapp,instagram,role,preferred_channel,source,status,notes,created_at, venues(name,city)")
       .order("created_at", { ascending: false }).limit(200),
     sb.from("opportunities")
-      .select("id,type,stage,fee_quote,next_follow_up,last_touch,created_at, contacts(name,email,phone_whatsapp), venues(name,city)")
+      .select("id,type,stage,pipeline_stage,source,contact_method,segment,region,assigned_to,next_step,follow_up_date,do_not_contact,fee_quote,next_follow_up,last_touch,created_at, contacts(name,email,phone_whatsapp), venues(name,city)")
       .order("last_touch", { ascending: false }).limit(100),
     sb.from("sequences")
       .select("id,step,due_at,channel,status, contacts(name,email,phone_whatsapp), opportunities(type,stage)")

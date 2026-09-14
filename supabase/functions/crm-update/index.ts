@@ -13,12 +13,12 @@ const json = (body: unknown, status = 200) =>
   });
 
 const KINDS = ["work", "ask", "approval"];
-const STATUSES = ["open", "in_progress", "done", "approved", "declined"];
+const STATUSES = ["open", "in_progress", "review", "done", "approved", "declined"];
 const CONTACT_ROLES = ["promoter", "booker", "club_manager", "dj", "chef", "other"];
 const DOC_TYPES = ["invoice", "deposit_invoice", "final_invoice", "receipt", "booking_confirmation"];
 const VAT_SCHEMES = ["kleinunternehmer", "vat19", "vat7", "reverse_charge"];
 const INV_STATUSES = ["sent", "paid", "cancelled", "draft"];
-const TEAM_ONLY = ["create_invoice", "update_invoice_status", "storno_invoice", "save_business_settings", "send_invoice_email", "archive_item", "unarchive_item", "archive_all_done"];
+const TEAM_ONLY = ["create_invoice", "update_invoice_status", "storno_invoice", "save_business_settings", "send_invoice_email", "archive_item", "unarchive_item", "archive_all_done", "log_work", "submit_review", "complete_work"];
 const BOARD_PRIORITIES = ["high", "normal", "low"];
 const cut = (v: unknown, n = 500) => String(v ?? "").trim().slice(0, n);
 const isId = (v: unknown) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v ?? ""));
@@ -179,6 +179,19 @@ Deno.serve(async (req: Request) => {
 
   /* ───────── TEAM actions (Lutho / ops) ───────── */
   if (role === "team") {
+    if (action === "log_work") {
+      if (!isId(b.board_id) || !cut(b.entry, 2000)) return json({ ok: false, error: "board_id and work evidence are required" }, 400);
+      const { error } = await sb.from("board_work_logs").insert({ board_id: b.board_id, author: "team", entry: cut(b.entry, 2000), evidence_url: cut(b.evidence_url, 500) || null });
+      if (error) return json({ ok: false, error: error.message }, 500);
+      return json({ ok: true });
+    }
+    if (action === "submit_review" || action === "complete_work") {
+      if (!isId(b.id)) return json({ ok: false, error: "id required" }, 400);
+      const status = action === "submit_review" ? "review" : "done";
+      const { error } = await sb.from("client_board").update({ status, done_at: status === "done" ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq("id", b.id).eq("kind", "work");
+      if (error) return json({ ok: false, error: error.message }, 500);
+      return json({ ok: true, status });
+    }
     if (action === "create") {
       const kind = cut(b.kind, 20), title = cut(b.title, 200);
       if (!KINDS.includes(kind) || !title) return json({ ok: false, error: "kind + title required" }, 400);

@@ -940,11 +940,11 @@ function render(d){
   }).join('') : '<p class="empty">Nothing pending — the loop is clear. ✓</p>';
 
   /* pipeline by stage */
-  const stages = ['new','contacted','replied','negotiating','confirmed','played','rebook','lost'];
+  const stages = ['Not contacted','Contacted','Follow-up due','Replied','Qualified','Not interested','Do not contact'];
   const ops = d.pipeline || [];
   $('ppCnt').textContent = ops.length + ' total';
   $('pipeline').innerHTML = stages.map(st => {
-    const list = ops.filter(o => o.stage === st);
+    const list = ops.filter(o => (o.pipeline_stage || o.stage) === st);
     return `<div class="stage"><h3>${st} <b>${list.length}</b></h3>` +
       (list.length ? list.map(o => {
         const ct = o.contacts || {}, vn = o.venues || {};
@@ -1164,11 +1164,12 @@ function renderWarren(d){
   </div>`).join('') : '<p class="empty">Nothing right now — you\'re all caught up. ✓</p>';
 
   /* work in progress */
-  const work = board.filter(x => !x.archived_at && x.kind === 'work' && (x.status === 'open' || x.status === 'in_progress'));
+  const work = board.filter(x => !x.archived_at && x.kind === 'work' && (x.status === 'open' || x.status === 'in_progress' || x.status === 'review'));
   $('wWorkCnt').textContent = work.length + ' active';
   $('wWork').innerHTML = work.length ? work.map(x => `<div class="card"><div class="row">
     <div class="brd-title">${esc(x.title)}</div><div class="acts">${stChip(x)}</div></div>
     ${x.details ? `<div class="brd-det">${esc(x.details)}</div>` : ''}${cmtHtml(x)}
+    <div class="acts" style="margin-top:10px">${x.status === 'open' ? `<button class="bbtn" data-start="${x.id}">Start</button>` : ''}${x.status === 'in_progress' ? `<button class="bbtn" data-review="${x.id}">Submit for review</button>` : ''}${x.status === 'review' ? `<button class="bbtn green" data-complete="${x.id}">Complete</button>` : ''}<button class="bbtn" data-worklog="${x.id}">Add work evidence</button></div>
   </div>`).join('') : '<p class="empty">Quiet — new work lands here.</p>';
 
   /* completed — erledigte Asks bekommen „Rückgängig" */
@@ -1187,10 +1188,10 @@ function renderWarren(d){
 
 /* ═══════════ events ═══════════ */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele],[data-invsent],[data-invpaid],[data-invstorno],[data-invpdf],[data-invemail],[data-invform],[data-invcreate],[data-invcancel],[data-arch],[data-unarch],[data-archall],[data-cmt],[data-cmtsend],[data-wreopen],[data-gedit],[data-gdel],[data-gsave],[data-gcancel],[data-gaedit],[data-gadel],[data-gasave],[data-gacancel]');
+  const t = e.target.closest('[data-appr],[data-decl],[data-done],[data-reply],[data-sendc],[data-cancelr],[data-start],[data-review],[data-worklog],[data-complete],[data-reopen],[data-del],[data-edit],[data-save],[data-cancele],[data-invsent],[data-invpaid],[data-invstorno],[data-invpdf],[data-invemail],[data-invform],[data-invcreate],[data-invcancel],[data-arch],[data-unarch],[data-archall],[data-cmt],[data-cmtsend],[data-wreopen],[data-gedit],[data-gdel],[data-gsave],[data-gcancel],[data-gaedit],[data-gadel],[data-gasave],[data-gacancel]');
   if(!t) return;
   const a = t.dataset;
-  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele || a.invsent || a.invpaid || a.invstorno || a.invpdf || a.invemail || a.invform || a.invcreate || a.invcancel || a.arch || a.unarch || a.archall || a.cmt || a.cmtsend || a.wreopen || a.gedit || a.gdel || a.gsave || a.gcancel || a.gaedit || a.gadel || a.gasave || a.gacancel;
+  const id = a.appr || a.decl || a.done || a.reply || a.sendc || a.cancelr || a.start || a.review || a.worklog || a.complete || a.reopen || a.del || a.edit || a.save || a.cancele || a.invsent || a.invpaid || a.invstorno || a.invpdf || a.invemail || a.invform || a.invcreate || a.invcancel || a.arch || a.unarch || a.archall || a.cmt || a.cmtsend || a.wreopen || a.gedit || a.gdel || a.gsave || a.gcancel || a.gaedit || a.gadel || a.gasave || a.gacancel;
   /* ── BOARD 2.0 actions ── */
   if(a.arch) return act({ action:'archive_item', id }, t);
   if(a.unarch) return act({ action:'unarchive_item', id }, t);
@@ -1276,7 +1277,9 @@ document.addEventListener('click', e => {
     return act({ action:'comment', id, comment }, t);
   }
   if(a.start) return act({ action:'update', id, status:'in_progress' }, t);
-  if(a.complete) return act({ action:'update', id, status:'done' }, t);
+  if(a.review) return act({ action:'submit_review', id }, t);
+  if(a.complete) return act({ action:'complete_work', id }, t);
+  if(a.worklog){ const entry=prompt('Describe the work completed'); if(!entry) return; const evidence_url=prompt('Optional evidence URL (https://)') || ''; return act({ action:'log_work', board_id:id, entry, evidence_url }, t); }
   if(a.reopen) return act({ action:'update', id, status:'open' }, t);
   if(a.del){ if(confirm('Remove this board item?')) return act({ action:'remove', id }, t); return; }
   if(a.edit){ const el = $('be-' + id); if(el) el.classList.toggle('open'); return; }
@@ -1624,6 +1627,15 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw-admin.js
       tip.querySelector('#a2hsX').addEventListener('click', e => { e.preventDefault(); localStorage.setItem('wwA2hsDismissed','1'); tip.remove(); });
     }
   }
+})();
+
+/* English CRM language layer: keeps all operational labels and messages
+   consistent while preserving stored values and audit records. */
+(function(){
+  const map=[['Dashboard öffnen','Open dashboard'],['Anmeldung fehlgeschlagen','Sign-in failed'],['Anmeldung wird geprüft','Signing in'],['RECHNUNGEN','INVOICES'],['Rechnung','Invoice'],['Abschlagsrechnung','Deposit invoice'],['Schlussrechnung','Final invoice'],['ENTWURF','DRAFT'],['VERSENDET','SENT'],['BEZAHLT','PAID'],['STORNIERT','CANCELLED'],['Storno','Void'],['Noch keine Rechnungen.','No invoices yet.'],['Heute fällig','Due today'],['überfällig','overdue'],['Kommentare','Comments'],['Noch keine Kommentare.','No comments yet.'],['Als erledigt markieren','Mark complete'],['Rückgängig','Undo'],['Neue Aufgabe','New task'],['Team','Team'],['Warren','Warren'],['Management','Management'],['Kontakte','Contacts'],['Auftritte','Shows'],['Buchung','Booking'],['Zahlung','Payment'],['Kaution','Deposit'],['Speichern','Save'],['Abbrechen','Cancel'],['Prüfen','Review'],['Versenden','Send'],['Löschen','Delete'],['Storniert','Cancelled'],['Übernommen','Imported'],['bitte prüfen','please review'],['Kontakt ist','contact is'],['Kontakte sind','contacts are'],['Keine Kontakte','No contacts'],['Nicht kontaktiert','Not contacted'],['Nachfassen','Follow-up'],['Veranstalter','Promoter'],['Arbeitsnachweis','Work evidence'],['Freigabe','Approval'],['Erledigt','Complete']];
+  let busy=false;
+  function translate(){if(busy)return;busy=true;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);const ns=[];while(w.nextNode()){const p=w.currentNode.parentElement;if(p&&p.tagName!=='SCRIPT'&&p.tagName!=='STYLE')ns.push(w.currentNode);}for(const n of ns){let v=n.nodeValue;for(const [a,b] of map)v=v.split(a).join(b);n.nodeValue=v;}for(const e of document.querySelectorAll('input,textarea,button,[aria-label]'))for(const a of ['placeholder','aria-label','title'])if(e.hasAttribute(a)){let v=e.getAttribute(a);for(const [x,y] of map)v=v.split(x).join(y);e.setAttribute(a,v);}busy=false;}
+  new MutationObserver(translate).observe(document.body,{subtree:true,childList:true,characterData:true});translate();
 })();
 </script>
 </body>
