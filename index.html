@@ -226,16 +226,20 @@
     .bit-widget-initializer{font-family:var(--grot)!important}
     .tour-book{margin-top:30px;text-align:center}
     .tour-book p{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:14px}
-    .tour-split{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:start;margin-bottom:36px}
+    .tour-split{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:36px;align-items:start;margin-bottom:36px}
     @media(max-width:900px){.tour-split{grid-template-columns:1fr}}
-    .vc-frame{position:relative;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:var(--panel)}
-    .vc-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity 1.1s ease}
+    .vid-car,.up-next{min-width:0}
+    .vc-frame{position:relative;overflow:hidden;border:1px solid var(--line);width:100%;max-width:min(420px,calc(78svh * 9 / 16));margin-inline:auto;aspect-ratio:9/16;background:var(--panel)}
+    .vc-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.1s ease}
     .vc-frame video.on{opacity:1}
-    .vc-label{position:absolute;left:14px;bottom:12px;z-index:2;font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+    .vc-label{position:absolute;left:14px;right:14px;bottom:12px;z-index:2;font-family:var(--mono);font-size:10px;line-height:1.6;letter-spacing:.12em;text-transform:uppercase;
       color:#fff;background:rgba(5,5,5,.55);backdrop-filter:blur(8px);padding:7px 12px}
-    .vc-dots{position:absolute;right:14px;bottom:16px;z-index:2;display:flex;gap:6px}
-    .vc-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);transition:.3s}
-    .vc-dots i.on{background:var(--gold);transform:scale(1.25)}
+    .vc-dots{display:flex;justify-content:center;gap:4px;margin-top:6px}
+    .vc-dots button{width:44px;height:44px;border:0;background:transparent;cursor:pointer;display:grid;place-items:center}
+    .vc-dots button::after{content:'';width:8px;height:8px;border-radius:50%;background:#777;transition:.3s}
+    .vc-dots button.on::after{background:var(--gold);transform:scale(1.25)}
+    .vc-play{position:absolute;right:12px;top:12px;z-index:2;min-height:44px;padding:8px 14px;border:1px solid var(--gold);background:rgba(5,5,5,.8);color:var(--text);font:11px var(--mono);cursor:pointer}
+    .vc-play:focus-visible,.vc-dots button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
     .vc-note{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;margin-top:12px;text-align:center}
     .gig-row{display:flex;align-items:center;gap:16px;padding:14px 4px;border-bottom:1px solid var(--line);transition:.25s}
     .gig-row:hover{padding-left:12px;background:#0f0f0f}
@@ -291,7 +295,8 @@
     .pkg ul{list-style:none;flex:1}
     .pkg li{font-size:16px;color:var(--muted);padding:7px 0 7px 16px;position:relative;line-height:1.5}
     .pkg li::before{content:'—';position:absolute;left:0;color:var(--gold)}
-    .book-split{display:grid;grid-template-columns:1fr 1fr;gap:44px}
+    .book-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:44px}
+    .book-split>*{min-width:0}
     @media(max-width:900px){.book-split{grid-template-columns:1fr}}
     .book-pitch h3{font-family:var(--bebas);font-weight:400;font-size:clamp(38px,5vw,64px);line-height:.95;margin-bottom:18px}
     .book-pitch h3 em{color:var(--gold);font-style:normal}
@@ -312,6 +317,11 @@
     .book-success .tick{font-family:var(--bebas);font-size:44px;color:var(--gold)}
     .book-success h3{font-family:var(--bebas);font-size:28px;font-weight:400;margin:8px 0}
     .book-success p{font-size:13px;color:var(--muted)}
+    .booking-feedback{padding:16px;border:1px solid var(--gold);font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+    .booking-feedback a{text-decoration:underline;color:var(--gold)}
+    .btn{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+    .btn svg{flex-shrink:0}
+    [id]{scroll-margin-top:90px}
 
 
 
@@ -481,8 +491,9 @@
         <video id="vcA" muted loop playsinline preload="metadata" poster="assets/gig-starni.jpg"></video>
         <video id="vcB" muted loop playsinline preload="none"></video>
         <div class="vc-label" id="vcLabel">with YE in the alps</div>
-        <div class="vc-dots" id="vcDots"></div>
+        <button type="button" class="vc-play" id="vcPlay" aria-label="Pause showreel">Pause</button>
       </div>
+      <div class="vc-dots" id="vcDots" aria-label="Choose a live video"></div>
       <p class="vc-note">MOMENTS FROM THE DANCEFLOOR — RECENT SHOWS, REAL CROWDS, REAL ENERGY.</p>
     </div>
     <div class="up-next">
@@ -681,16 +692,17 @@
           <a class="btn btn-ghost dz-mail" href="mailto:booking@warrenwilliam.de?subject=Booking%20Inquiry%20—%20Warren%20Will">
             <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
             booking@warrenwilliam.de</a>
+          <p class="dz-sub">Opens your email app — press Send to submit.</p>
           <p class="dz-sub">…or WhatsApp — the green button, bottom right.</p>
         </div>
       </div>
-      <form class="form-col" id="bookForm" novalidate>
+      <form class="form-col" id="bookForm">
         <input type="text" id="bkWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"/>
         <div class="form-row">
-          <input type="text" class="fi" id="bkName" placeholder="Your name" required/>
-          <input type="email" class="fi" id="bkMail" placeholder="Email address" required/>
+          <input type="text" class="fi" id="bkName" placeholder="Your name" aria-label="Your name" autocomplete="name" maxlength="120" required/>
+          <input type="email" class="fi" id="bkMail" placeholder="Email address" aria-label="Email address" autocomplete="email" maxlength="160" required/>
         </div>
-        <select class="fi" id="bkType" required>
+        <select class="fi" id="bkType" aria-label="Event type" required>
           <option value="" disabled selected>Event type</option>
           <option>Club night</option>
           <option>Festival / Open Air</option>
@@ -699,20 +711,25 @@
           <option>Other</option>
         </select>
         <div class="form-row">
-          <input type="text" class="fi" id="bkDate" placeholder="Preferred date(s)"/>
-          <input type="text" class="fi" id="bkCity" placeholder="City / venue"/>
+          <input type="text" class="fi" id="bkDate" placeholder="Preferred date(s)" aria-label="Preferred dates" maxlength="60"/>
+          <input type="text" class="fi" id="bkCity" placeholder="City / venue" aria-label="City or venue" maxlength="120"/>
         </div>
-        <textarea class="fi" id="bkMsg" placeholder="Tell us about the night — capacity, lineup, set time…"></textarea>
+        <textarea class="fi" id="bkMsg" placeholder="Tell us about the night — capacity, lineup, set time…" aria-label="Event details" maxlength="4000"></textarea>
         <button type="submit" class="btn btn-gold" style="justify-content:center;padding:18px 26px;font-size:12px">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           Send Booking Inquiry →</button>
+        <div class="booking-feedback" id="bookFeedback" role="status" hidden>
+          <p id="bookFeedbackText"></p>
+          <a id="bookEmailFallback" href="mailto:booking@warrenwilliam.de">Open your email app to send this inquiry →</a>
+          <p>No email app? Copy your details into a new email to booking@warrenwilliam.de.</p>
+        </div>
         <p class="form-note">Reply within 48 hours · 50% deposit secures the date</p>
         <p class="form-note" style="margin-top:6px;opacity:.75">By sending, you agree to the processing of your details to handle your inquiry (Art. 6(1)(b) GDPR) — see <a href="datenschutz.html" style="text-decoration:underline">Privacy Policy</a>.</p>
       </form>
-      <div class="book-success" id="bookOk">
+      <div class="book-success" id="bookOk" role="status" tabindex="-1">
         <div class="tick">✓</div>
-        <h3>INQUIRY READY</h3>
-        <p>Your email draft to booking@warrenwilliam.de has opened — hit send and we reply within 48 hours.</p>
+        <h3>INQUIRY RECEIVED</h3>
+        <p>Thank you — your booking inquiry has been received. We reply within 48 hours.</p>
       </div>
     </div>
   </div>
@@ -871,82 +888,106 @@ window.addEventListener('scroll', () => {
   const clips = [
     { src:'assets/gig-starni.mp4', poster:'assets/gig-starni.jpg', label:'with YE in the alps' },
     { src:'assets/gig-mountain.mp4', poster:'assets/gig-mountain.jpg', label:'YE @ Hahnenkamm - the alps' },
-    { src:'assets/gig-club-front.mp4', poster:'assets/gig-club-front.jpg', label:'CLUB NIGHT — BEHIND THE DECKS' },
+    { src:'assets/hero-720.mp4#t=0,3.15', poster:'assets/gig-club-front.jpg', label:'CLUB NIGHT — BEHIND THE DECKS' },
   ];
   const vids = [document.getElementById('vcA'), document.getElementById('vcB')];
   const label = document.getElementById('vcLabel'), dots = document.getElementById('vcDots');
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  clips.forEach((c, i) => { const d = document.createElement('i'); if(i === 0) d.className = 'on'; dots.appendChild(d); });
+  const playButton = document.getElementById('vcPlay');
+  let paused = window.matchMedia('(prefers-reduced-motion: reduce)').matches || !!navigator.connection?.saveData;
   let cur = 0, front = 0, timer = null, inView = false;
-  vids[0].src = clips[0].src; vids[0].classList.add('on');
-  if(!reduced) vids[0].play().catch(() => {});
+  function updateButton(){
+    playButton.textContent = paused ? 'Play' : 'Pause';
+    playButton.setAttribute('aria-label', paused ? 'Play showreel' : 'Pause showreel');
+  }
+  function syncPlayback(){
+    clearInterval(timer); timer = null;
+    if(inView && !document.hidden && !paused){
+      vids[front].play().catch(() => { paused = true; updateButton(); clearInterval(timer); });
+      timer = setInterval(() => show((cur + 1) % clips.length), 8000);
+    }else vids.forEach(v => v.pause());
+    updateButton();
+  }
   function show(n){
-    const back = 1 - front, old = vids[front];
+    if(n === cur) return;
+    const back = 1 - front;
+    vids[front].pause();
     vids[back].poster = clips[n].poster;
     vids[back].src = clips[n].src;
-    vids[back].play().catch(() => {});
-    vids[back].classList.add('on'); old.classList.remove('on');
+    vids[back].classList.add('on'); vids[front].classList.remove('on');
     label.textContent = clips[n].label;
-    [...dots.children].forEach((d, j) => d.classList.toggle('on', j === n));
+    [...dots.children].forEach((d, j) => {
+      d.classList.toggle('on', j === n);
+      d.setAttribute('aria-pressed', String(j === n));
+    });
     front = back; cur = n;
-    setTimeout(() => old.pause(), 1300);
+    syncPlayback();
   }
-  function tick(){ if(inView && !document.hidden) show((cur + 1) % clips.length); }
+  clips.forEach((c, i) => {
+    const d = document.createElement('button'); d.type = 'button';
+    d.setAttribute('aria-label', 'Watch ' + c.label);
+    d.setAttribute('aria-pressed', String(i === 0));
+    if(i === 0) d.className = 'on';
+    d.addEventListener('click', () => show(i)); dots.appendChild(d);
+  });
+  vids[0].src = clips[0].src; vids[0].classList.add('on');
+  playButton.addEventListener('click', () => { paused = !paused; syncPlayback(); });
+  document.addEventListener('visibilitychange', syncPlayback);
   new IntersectionObserver(([e]) => {
-    inView = e.isIntersecting;
-    if(inView && !timer && !reduced) timer = setInterval(tick, 8000);
-    if(!inView && timer){ clearInterval(timer); timer = null; }
+    inView = e.isIntersecting; syncPlayback();
   }, { threshold:.25 }).observe(document.getElementById('vcFrame'));
+  updateButton();
 })();
 
-
-
-
-/* ── FORMS → Supabase CRM (mailto fallback — nothing is ever lost) ── */
+/* ── FORMS → CRM and booking inbox ── */
 const CRM_URL = 'https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/booking-inquiry';
 async function sendToCRM(payload){
-  const r = await fetch(CRM_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
-  if(!r.ok) throw new Error('crm '+r.status);
-  return r.json();
+  const r = await fetch(CRM_URL, {
+    method:'POST', headers:{ 'Content-Type':'application/json' },
+    body:JSON.stringify(payload), signal:AbortSignal.timeout(20000)
+  });
+  const result = await r.json();
+  if(!r.ok || result.ok !== true) throw new Error('Inquiry could not be confirmed');
+  return result;
 }
 document.getElementById('bookForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const form = e.target;
+  if(!form.reportValidity()) return;
   const g = id => document.getElementById(id).value.trim();
-  if(!g('bkName') || !g('bkMail') || !g('bkMail').includes('@')){
-    document.getElementById('bkMail').style.borderColor = '#a83228'; return;
-  }
-  const btn = e.target.querySelector('button[type=submit]');
+  const btn = form.querySelector('button[type=submit]');
+  const feedback = document.getElementById('bookFeedback');
+  const subject = encodeURIComponent(`Booking Inquiry — ${g('bkType')} · ${g('bkCity') || g('bkDate') || 'date TBC'}`);
+  const body = encodeURIComponent([
+    'Servus Warren / team,', '', 'Booking inquiry via warrenwill.net:', '',
+    `Name: ${g('bkName')}`, `Email: ${g('bkMail')}`, `Event type: ${g('bkType')}`,
+    `Preferred date(s): ${g('bkDate') || 'flexible'}`, `City / venue: ${g('bkCity') || '—'}`,
+    '', 'About the night:', g('bkMsg') || '—'
+  ].join('\n'));
+  document.getElementById('bookEmailFallback').href = `mailto:booking@warrenwilliam.de?subject=${subject}&body=${body}`;
+  feedback.hidden = true;
   btn.disabled = true; btn.textContent = 'Sending…';
+  let saved = false;
   try{
-    await sendToCRM({ kind:'booking', name:g('bkName'), email:g('bkMail'), event_type:g('bkType'), event_date:g('bkDate'), city_venue:g('bkCity'), message:g('bkMsg'), website:g('bkWebsite'), source:'v4-dark' });
-    document.getElementById('bookForm').style.display = 'none';
-    document.querySelector('#bookOk p').textContent = 'Inquiry received — it landed directly in the booking CRM and we reply within 48 hours.';
-    document.getElementById('bookOk').style.display = 'block';
+    const result = await sendToCRM({kind:'booking', name:g('bkName'), email:g('bkMail'), event_type:g('bkType'), event_date:g('bkDate'), city_venue:g('bkCity'), message:g('bkMsg'), website:g('bkWebsite'), source:'warrenwill.net'});
+    saved = result.saved === true || (result.kind === 'booking' && !result.dropped);
+    if(result.notification?.status !== 'accepted'){
+      document.getElementById('bookFeedbackText').textContent = saved
+        ? 'Your inquiry is saved, but the email notification could not be sent. Please use the email link below and press Send in your email app.'
+        : 'Email delivery could not be confirmed. Please use the email link below and press Send in your email app.';
+      feedback.hidden = false;
+      return;
+    }
+    form.style.display = 'none';
+    const success = document.getElementById('bookOk');
+    success.style.display = 'block'; success.focus();
   }catch(_){
-    const subject = encodeURIComponent(`Booking Inquiry — ${g('bkType')} · ${g('bkCity') || g('bkDate') || 'date TBC'}`);
-    const body = encodeURIComponent(
-`Servus Warren / team,
-
-Booking inquiry via the website:
-
-Name: ${g('bkName')}
-Email: ${g('bkMail')}
-Event type: ${g('bkType')}
-Preferred date(s): ${g('bkDate') || 'flexible'}
-City / venue: ${g('bkCity') || '—'}
-
-About the night:
-${g('bkMsg') || '—'}
-
-— sent from warrenwill.de`);
-    window.location.href = `mailto:booking@warrenwilliam.de?subject=${subject}&body=${body}`;
-    document.getElementById('bookForm').style.display = 'none';
-    document.getElementById('bookOk').style.display = 'block';
+    document.getElementById('bookFeedbackText').textContent = 'We could not confirm your inquiry. Your details are still here. Try again, or use the email link below and press Send in your email app.';
+    feedback.hidden = false;
+  }finally{
+    btn.disabled = saved;
+    btn.textContent = saved ? 'Inquiry saved' : 'Send Booking Inquiry →';
   }
 });
-
-
-
 
 /* ── NEWSLETTER → CRM inner-circle (mailto fallback) ── */
 document.getElementById('nlForm').addEventListener('submit', async (e) => {

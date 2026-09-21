@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Warren Will responsive layout check</title>
+<style>
+body{margin:0;background:#ddd;font:16px system-ui;color:#111}
+header{padding:12px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+iframe{display:block;border:0;background:#050505;margin:0 auto}
+</style>
+<header>
+  <label>Screen size <select id="size">
+    <option value="320,568">Small phone · 320 × 568</option>
+    <option value="390,844" selected>Phone · 390 × 844</option>
+    <option value="768,1024">Tablet · 768 × 1024</option>
+    <option value="1366,900">Desktop · 1366 × 900</option>
+  </select></label>
+  <label>Section <select id="section">
+    <option value="tour">Tour</option><option value="music">Music</option>
+    <option value="booking">Booking</option><option value="contact">Contact</option>
+    <option value="hero">Landing</option>
+  </select></label>
+</header>
+<iframe title="Website preview" src="../index.html#tour" width="390" height="844"></iframe>
+<script>
+const frame=document.querySelector('iframe');
+document.getElementById('size').addEventListener('change',e=>{
+  const [w,h]=e.target.value.split(','); frame.width=w; frame.height=h;
+});
+document.getElementById('section').addEventListener('change',e=>{
+  frame.src='../index.html#'+e.target.value;
+});
+</script>
+</html>
