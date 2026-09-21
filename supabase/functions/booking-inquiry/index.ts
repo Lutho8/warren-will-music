@@ -5,7 +5,7 @@ import { notifyBooking } from "./notification.ts";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
 const json = (body: unknown, status = 200) =>
@@ -19,6 +19,14 @@ const clean = (v: unknown, max = 500): string =>
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method === "GET") {
+    return json({
+      ok: true,
+      notification_configured: Boolean(
+        Deno.env.get("RESEND_API_KEY") && Deno.env.get("RESEND_FROM"),
+      ),
+    });
+  }
   if (req.method !== "POST") return json({ ok: false, error: "POST only" }, 405);
 
   let b: Record<string, unknown>;

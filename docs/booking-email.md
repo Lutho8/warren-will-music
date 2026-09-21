@@ -1,7 +1,9 @@
 # Website booking notifications
 
-Activated on 21 September 2026: `booking-inquiry` version 3 is deployed in the
-production Supabase project. It uses the project's server-side Resend settings.
+Deployed on 21 September 2026: `booking-inquiry` is active in the production
+Supabase project. Automatic notifications remain disabled until `RESEND_API_KEY`
+and `RESEND_FROM` are configured; the health endpoint reports this state without
+exposing either secret.
 
 The public `booking-inquiry` Edge Function saves enquiries in the CRM and then
 sends a plain-text notification to **booking@warrenwilliam.de**. The recipient is
