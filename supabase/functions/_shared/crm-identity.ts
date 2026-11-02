@@ -8,7 +8,7 @@ export async function crmIdentity(req: Request, sb: any) {
   const { data: assignment, error: roleError } = await sb.from('crm_user_roles')
     .select('role,active').eq('user_id', user.id).eq('active', true).maybeSingle();
   if (roleError || !assignment) return null;
-  const roles: Record<string,string> = {artist:'client',management:'team',social_media:'social'};
+  const roles: Record<string,string> = {artist:'client',management:'team',social_media:'social',videographer_photographer:'social'};
   const role = roles[assignment.role];
   if (!role) return null;
   return {role, actor:user.id, owner:assignment.role === 'artist'};

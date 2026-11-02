@@ -364,6 +364,8 @@ h2{position:relative}
 }
 .gig-tools{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}.gig-tools label{flex:1;min-width:180px;font-size:14px}.gig-tools input,.gig-tools select{display:block;width:100%;padding:12px;margin-top:8px;border:1px solid var(--line-soft);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}.gig-history{margin:24px 0}.gig-history summary{cursor:pointer;font-size:16px;padding:12px 0}.wgig[hidden]{display:none}.wgig .s{font-size:12px}.wgig .r{flex-shrink:0}</style>
 <link rel="stylesheet" href="artist-app.css?v=20260912-equipment">
+<link rel="stylesheet" href="team-board.css?v=20261102"/>
+<script src="team-board.js?v=20261102"></script>
 <script src="artist-auth.js?v=20261102-personal-views"></script>
 <script src="equipment-workflow.js?v=20260912"></script>
 <script src="artist-app.js?v=20261102-personal-views"></script>
@@ -400,6 +402,8 @@ h2{position:relative}
 <!-- ── ops dashboard (Lutho / agent loops) ── -->
 <main id="dash">
   <div id="err"></div>
+  <section id="teamBoard" aria-label="Team tasks" hidden></section>
+  <details id="teamOperations"><summary>Bookings, contacts &amp; other operations</summary>
 
   <div class="wf" aria-label="Booking workflow">
     <span class="hot">Follow-up loop</span>
@@ -423,7 +427,7 @@ h2{position:relative}
     <div class="wform" style="border:none;padding:0;background:none;margin:0">
       <div class="frow" style="grid-template-columns:170px 1fr">
         <div><div class="fl">Type</div>
-          <select id="nbKind"><option value="work">Work — we're on it</option><option value="ask">Ask — need Warren</option><option value="approval">Approval — purchase</option></select></div>
+          <select id="nbKind"><option value="ask">Ask — need Warren</option><option value="approval">Approval — purchase</option></select></div>
         <div><div class="fl">Title</div><input id="nbTitle" placeholder="e.g. PostPilot experiment"/></div>
       </div>
       <div class="fl">Details (Warren sees this)</div><input id="nbDetails" placeholder="One or two lines, plain language"/>
@@ -440,8 +444,8 @@ h2{position:relative}
   </div>
   <div id="cbLists"></div>
 
-  <h2>TASKS · WHO'S RESPONSIBLE <span class="cnt" id="ownCnt"></span></h2>
-  <div class="lanes" id="ownerLanes"></div>
+  <h2 hidden>TASKS · WHO'S RESPONSIBLE <span class="cnt" id="ownCnt"></span></h2>
+  <div class="lanes" id="ownerLanes" hidden></div>
 
   <h2>LIFECYCLE <span class="cnt" id="lcCnt"></span></h2>
   <div class="card" style="padding:18px 16px 14px">
@@ -505,6 +509,7 @@ h2{position:relative}
       <p class="sub">Issuer block on every invoice. Steuernummer + IBAN never appear in Warren's view or in activity logs.</p>
     </div>
   </div>
+  </details>
 </main>
 
 <!-- ── warren (client) view ── -->
@@ -663,12 +668,12 @@ async function load(view){
   const requestSequence = ++loadSequence;
   $('gateErr').style.display = 'none';
   let r;
-  try{ const personal = await window.artistLoadData(typeof view==='string'?view:undefined); r = personal ? new Response(JSON.stringify(personal), {status:personal.auth_expired ? 401 : 200}) : new Response(JSON.stringify({ok:false,auth_expired:true}),{status:401}); }
+  try{ const personal = await window.artistLoadData(typeof view==='string'?view:/^#team-task\//.test(location.hash)?'team':undefined); r = personal ? new Response(JSON.stringify(personal), {status:personal.auth_expired ? 401 : 200}) : new Response(JSON.stringify({ok:false,auth_expired:true}),{status:401}); }
   catch(_){ if(requestSequence !== loadSequence) return; $('err').style.display = 'block'; $('err').textContent = 'Network error — could not reach the CRM. Check connection and refresh.'; return; }
   if(requestSequence !== loadSequence) return;
   if(r.status === 401){
     localStorage.removeItem(SK); localStorage.removeItem(SR); window.clearArtistSession(); window.hideArtistWorkspace(); KEY = ''; ROLE = '';
-    $('dash').style.display = 'none'; $('wview').style.display = 'none'; $('topBtns').style.display = 'none';
+    window.hideTeamBoard(); $('dash').style.display = 'none'; $('wview').style.display = 'none'; $('topBtns').style.display = 'none';
     $('gate').style.display = 'grid';
     $('gateErr').style.display = 'block';
     const gc = document.querySelector('.gate-card'); gc.classList.remove('shake'); void gc.offsetWidth; gc.classList.add('shake');
@@ -693,6 +698,7 @@ async function load(view){
   showView(d.view==='warren'?'client':'ops');
 }
 
+window.onTeamBoardReady=()=>{if(DATA)render(DATA);};
 function showView(v){
   const isW = v === 'client';
   if(isW&&!DATA?.is_owner)return;
@@ -701,7 +707,7 @@ function showView(v){
   $('dash').style.display = isW ? 'none' : 'block';
   $('wview').style.display = isW ? 'block' : 'none';
   $('btnView').textContent = isW ? 'Open team view' : 'Open Warren view';
-  if(isW) window.renderArtistWorkspace(DATA); else { window.hideArtistWorkspace(); render(DATA); }
+  if(isW) { window.hideTeamBoard(); window.renderArtistWorkspace(DATA); } else { window.hideArtistWorkspace(); render(DATA); $('teamOperations').hidden = ROLE === 'social'; window.renderTeamBoard(); }
 }
 
 /* ── write path: one helper for every board action ── */
@@ -888,7 +894,7 @@ function render(d){
   const live = board.filter(x => !x.archived_at);
   let html = '';
   groups.forEach(([kind, label]) => {
-    const open = live.filter(x => x.kind === kind && (x.status === 'open' || x.status === 'in_progress' || x.status === 'review')).sort(boardSort);
+    const open = live.filter(x => !(window.WWTeamBoardReady && kind === 'work' && window.WWTeamBoardUtils.shared(x)) && x.kind === kind && (x.status === 'open' || x.status === 'in_progress' || x.status === 'review')).sort(boardSort);
     html += `<div class="cbh">${label} · ${open.length}</div>`;
     html += open.length ? open.map(x => `<div class="card">
       <div class="row"><div class="brd-title">${priDot(x)}${esc(x.title)}</div><div class="acts">${x.price ? `<span class="brd-price">${esc(x.price)}</span>` : ''}${ownerBadge(deriveOwner(x))}${stChip(x)}</div></div>
@@ -1080,7 +1086,7 @@ function render(d){
 
   /* CRM 2.1 sections */
   renderTimeline(d);
-  renderOwnerLanes(board);
+  renderOwnerLanes(board.filter(x => !window.WWTeamBoardUtils.shared(x)));
   renderClients(d);
 }
 
