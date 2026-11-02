@@ -368,7 +368,7 @@ h2{position:relative}
 <script src="team-board.js?v=20261102"></script>
 <script src="artist-auth.js?v=20261102-personal-views"></script>
 <script src="equipment-workflow.js?v=20260912"></script>
-<script src="artist-app.js?v=20261102-personal-views"></script>
+<script src="artist-app.js?v=20261102-scoped-views"></script>
 </head>
 <body>
 
@@ -403,7 +403,7 @@ h2{position:relative}
 <main id="dash">
   <div id="err"></div>
   <section id="teamBoard" aria-label="Team tasks" hidden></section>
-  <details id="teamOperations"><summary>Bookings, contacts &amp; other operations</summary>
+  <details id="teamOperations"><summary>Admin · Bookings, contacts &amp; invoices</summary>
 
   <div class="wf" aria-label="Booking workflow">
     <span class="hot">Follow-up loop</span>
@@ -691,9 +691,9 @@ async function load(view){
   $('topBtns').style.display = 'flex';
   $('genAt').style.display = 'inline';
   $('genAt').textContent = 'updated ' + fmtDT(d.generated_at);
-  $('roleBadge').textContent = d.is_owner ? (d.view==='warren'?'Warren':'Warren · Team') : 'Team';
+  $('roleBadge').textContent = d.is_owner ? (d.view==='warren'?'Warren':'Warren · Team') : d.view==='warren'?'Management · Warren preview':ROLE==='social'?'Team':'Management · Team';
   $('roleBadge').classList.toggle('gold', ROLE === 'client');
-  $('btnView').style.display = d.is_owner ? 'inline-block' : 'none';
+  $('btnView').style.display = (d.available_views || []).includes('warren') ? 'inline-block' : 'none';
   $('btnFreelancerInvoices').style.display = ROLE === 'team' ? 'inline-block' : 'none';
   showView(d.view==='warren'?'client':'ops');
 }
@@ -701,12 +701,12 @@ async function load(view){
 window.onTeamBoardReady=()=>{if(DATA)render(DATA);};
 function showView(v){
   const isW = v === 'client';
-  if(isW&&!DATA?.is_owner)return;
+  if(isW&&!(DATA?.available_views || []).includes('warren'))return;
   const target=isW?'warren':'team';
   if(DATA?.view!==target){load(target);return;}
   $('dash').style.display = isW ? 'none' : 'block';
   $('wview').style.display = isW ? 'block' : 'none';
-  $('btnView').textContent = isW ? 'Open team view' : 'Open Warren view';
+  $('btnView').textContent = isW ? 'Open team view' : (DATA?.is_owner?'Open Warren view':'Preview Warren view');
   if(isW) { window.hideTeamBoard(); window.renderArtistWorkspace(DATA); } else { window.hideArtistWorkspace(); render(DATA); $('teamOperations').hidden = ROLE === 'social'; window.renderTeamBoard(); }
 }
 

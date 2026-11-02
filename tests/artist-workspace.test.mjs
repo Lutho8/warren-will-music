@@ -6,7 +6,7 @@ import {stripTypeScriptTypes} from 'node:module';
 const source=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/artist-workspace/index.ts',import.meta.url),'utf8').replace(/^import .*\n/gm,''));
 const sharedSource=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/_shared/crm-identity.ts',import.meta.url),'utf8').replace(/export /g,''));
 const UUID='12345678-1234-4234-8234-123456789012';
-function runtime({role='client',db={},authUser=null}={}){
+function runtime({role='client',db={},authUser=null,scopes=[]}={}){
  const calls=[];let handler;let outbound=0;
  class Query{
   constructor(table){this.table=table;this.filters=[];this.operation='select';}
@@ -23,7 +23,7 @@ function runtime({role='client',db={},authUser=null}={}){
  const defaultUser=role?{id:UUID,email_confirmed_at:'2026-01-01',app_metadata:{crm_enabled:true,crm_role:role==='client'?'artist':role==='team'?'management':'social'}}:null;
  const verified=authUser?{email_confirmed_at:'2026-01-01',...authUser}:defaultUser;
  const assigned=verified?.app_metadata?.crm_role;
- const directory={role:assigned==='artist'?'artist':assigned==='management'?'management':'social_media',active:true};
+ const directory={role:assigned==='artist'?'artist':assigned==='management'?'management':'social_media',active:true,scopes};
  const sb={from:t=>t==='crm_user_roles'?{select(){return this;},eq(){return this;},maybeSingle:async()=>({data:directory,error:null})}:new Query(t),rpc:async(name,args)=>{calls.push({rpc:name,args});return {data:{},error:null};},auth:{getUser:async()=>({data:{user:verified},error:verified?null:{message:'invalid'}})}};
  const context=vm.createContext({crypto:globalThis.crypto,TextEncoder,createClient:()=>sb,Response,Request,URL,Date,Intl,JSON,Error,Number,String,Array,isNaN,fetch:async()=>{outbound++;return new Response(JSON.stringify({ok:true,contacts:[],gigs:[],invoices:[]}));},Deno:{env:{get:name=>({ADMIN_DASH_KEY:'test-team-only',CLIENT_DASH_KEY:'test-artist-only',SUPABASE_URL:'https://example.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'test-server-only'})[name]},serve:fn=>handler=fn}});
  vm.runInContext(sharedSource+source,context);
@@ -95,3 +95,13 @@ test('Team payload removes personal records and derived counts',()=>{
  const data={contacts:[{id:'private',assigned_to:'warren'},{id:'shared',assigned_to:'team'}],pipeline:[{contact_id:'private',stage:'new'},{contact_id:'shared',stage:'new'}],board:[{id:'private',owner:'warren'},{id:'shared',owner:'team',warren_comment:'private'}],interactions:[{contact_id:'private'}],business:{iban:'private'},inner_circle:[{id:'private'}]};
  const out=viewContext.teamDashboard(data);assert.equal(out.contacts.length,1);assert.equal(out.pipeline.length,1);assert.equal(out.board.length,1);assert.equal(out.board[0].warren_comment,null);assert.equal(out.interactions.length,0);assert.equal(out.business,null);assert.equal(out.inner_circle.length,0);assert.equal(out.counts.contacts_total,1);assert.equal(out.counts.pipeline.new,1);
 });
+
+test('Management with server-assigned Warren scope can preview both workspaces without becoming artist',async()=>{const r=runtime({role:'team',scopes:['warren','team']});const out=await r.request({action:'dashboard',view:'warren'});assert.equal(out.body.ok,true);assert.equal(out.body.is_owner,false);assert.equal(out.body.read_only,true);assert.deepEqual(out.body.available_views,['warren','team']);});
+test('Warren scope does not allow artist approvals or payment writes from preview',async()=>{for(const body of [{action:'review_content',id:UUID,approval:'approved'},{action:'legacy',payload:{action:'approve',id:UUID}},{action:'send_invoice_email',invoice_id:UUID},{action:'save_gig',id:UUID}]){const r=runtime({role:'team',scopes:['warren','team']});const out=await r.request({...body,view:'warren'});assert.equal(out.status,403);assert.match(out.body.error,/read-only/);assert.equal(r.calls.length,0);assert.equal(r.outbound(),0);}});
+test('Management retains team workspace writes after opening Warren preview',async()=>{const r=runtime({role:'team',scopes:['warren','team']});const out=await r.request({action:'dashboard',view:'team'});assert.equal(out.body.ok,true);assert.equal(out.body.read_only,false);assert.equal(out.body.role,'team');});
+test('User-editable scopes cannot unlock Warren workspace',async()=>{const r=runtime({role:'team',authUser:{id:UUID,app_metadata:{crm_enabled:true,crm_role:'management'},user_metadata:{scopes:['warren','team']}}});assert.equal((await r.request({action:'dashboard',view:'warren'})).status,403);});
+test('Social role does not gain Warren preview even with a misplaced scope',async()=>{const r=runtime({role:'social',scopes:['warren','team']});assert.equal((await r.request({action:'dashboard',view:'warren'})).status,403);});
+test('Warren preview renders read-only notice and hides creation controls',async()=>{const r=uiRuntime();r.context.location.hash='#bookings';await r.context.window.renderArtistWorkspace({app_ready:true,role:'client',view:'warren',read_only:true,is_owner:false,contacts:[],gigs:[],invoices:[],board:[]});const html=r.elements.find(e=>e.id==='artistApp').innerHTML;assert.ok(html.includes('read-only'));assert.ok(!html.includes('data-app="new-gig"'));});
+
+test('Scoped management cannot impersonate Warren by using team view for an approval',async()=>{const r=runtime({role:'team',scopes:['warren','team']});const out=await r.request({action:'review_content',view:'team',id:UUID,approval:'approved',version:1});assert.equal(out.body.ok,false);assert.equal(r.calls.length,0);});
+test('Scoped management private contact history is restricted to the read-only preview',async()=>{const db={contacts:{data:{id:UUID,assigned_to:'warren'},error:null}};const team=runtime({role:'team',scopes:['warren','team'],db});assert.equal((await team.request({action:'contact_history',view:'team',id:UUID})).body.ok,false);const preview=runtime({role:'team',scopes:['warren','team'],db});assert.equal((await preview.request({action:'contact_history',view:'warren',id:UUID})).body.ok,true);assert.equal(preview.calls[0].table,'interactions');});
