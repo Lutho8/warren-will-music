@@ -12,8 +12,9 @@ export async function crmIdentity(req: Request, sb: any) {
   const role = roles[assignment.role];
   if (!role) return null;
   const owner=assignment.role === 'artist';
-  const canViewWarren=owner || (assignment.role==='management' && Array.isArray(assignment.scopes) && assignment.scopes.includes('warren'));
-  return {role, actor:user.id, owner, canViewWarren};
+  const isAdmin=assignment.role==='management' && Array.isArray(assignment.scopes) && assignment.scopes.includes('admin');
+  const canViewWarren=owner || isAdmin || (assignment.role==='management' && Array.isArray(assignment.scopes) && assignment.scopes.includes('warren'));
+  return {role, actor:user.id, owner, canViewWarren, isAdmin};
 }
 
 // Legacy data services are only callable by the authenticated workspace proxy.

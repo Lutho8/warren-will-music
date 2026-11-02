@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {stripTypeScriptTypes} from 'node:module';
+const source=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/_shared/team-focus.ts',import.meta.url),'utf8').replace('export function','function'));
+const context=vm.createContext({});vm.runInContext(source,context);const focus=context.teamFocus;
+const members=[{user_id:'ameer',display_name:'Ameer'},{user_id:'anmol',display_name:'Anmol'}];
+const task=(id,patch={})=>({id,title:id,kind:'work',owner:'team',status:'open',priority:'normal',assignee_id:'ameer',...patch});
+test('Top three uses priority then due date, not creation order',()=>{const out=focus([task('normal-earliest',{due_date:'2026-01-01'}),task('high-later',{priority:'high',due_date:'2026-12-31'}),task('high-earlier',{priority:'high',due_date:'2026-11-02'}),task('normal-no-date')],members);assert.deepEqual(Array.from(out.members[0].tasks,t=>t.id),['high-earlier','high-later','normal-earliest']);assert.equal(out.members[1].tasks.length,0);});
+test('Completing or archiving a task advances the next task without creating a duplicate',()=>{const tasks=[task('a'),task('b'),task('c'),task('d')];assert.equal(focus(tasks,members).members[0].tasks.length,3);tasks[0].status='done';tasks[1].archived_at='2026-11-02';assert.deepEqual(Array.from(focus(tasks,members).members[0].tasks,t=>t.id),['c','d']);});
+test('Reassignment moves the same record to its new member and retains in-review tasks',()=>{const t=task('a',{status:'review'});t.assignee_id='anmol';const out=focus([t],members);assert.equal(out.members[0].tasks.length,0);assert.equal(out.members[1].tasks[0].id,'a');});
+test('Private work, asks and approvals do not leak into shared priorities',()=>{const out=focus([task('private',{owner:'warren'}),task('ask',{kind:'ask'}),task('approval',{kind:'approval'}),task('done',{status:'done'})],members);assert.equal(out.total_open,0);});
+test('Unknown or absent assignees are counted rather than attributed to a guessed person',()=>{const out=focus([task('none',{assignee_id:null}),task('inactive',{assignee_id:'inactive'})],members);assert.equal(out.unassigned_count,2);assert.equal(out.members.length,2);});
