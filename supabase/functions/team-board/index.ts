@@ -6,6 +6,8 @@ const ok=(r:any)=>{if(r.error)throw new Error(r.error.message);return r.data;};
 const uuid=(s:unknown)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(s));
 const text=(s:unknown,n:number)=>String(s??'').trim().slice(0,n);
 const fields='id,title,details,status,priority,due_date,assignee_id,reviewer_id,creator_id,blocked_reason,task_version,created_at,done_at';
+// Log presence flags only; never log sender addresses or secret values.
+console.info('team_board_email_configuration',JSON.stringify({api_key_configured:!!Deno.env.get('RESEND_API_KEY'),sender_configured:!!Deno.env.get('RESEND_FROM')}));
 const shared=(q:any)=>q.eq('kind','work').or('owner.in.(team,lutho),owner.is.null').is('archived_at',null);
 Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:cors});
