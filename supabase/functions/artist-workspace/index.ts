@@ -27,21 +27,24 @@ Deno.serve(async(req)=>{
  const gigs=requireOK(await sb.from('gigs').select('id,date,set_length,venues(name,city)').eq('is_public',true).eq('booking_status','confirmed').gte('date',today).order('date').limit(100));
  return response({ok:true,gigs,generated_at:new Date().toISOString()});}
  const auth=await crmIdentity(req,sb);if(!auth)return response({ok:false,error:'Bitte erneut anmelden.'},401);
- const {role,actor,owner}=auth;
+ const {role,actor,owner,canViewWarren}=auth;
  const b=req.method==='GET'?{action:'dashboard'}:await req.json();
  const action=cut(b.action,60);
+ const preview=b.view==='warren' && !owner && canViewWarren;
+ if(b.view==='warren'&&!owner&&!canViewWarren)return response({ok:false,error:'Warren’s workspace is private.'},403);
+ if(preview&&!['dashboard','invoice_pdf','contact_history'].includes(action))return response({ok:false,error:'Warren preview is read-only. Use Team view for management actions.'},403);
  if(role==='social'&&!['dashboard','save_content','save_publication','save_metric','save_channel'].includes(action))return response({ok:false,error:'Kein Zugriff auf Buchungs- oder Kontaktdaten.'},403);
  const audit=async(entity?:string,details={})=>requireOK(await sb.from('crm_audit').insert({actor,action,entity_id:entity,details}));
  const team=()=>{if(role!=='team'&&!owner)throw new Error('Nur das Management kann diese Aktion ausführen.');};
  const contentTeam=()=>{if(role==='client'&&!owner)throw new Error('Diese Aktion gehört zum Social-Team.');};
  const visibleContact=async(contactId:unknown)=>{
- if(owner)return;
+ if(owner || (preview && action==='contact_history'))return;
  if(!id(contactId))throw new Error('Contact required.');
  const record=requireOK(await sb.from('contacts').select('id,assigned_to').eq('id',contactId).single());
  if(record?.assigned_to!=='team')throw new Error('This contact belongs to Warren’s private workspace.');
  };
  const visibleInvoice=async(invoiceId:unknown)=>{
- if(owner)return;
+ if(owner || (preview && action==='invoice_pdf'))return;
  const record=requireOK(await sb.from('invoices').select('id,contact_id').eq('id',invoiceId).single());
  if(record?.contact_id)await visibleContact(record.contact_id);
  };
@@ -56,7 +59,7 @@ Deno.serve(async(req)=>{
  if(action==='dashboard'){
  const view=b.view||(owner?'warren':'team');
  if(!['warren','team'].includes(view))return response({ok:false,error:'Unknown workspace.'},400);
- if(view==='warren'&&!owner)return response({ok:false,error:'Warren’s workspace is private.'},403);
+ if(view==='warren'&&!canViewWarren)return response({ok:false,error:'Warren’s workspace is private.'},403);
  const dashboardRole=view==='warren'?'client':role==='social'?'social':'team';
  const base=role==='social'?{ok:true,role,contacts:[],gigs:[],board:[],invoices:[],pipeline:[],interactions:[]}:await(await legacy('crm-dashboard',dashboardRole)).json();
  if(!base.ok)return response(base,502);
@@ -73,7 +76,7 @@ Deno.serve(async(req)=>{
  extra[key]=requireOK(await query.limit(1000));}
  for(const [key,ext] of [['contacts','contact_extensions'],['gigs','gig_extensions'],['invoices','invoice_extensions']])base[key]=(base[key]||[]).map((x:any)=>({...x,...extra[ext]?.find((e:any)=>e.id===x.id)}));
  base.contacts=extra.contact_extensions||base.contacts;delete extra.contact_extensions;delete extra.gig_extensions;delete extra.invoice_extensions;
- return response({...base,...extra,role:dashboardRole,view,is_owner:owner,available_views:owner?['warren','team']:['team'],app_ready:true,generated_at:new Date().toISOString(),capabilities:{personal_login:actor.indexOf('legacy:')!==0,email:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),social_sync:false,music_sync:false}});
+ return response({...base,...extra,role:dashboardRole,view,is_owner:owner,read_only:preview,available_views:canViewWarren?['warren','team']:['team'],app_ready:true,generated_at:new Date().toISOString(),capabilities:{personal_login:actor.indexOf('legacy:')!==0,email:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),social_sync:false,music_sync:false}});
  }
 
  if(action==='save_gig'){
