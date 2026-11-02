@@ -364,7 +364,7 @@ h2{position:relative}
 }
 .gig-tools{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}.gig-tools label{flex:1;min-width:180px;font-size:14px}.gig-tools input,.gig-tools select{display:block;width:100%;padding:12px;margin-top:8px;border:1px solid var(--line-soft);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}.gig-history{margin:24px 0}.gig-history summary{cursor:pointer;font-size:16px;padding:12px 0}.wgig[hidden]{display:none}.wgig .s{font-size:12px}.wgig .r{flex-shrink:0}</style>
 <link rel="stylesheet" href="artist-app.css?v=20260912-equipment">
-<script src="artist-auth.js?v=20260912"></script>
+<script src="artist-auth.js?v=20261102-shared-access"></script>
 <script src="equipment-workflow.js?v=20260912"></script>
 <script src="artist-app.js?v=20260912-equipment"></script>
 </head>
@@ -655,11 +655,14 @@ let DATA = null;
 let teamView = 'client';
 let tlFilter = 'all', cliRole = 'all', cliQuery = '';
 
+let loadSequence = 0;
 async function load(){
+  const requestSequence = ++loadSequence;
   $('gateErr').style.display = 'none';
   let r;
   try{ const personal = await window.artistLoadData(); r = personal ? new Response(JSON.stringify(personal), {status:personal.auth_expired ? 401 : 200}) : await fetch(EP, { headers: { 'x-admin-key': KEY } }); }
-  catch(_){ $('err').style.display = 'block'; $('err').textContent = 'Network error — could not reach the CRM. Check connection and refresh.'; return; }
+  catch(_){ if(requestSequence !== loadSequence) return; $('err').style.display = 'block'; $('err').textContent = 'Network error — could not reach the CRM. Check connection and refresh.'; return; }
+  if(requestSequence !== loadSequence) return;
   if(r.status === 401){
     localStorage.removeItem(SK); localStorage.removeItem(SR); window.clearArtistSession(); window.hideArtistWorkspace(); KEY = ''; ROLE = '';
     $('dash').style.display = 'none'; $('wview').style.display = 'none'; $('topBtns').style.display = 'none';
@@ -669,6 +672,7 @@ async function load(){
     return;
   }
   const d = await r.json();
+  if(requestSequence !== loadSequence) return;
   if(!d.ok){ $('err').style.display = 'block'; $('err').textContent = 'CRM error: ' + (d.error || 'unknown'); return; }
   DATA = d;
   ROLE = ['client','team','social'].includes(d.role) ? d.role : 'client';
@@ -1607,11 +1611,8 @@ $('cVcf').addEventListener('change', async () => {
 /* gate + topbar events */
 $('gateForm').addEventListener('submit', e => {
   e.preventDefault();
-  const enteredKey = $('gateKey').value.trim();
-  if(!enteredKey) return;
-  window.clearArtistSession();
-  KEY = enteredKey;
-  $('gateKey').value = '';
+  KEY = $('gateKey').value.trim();
+  if(!KEY) return;
   $('gateBtn').textContent = 'Opening…';
   load().finally(() => { $('gateBtn').textContent = 'Dashboard öffnen'; });
 });
