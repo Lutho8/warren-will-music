@@ -5,3 +5,7 @@ verify_jwt = false
 # Public website form. Preserve the existing public endpoint and honeypot.
 [functions.booking-inquiry]
 verify_jwt = false
+
+# Verifies personal CRM identity inside the handler.
+[functions.team-board]
+verify_jwt = false
