@@ -364,9 +364,9 @@ h2{position:relative}
 }
 .gig-tools{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}.gig-tools label{flex:1;min-width:180px;font-size:14px}.gig-tools input,.gig-tools select{display:block;width:100%;padding:12px;margin-top:8px;border:1px solid var(--line-soft);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}.gig-history{margin:24px 0}.gig-history summary{cursor:pointer;font-size:16px;padding:12px 0}.wgig[hidden]{display:none}.wgig .s{font-size:12px}.wgig .r{flex-shrink:0}</style>
 <link rel="stylesheet" href="artist-app.css?v=20260912-equipment">
-<script src="artist-auth.js?v=20261102-shared-access"></script>
+<script src="artist-auth.js?v=20261102-personal-views"></script>
 <script src="equipment-workflow.js?v=20260912"></script>
-<script src="artist-app.js?v=20260912-equipment"></script>
+<script src="artist-app.js?v=20261102-personal-views"></script>
 </head>
 <body>
 
@@ -387,10 +387,12 @@ h2{position:relative}
   <div class="gate-card"><form id="gateForm">
     <div class="mark">WW</div>
     <h1>BOOKING CRM</h1>
-    <p>Warren Will · dein Arbeitsbereich</p>
-    <input type="password" id="gateKey" placeholder="Deine Passphrase" autocomplete="current-password" autofocus/>
+    <p>Sign in to your Warren Will workspace.</p>
+    <label for="gateEmail" class="sr-only">Email</label>
+    <input type="email" id="gateEmail" placeholder="Your email" autocomplete="username" required/>
+    <input type="password" id="gateKey" placeholder="Your password" required autocomplete="current-password" />
     <button type="submit" id="gateBtn">Dashboard öffnen</button>
-    <div class="gate-roles"><span>Lutho · team view</span><span>Warren · client view</span></div>
+    <div class="gate-roles"><span>Warren · private + team views</span><span>Team · team view only</span></div>
     <p class="gate-err" id="gateErr">Anmeldung fehlgeschlagen — bitte erneut versuchen</p>
   </form></div>
 </div>
@@ -657,11 +659,11 @@ let teamView = 'client';
 let tlFilter = 'all', cliRole = 'all', cliQuery = '';
 
 let loadSequence = 0;
-async function load(){
+async function load(view){
   const requestSequence = ++loadSequence;
   $('gateErr').style.display = 'none';
   let r;
-  try{ const personal = await window.artistLoadData(); r = personal ? new Response(JSON.stringify(personal), {status:personal.auth_expired ? 401 : 200}) : await fetch(EP, { headers: { 'x-admin-key': KEY } }); }
+  try{ const personal = await window.artistLoadData(typeof view==='string'?view:undefined); r = personal ? new Response(JSON.stringify(personal), {status:personal.auth_expired ? 401 : 200}) : new Response(JSON.stringify({ok:false,auth_expired:true}),{status:401}); }
   catch(_){ if(requestSequence !== loadSequence) return; $('err').style.display = 'block'; $('err').textContent = 'Network error — could not reach the CRM. Check connection and refresh.'; return; }
   if(requestSequence !== loadSequence) return;
   if(r.status === 401){
@@ -676,35 +678,36 @@ async function load(){
   if(requestSequence !== loadSequence) return;
   if(!d.ok){ $('err').style.display = 'block'; $('err').textContent = 'CRM error: ' + (d.error || 'unknown'); return; }
   DATA = d;
+  window.prepareArtistWorkspace(d);
   ROLE = ['client','team','social'].includes(d.role) ? d.role : 'client';
-  localStorage.setItem(SK, KEY);
-  localStorage.setItem(SR, ROLE);
+  localStorage.removeItem(SK);
+  localStorage.removeItem(SR);
   $('gate').style.display = 'none';
   $('topBtns').style.display = 'flex';
   $('genAt').style.display = 'inline';
   $('genAt').textContent = 'updated ' + fmtDT(d.generated_at);
-  $('roleBadge').textContent = ROLE === 'client' ? 'Warren' : ROLE === 'social' ? 'Social-Team' : 'Management';
+  $('roleBadge').textContent = d.is_owner ? (d.view==='warren'?'Warren':'Warren · Team') : 'Team';
   $('roleBadge').classList.toggle('gold', ROLE === 'client');
-  $('btnView').style.display = ROLE === 'team' ? 'inline-block' : 'none';
+  $('btnView').style.display = d.is_owner ? 'inline-block' : 'none';
   $('btnFreelancerInvoices').style.display = ROLE === 'team' ? 'inline-block' : 'none';
-  showView(ROLE !== 'team' ? 'client' : teamView);
+  showView(d.view==='warren'?'client':'ops');
 }
 
 function showView(v){
   const isW = v === 'client';
+  if(isW&&!DATA?.is_owner)return;
+  const target=isW?'warren':'team';
+  if(DATA?.view!==target){load(target);return;}
   $('dash').style.display = isW ? 'none' : 'block';
   $('wview').style.display = isW ? 'block' : 'none';
-  $('btnView').textContent = isW ? 'Management-Ansicht' : 'Künstler-App';
+  $('btnView').textContent = isW ? 'Open team view' : 'Open Warren view';
   if(isW) window.renderArtistWorkspace(DATA); else { window.hideArtistWorkspace(); render(DATA); }
 }
 
 /* ── write path: one helper for every board action ── */
 async function post(body){
-  if(window.hasArtistSession()){const r=await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace',{method:'POST',headers:{'Content-Type':'application/json',...window.artistAuthHeaders()},body:JSON.stringify({action:'legacy',payload:body})});const d=await r.json();if(!d.ok)throw new Error(d.error||'Speichern fehlgeschlagen');return d;}
-  const r = await fetch(EP_UPDATE, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': KEY }, body: JSON.stringify(body) });
-  const d = await r.json().catch(() => ({ ok:false, error:'bad response' }));
-  if(!d.ok) throw new Error(d.error || 'failed');
-  return d;
+  if(window.hasArtistSession()){const r=await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace',{method:'POST',headers:{'Content-Type':'application/json',...window.artistAuthHeaders()},body:JSON.stringify({action:'legacy',payload:body,view:window.crmCurrentView()})});const d=await r.json();if(!d.ok)throw new Error(d.error||'Speichern fehlgeschlagen');return d;}
+  throw new Error('Please sign in again.');
 }
 async function act(body, btn){
   let orig;
@@ -1224,7 +1227,7 @@ document.addEventListener('click', e => {
     return (async () => {
       t.disabled = true; t.textContent = '…';
       try{
-        const r = await fetch(EP_UPDATE, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': KEY }, body: JSON.stringify({ action:'send_invoice_email', invoice_id:id }) });
+        const r = await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace', { method:'POST', headers:{ 'Content-Type':'application/json', ...window.artistAuthHeaders() }, body: JSON.stringify({ action:'send_invoice_email', invoice_id:id, confirmed_recipient:DATA.invoices.find(i=>i.id===id)?.recipient_email }) });
         const d = await r.json().catch(() => ({}));
         if(r.ok && d.ok){
           t.textContent = 'Gesendet ✓';
@@ -1248,7 +1251,7 @@ document.addEventListener('click', e => {
     return (async () => {
       t.disabled = true; t.textContent = '…';
       try{
-        const r = await fetch(EP_PDF, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-admin-key': KEY }, body: JSON.stringify({ invoice_id:id }) });
+        const r = await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace', { method:'POST', headers:{ 'Content-Type':'application/json', ...window.artistAuthHeaders() }, body: JSON.stringify({ action:'invoice_pdf', invoice_id:id }) });
         if(!r.ok) throw new Error('pdf ' + r.status);
         const blob = await r.blob();
         const url = URL.createObjectURL(blob);
@@ -1611,15 +1614,17 @@ $('cVcf').addEventListener('change', async () => {
 });
 
 /* gate + topbar events */
-$('gateForm').addEventListener('submit', e => {
+$('gateForm').addEventListener('submit', async e => {
   e.preventDefault();
-  KEY = $('gateKey').value.trim();
-  if(!KEY) return;
-  $('gateBtn').textContent = 'Opening…';
-  load().finally(() => { $('gateBtn').textContent = 'Dashboard öffnen'; });
+  ++loadSequence;
+  $('gateErr').style.display='none';
+  $('gateBtn').disabled=true;$('gateBtn').textContent='Signing in…';
+  try{await window.artistSignIn($('gateEmail').value,$('gateKey').value);$('gateKey').value='';await load();}
+  catch(error){$('gateErr').textContent=error.message;$('gateErr').style.display='block';}
+  finally{$('gateBtn').disabled=false;$('gateBtn').textContent='Open dashboard';}
 });
 $('btnRefresh').addEventListener('click', load);
-$('btnView').addEventListener('click', () => { teamView = teamView === 'ops' ? 'client' : 'ops'; showView(teamView); });
+$('btnView').addEventListener('click', () => showView(DATA.view==='warren'?'ops':'client'));
 $('btnLogout').addEventListener('click', async () => { await window.artistSignOut(); localStorage.removeItem(SK); localStorage.removeItem(SR); KEY = ''; ROLE = ''; location.reload(); });
 
 /* auto-login if key stored */

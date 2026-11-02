@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import fs from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 const source=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/artist-workspace/index.ts',import.meta.url),'utf8').replace(/^import .*\n/gm,''));
-const sharedSource=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/_shared/crm-access.ts',import.meta.url),'utf8').replace('export async function','async function'));
+const sharedSource=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/_shared/crm-identity.ts',import.meta.url),'utf8').replace(/export /g,''));
 const UUID='12345678-1234-4234-8234-123456789012';
 function runtime({role='client',db={},authUser=null}={}){
  const calls=[];let handler;let outbound=0;
@@ -20,14 +20,18 @@ function runtime({role='client',db={},authUser=null}={}){
   order(){return this;}limit(){return this;}single(){return this;}maybeSingle(){return this;}
   then(resolve,reject){calls.push(this);let value=db[this.table];if(typeof value==='function')value=value(this);return Promise.resolve(value||{data:[],error:null}).then(resolve,reject);}
  }
- const sb={from:t=>new Query(t),rpc:async(name,args)=>{calls.push({rpc:name,args});return {data:{},error:null};},auth:{getUser:async()=>({data:{user:authUser},error:authUser?null:{message:'invalid'}})}};
+ const defaultUser=role?{id:UUID,email_confirmed_at:'2026-01-01',app_metadata:{crm_enabled:true,crm_role:role==='client'?'artist':role==='team'?'management':'social'}}:null;
+ const verified=authUser?{email_confirmed_at:'2026-01-01',...authUser}:defaultUser;
+ const assigned=verified?.app_metadata?.crm_role;
+ const directory={role:assigned==='artist'?'artist':assigned==='management'?'management':'social_media',active:true};
+ const sb={from:t=>t==='crm_user_roles'?{select(){return this;},eq(){return this;},maybeSingle:async()=>({data:directory,error:null})}:new Query(t),rpc:async(name,args)=>{calls.push({rpc:name,args});return {data:{},error:null};},auth:{getUser:async()=>({data:{user:verified},error:verified?null:{message:'invalid'}})}};
  const context=vm.createContext({crypto:globalThis.crypto,TextEncoder,createClient:()=>sb,Response,Request,URL,Date,Intl,JSON,Error,Number,String,Array,isNaN,fetch:async()=>{outbound++;return new Response(JSON.stringify({ok:true,contacts:[],gigs:[],invoices:[]}));},Deno:{env:{get:name=>({ADMIN_DASH_KEY:'test-team-only',CLIENT_DASH_KEY:'test-artist-only',SUPABASE_URL:'https://example.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'test-server-only'})[name]},serve:fn=>handler=fn}});
  vm.runInContext(sharedSource+source,context);
- return {calls,outbound:()=>outbound,request:async(body,headers={},url='https://example.supabase.co/functions/v1/artist-workspace')=>{const r=await handler(new Request(url,{method:body?'POST':'GET',headers:{'content-type':'application/json',...(role?{'x-admin-key':role==='team'?'test-team-only':'test-artist-only'}:{}),...headers},...(body?{body:JSON.stringify(body)}:{})}));return {status:r.status,body:await r.json()};}};
+ return {calls,outbound:()=>outbound,request:async(body,headers={},url='https://example.supabase.co/functions/v1/artist-workspace')=>{const r=await handler(new Request(url,{method:body?'POST':'GET',headers:{'content-type':'application/json',...(role?{'authorization':'Bearer test-personal-token'}:{}),...headers},...(body?{body:JSON.stringify(body)}:{})}));return {status:r.status,body:await r.json()};}};
 }
 test('Unauthenticated private reads do not query tables',async()=>{const r=runtime({role:null});const out=await r.request({action:'dashboard'});assert.equal(out.status,401);assert.equal(r.calls.length,0);});
 test('Public feed explicitly filters published confirmed gigs and never selects fees or contacts',async()=>{const r=runtime({role:null});const out=await r.request(null,{},'https://example.supabase.co/functions/v1/artist-workspace?view=public-gigs');assert.equal(out.status,200);const q=r.calls[0];assert.equal(q.table,'gigs');assert.deepEqual(q.filters.slice(0,2),[['is_public',true],['booking_status','confirmed']]);assert.ok(!/fee|contact|deposit/.test(q.fields));});
-test('Artist cannot import contacts, manage stock or send invoices',async()=>{for(const action of ['import_contacts','save_inventory','send_invoice_email']){const r=runtime();const out=await r.request({action});assert.equal(out.body.ok,false);assert.equal(r.calls.length,0);assert.equal(r.outbound(),0);}});
+test('Team cannot use Warren-only content approvals',async()=>{const r=runtime({role:'team'});const out=await r.request({action:'review_content',id:UUID,approval:'approved',version:1});assert.equal(out.body.ok,false);assert.equal(r.calls.length,0);});
 test('Social access uses verified app metadata and denies financial actions',async()=>{const r=runtime({role:null,authUser:{id:UUID,app_metadata:{crm_enabled:true,crm_role:'social'},user_metadata:{crm_role:'management'}}});const out=await r.request({action:'send_invoice_email'},{authorization:'Bearer test-jwt'});assert.equal(out.status,403);assert.equal(r.calls.length,0);});
 test('User-editable metadata does not grant access',async()=>{const r=runtime({role:null,authUser:{id:UUID,app_metadata:{},user_metadata:{crm_enabled:true,crm_role:'management'}}});assert.equal((await r.request({action:'dashboard'},{authorization:'Bearer test-jwt'})).status,401);});
 test('Social dashboard loads content only and makes no legacy CRM request',async()=>{const r=runtime({role:null,authUser:{id:UUID,app_metadata:{crm_enabled:true,crm_role:'social'}}});const out=await r.request({action:'dashboard'},{authorization:'Bearer test-jwt'});assert.equal(out.body.ok,true);assert.equal(r.outbound(),0);assert.deepEqual(r.calls.map(q=>q.table),['artist_content','content_publications','artist_metrics','social_channels']);});
@@ -35,13 +39,13 @@ test('Publication URLs must belong to the selected platform',async()=>{const r=r
 test('Publication without a timestamp is rejected before a write',async()=>{const r=runtime({role:'team'});const out=await r.request({action:'save_publication',content_id:UUID,version:1,platform:'Instagram',status:'published',post_url:'https://www.instagram.com/p/test'});assert.equal(out.body.ok,false);assert.equal(r.calls.length,0);});
 test('Management cannot approve content on behalf of Warren',async()=>{const r=runtime({role:'team'});assert.equal((await r.request({action:'review_content',id:UUID,approval:'approved',version:1})).body.ok,false);assert.equal(r.calls.length,0);});
 test('Repeated invoice delivery claims never reach an email provider',async()=>{const r=runtime({role:'team',db:{invoices:{data:{id:UUID,status:'draft',recipient_email:'test@example.com'},error:null},invoice_delivery:{data:null,error:{code:'23505',message:'duplicate'}}}});const out=await r.request({action:'send_invoice_email',invoice_id:UUID,confirmed_recipient:'test@example.com'});assert.equal(out.body.ok,false);assert.equal(r.outbound(),0);});
-test('Recipient mismatch prevents claiming or sending an invoice',async()=>{const r=runtime({role:'team',db:{invoices:{data:{id:UUID,status:'draft',recipient_email:'test@example.com'},error:null}}});const out=await r.request({action:'send_invoice_email',invoice_id:UUID,confirmed_recipient:'different@example.com'});assert.equal(out.body.ok,false);assert.equal(r.calls.length,1);assert.equal(r.outbound(),0);});
+test('Recipient mismatch prevents claiming or sending an invoice',async()=>{const r=runtime({role:'team',db:{invoices:{data:{id:UUID,status:'draft',recipient_email:'test@example.com'},error:null}}});const out=await r.request({action:'send_invoice_email',invoice_id:UUID,confirmed_recipient:'different@example.com'});assert.equal(out.body.ok,false);assert.ok(r.calls.every(q=>q.table==='invoices'));assert.equal(r.outbound(),0);});
 test('Invalid monetary values are rejected, rather than coerced to zero',async()=>{const r=runtime();assert.equal((await r.request({action:'save_gig',id:UUID,date:'2026-09-11',venue_name:'Example',booking_status:'confirmed',is_public:false,fee:-10})).body.ok,false);assert.equal(r.calls.length,0);});
 test('CSV import validates all rows before persistence',async()=>{const r=runtime({role:'team'});assert.equal((await r.request({action:'import_contacts',source:'test',rows:[{name:'Valid',email:'ok@example.com'},{name:'Invalid',email:'bad'}]})).body.ok,false);assert.equal(r.calls.length,0);});
 const ctx={window:{}};vm.createContext(ctx);vm.runInContext(fs.readFileSync(new URL('../artist-app.js',import.meta.url),'utf8'),ctx);const parse=ctx.window.WWArtistUtils.parseCSV;
 test('Equipment saves use the workflow RPC with authenticated actor',async()=>{
  const r=runtime();const b={action:'save_rental',id:UUID,version:0,customer_name:'Test',offer_code:'club',status:'draft',deposit_cents:0,deposit_status:'open',payment_status:'open',starts_at:'2027-01-01T12:00:00Z',ends_at:'2027-01-02T12:00:00Z',rental_details:{logistics:'Abholung'}};
- assert.equal((await r.request(b)).body.ok,true);assert.equal(r.calls[0].rpc,'save_equipment_workflow');assert.equal(r.calls[0].args.actor,'legacy:warren');
+ assert.equal((await r.request(b)).body.ok,true);assert.equal(r.calls[0].rpc,'save_equipment_workflow');assert.equal(r.calls[0].args.actor,UUID);
  for(const change of [{ends_at:'invalid'},{status:'invented'},{deposit_cents:-1},{version:-1}]){const invalid=runtime();assert.equal((await invalid.request({...b,...change})).body.ok,false);assert.equal(invalid.calls.length,0);}
 });
 test('CSV parsing supports BOM, semicolons, quoted newlines and escaped quotes',()=>{const rows=parse('\uFEFFname;email;notes\r\n"Example, Booker";test@example.com;"Line 1\nLine ""2"""');assert.equal(rows.length,2);assert.equal(rows[1][0],'Example, Booker');assert.equal(rows[1][2],'Line 1\nLine "2"');});
@@ -60,21 +64,34 @@ test('All five artist tabs render valid empty states without fabricated metrics'
 test('Today shows three personal actions and excludes team work from that list',async()=>{const r=uiRuntime();const board=Array.from({length:5},(_,n)=>({id:UUID+n,title:'Artist task '+n,owner:'warren',kind:'ask',status:'open'}));board.push({id:'team',title:'Management task',owner:'team',kind:'work',status:'open'});await r.context.window.renderArtistWorkspace({app_ready:true,role:'client',contacts:[],gigs:[],content:[],board});const html=r.elements.find(e=>e.id==='artistApp').innerHTML;assert.equal((html.match(/data-app="task"/g)||[]).length,3);assert.ok(html.includes('Alle Aktionen anzeigen'));});
 test('Untrusted content titles and captions are escaped',async()=>{const r=uiRuntime();r.context.location.hash='#content';await r.context.window.renderArtistWorkspace({app_ready:true,role:'client',content:[{id:UUID,title:'<img src=x onerror=alert(1)>',caption:'<script>alert(1)</script>',version:1,approval:'draft'}],publications:[]});const html=r.elements.find(e=>e.id==='artistApp').innerHTML;assert.ok(!html.includes('<img'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('&lt;img'));});
 
-const verifier={salt:'8464ab73ee7d0c50cebe11acf8182c77',code_hash:'f0e0794b61f2d761ad8dc293ffe5c1a36fb229e7de8b934573b68608356f1213',iterations:100000};
-test('Shared code authenticates fresh clients with artist permissions',async()=>{
- const r=runtime({role:null,db:{crm_shared_access:{data:verifier,error:null}}});
- const out=await r.request({action:'dashboard'},{'x-admin-key':'test-shared-artist-code'});
- assert.equal(out.status,200);assert.equal(out.body.ok,true);assert.equal(out.body.role,'client');assert.equal(out.body.app_ready,true);
+
+test('Anonymous shared-code headers no longer grant a personal workspace',async()=>{
+ const r=runtime({role:null});const out=await r.request({action:'dashboard'},{'x-admin-key':'test-shared-code'});
+ assert.equal(out.status,401);assert.equal(r.calls.length,0);
 });
-test('Shared code does not grant management actions',async()=>{
- const r=runtime({role:null,db:{crm_shared_access:{data:verifier,error:null}}});
- const out=await r.request({action:'save_inventory',quantity:1},{'x-admin-key':'test-shared-artist-code'});
- assert.equal(out.body.ok,false);assert.equal(r.calls.filter(q=>q.table!=='crm_shared_access').length,0);
+test('Team dashboard cannot request Warren view',async()=>{
+ const r=runtime({role:'team'});const out=await r.request({action:'dashboard',view:'warren'});
+ assert.equal(out.status,403);assert.equal(r.calls.length,0);assert.equal(r.outbound(),0);
 });
-test('Incorrect or disabled shared code cannot read CRM records',async()=>{
- for(const data of [verifier,null]){
- const r=runtime({role:null,db:{crm_shared_access:{data,error:null}}});
- const out=await r.request({action:'dashboard'},{'x-admin-key':'incorrect-code'});
- assert.equal(out.status,401);assert.deepEqual(r.calls.map(q=>q.table),['crm_shared_access']);
- }
+test('Team receives only the team workspace',async()=>{
+ const r=runtime({role:'team'});const out=await r.request({action:'dashboard'});
+ assert.equal(out.body.view,'team');assert.equal(out.body.is_owner,false);assert.deepEqual(out.body.available_views,['team']);
+});
+test('Warren can access both workspaces',async()=>{
+ for(const view of ['warren','team']){const r=runtime();const out=await r.request({action:'dashboard',view});
+ assert.equal(out.body.ok,true);assert.equal(out.body.view,view);assert.equal(out.body.is_owner,true);assert.deepEqual(out.body.available_views,['warren','team']);}
+});
+test('Team cannot read a Warren contact through a direct API call',async()=>{
+ const r=runtime({role:'team',db:{contacts:{data:{id:UUID,assigned_to:'warren'},error:null}}});
+ const out=await r.request({action:'contact_history',id:UUID});assert.equal(out.body.ok,false);assert.equal(r.calls.length,1);
+});
+test('Team cannot modify Warren private board items',async()=>{
+ const r=runtime({role:'team',db:{client_board:{data:{id:UUID,owner:'warren'},error:null}}});
+ const out=await r.request({action:'legacy',payload:{action:'update',id:UUID,title:'blocked'}});assert.equal(out.body.ok,false);assert.equal(r.outbound(),0);
+});
+const viewSource=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/_shared/crm-views.ts',import.meta.url),'utf8').replace('export function','function'));
+const viewContext=vm.createContext({Date,Set,Object});vm.runInContext(viewSource,viewContext);
+test('Team payload removes personal records and derived counts',()=>{
+ const data={contacts:[{id:'private',assigned_to:'warren'},{id:'shared',assigned_to:'team'}],pipeline:[{contact_id:'private',stage:'new'},{contact_id:'shared',stage:'new'}],board:[{id:'private',owner:'warren'},{id:'shared',owner:'team',warren_comment:'private'}],interactions:[{contact_id:'private'}],business:{iban:'private'},inner_circle:[{id:'private'}]};
+ const out=viewContext.teamDashboard(data);assert.equal(out.contacts.length,1);assert.equal(out.pipeline.length,1);assert.equal(out.board.length,1);assert.equal(out.board[0].warren_comment,null);assert.equal(out.interactions.length,0);assert.equal(out.business,null);assert.equal(out.inner_circle.length,0);assert.equal(out.counts.contacts_total,1);assert.equal(out.counts.pipeline.new,1);
 });

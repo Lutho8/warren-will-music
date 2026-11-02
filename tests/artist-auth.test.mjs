@@ -6,15 +6,15 @@ const source=fs.readFileSync(new URL('../artist-auth.js',import.meta.url),'utf8'
 function runtime(expired=false){
  const values=new Map([['ww-personal-session',JSON.stringify({access_token:'old-personal-token',refresh_token:'old-refresh-token',expires_at:expired?1:4102444800})]]);
  let resolve;const pending=new Promise(r=>resolve=r);
- const context={window:{},sessionStorage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)},document:{addEventListener(){}},fetch:()=>pending,Date,JSON,KEY:'test-shared-code'};
+ const context={localStorage:{removeItem(){}},window:{},sessionStorage:{getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)},document:{addEventListener(){}},fetch:()=>pending,Date,JSON,KEY:'test-shared-code'};
  vm.createContext(context);vm.runInContext(source,context);
  return {window:context.window,values,respond:resolve};
 }
-test('Late personal authentication failure cannot clear a newer shared-code login',async()=>{
+test('Late personal authentication failure cannot restore a cleared session',async()=>{
  const r=runtime();const pending=r.window.artistLoadData();r.window.clearArtistSession();
  r.respond(new Response(JSON.stringify({ok:false}),{status:401}));
  assert.equal(await pending,null);assert.equal(r.window.hasArtistSession(),false);
- assert.equal(r.window.artistAuthHeaders()['x-admin-key'],'test-shared-code');
+ assert.equal(Object.keys(r.window.artistAuthHeaders()).length,0);
 });
 test('Late token refresh cannot restore a cleared personal session',async()=>{
  const r=runtime(true);const pending=r.window.artistLoadData();r.window.clearArtistSession();

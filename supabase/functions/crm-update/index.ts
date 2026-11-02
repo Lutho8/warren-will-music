@@ -1,4 +1,4 @@
-import { matchesSharedClientCode } from "../_shared/crm-access.ts";
+import { internalCrmRequest } from "../_shared/crm-identity.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -52,6 +52,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ ok: false, error: "method_not_allowed" }, 405);
 
+  if (!internalCrmRequest(req)) return json({ok:false,error:"Personal sign-in required"},401);
   const ADMIN_KEY = Deno.env.get("ADMIN_DASH_KEY") ?? "";
   const CLIENT_KEY = Deno.env.get("CLIENT_DASH_KEY") ?? "";
   const sb = createClient(
@@ -59,7 +60,7 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
   const provided = req.headers.get("x-admin-key") ?? "";
-  const role = provided && ADMIN_KEY && provided === ADMIN_KEY ? "team" : provided && CLIENT_KEY && provided === CLIENT_KEY ? "client" : await matchesSharedClientCode(sb, provided) ? "client" : null;
+  const role = provided && ADMIN_KEY && provided === ADMIN_KEY ? "team" : provided && CLIENT_KEY && provided === CLIENT_KEY ? "client" : null;
   if (!role) return json({ ok: false, error: "unauthorized" }, 401);
 
   let b: any;
@@ -249,7 +250,7 @@ Deno.serve(async (req: Request) => {
     if (action === "archive_all_done") {
       const { data, error } = await sb.from("client_board")
         .update({ archived_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-        .eq("status", "done").is("archived_at", null).select("id");
+        .eq("status", "done").eq("owner", b.workspace_owner || "team").is("archived_at", null).select("id");
       if (error) return json({ ok: false, error: error.message }, 500);
       const n = data?.length ?? 0;
       await log(`Archived ${n} done board item${n === 1 ? "" : "s"} (bulk)`);
@@ -433,7 +434,7 @@ Deno.serve(async (req: Request) => {
       const PDF_KEY = Deno.env.get("INVOICE_PDF_KEY") ?? ADMIN_KEY;
       const pdfRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/invoice-pdf`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-key": PDF_KEY },
+        headers: { "Content-Type": "application/json", "x-admin-key": PDF_KEY, "x-crm-internal": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")! },
         body: JSON.stringify({ invoice_id: inv.id }),
       });
       if (!pdfRes.ok) {
@@ -550,7 +551,7 @@ Deno.serve(async (req: Request) => {
     const { data: nc, error: cErr } = await sb.from("contacts").insert({
       name, role: cRole, phone_whatsapp: phone, email,
       preferred_channel: phone ? "whatsapp" : "email",
-      source: "warren-dashboard", lawful_basis: "existing_relationship", status: "new", notes,
+      source: "warren-dashboard", assigned_to: b.assigned_to === "team" ? "team" : "warren", lawful_basis: "existing_relationship", status: "new", notes,
     }).select("id").limit(1);
     if (cErr) return json({ ok: false, error: cErr.message }, 500);
     const contactId = nc?.[0]?.id ?? null;

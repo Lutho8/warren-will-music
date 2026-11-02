@@ -1,4 +1,5 @@
-import { matchesSharedClientCode } from "../_shared/crm-access.ts";
+import { teamDashboard } from "../_shared/crm-views.ts";
+import { internalCrmRequest } from "../_shared/crm-identity.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -20,6 +21,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   // Two-person access: TEAM (Lutho / agent ops) vs CLIENT (Warren). Same data, two views.
+  if (!internalCrmRequest(req)) return json({ok:false,error:"Personal sign-in required"},401);
   const ADMIN_KEY = Deno.env.get("ADMIN_DASH_KEY") ?? "";
   const CLIENT_KEY = Deno.env.get("CLIENT_DASH_KEY") ?? "";
   const sb = createClient(
@@ -27,7 +29,7 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
   const provided = req.headers.get("x-admin-key") ?? "";
-  const role = provided && ADMIN_KEY && provided === ADMIN_KEY ? "team" : provided && CLIENT_KEY && provided === CLIENT_KEY ? "client" : await matchesSharedClientCode(sb, provided) ? "client" : null;
+  const role = provided && ADMIN_KEY && provided === ADMIN_KEY ? "team" : provided && CLIENT_KEY && provided === CLIENT_KEY ? "client" : null;
   if (!role) return json({ ok: false, error: "unauthorized" }, 401);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -35,16 +37,16 @@ Deno.serve(async (req: Request) => {
 
   const [contacts, opportunities, sequences, interactions, gigs, venues, board, boardComments, invoices, business] = await Promise.all([
     sb.from("contacts")
-      .select("id,name,email,phone_whatsapp,instagram,role,preferred_channel,source,status,notes,created_at, venues(name,city)")
+      .select("id,name,email,phone_whatsapp,instagram,role,preferred_channel,source,status,notes,assigned_to,created_at, venues(name,city)")
       .order("created_at", { ascending: false }).limit(200),
     sb.from("opportunities")
-      .select("id,type,stage,pipeline_stage,source,contact_method,segment,region,assigned_to,next_step,follow_up_date,do_not_contact,fee_quote,next_follow_up,last_touch,created_at, contacts(name,email,phone_whatsapp), venues(name,city)")
+      .select("id,contact_id,type,stage,pipeline_stage,source,contact_method,segment,region,assigned_to,next_step,follow_up_date,do_not_contact,fee_quote,next_follow_up,last_touch,created_at, contacts(name,email,phone_whatsapp), venues(name,city)")
       .order("last_touch", { ascending: false }).limit(100),
     sb.from("sequences")
-      .select("id,step,due_at,channel,status, contacts(name,email,phone_whatsapp), opportunities(type,stage)")
+      .select("id,contact_id,step,due_at,channel,status, contacts(name,email,phone_whatsapp), opportunities(type,stage)")
       .eq("status", "pending").order("due_at", { ascending: true }).limit(100),
     sb.from("interactions")
-      .select("id,channel,direction,summary,logged_by,created_at, contacts(name)")
+      .select("id,contact_id,channel,direction,summary,logged_by,created_at, contacts(name)")
       .order("created_at", { ascending: false }).limit(15),
     // Full year of gigs (past + future) so revenue-made is accurate
     sb.from("gigs")
@@ -117,7 +119,7 @@ Deno.serve(async (req: Request) => {
       .reduce((s: number, i: any) => s + (i.gross_cents || 0), 0),
   };
 
-  return json({
+  const payload = {
     ok: true,
     role,
     generated_at: new Date().toISOString(),
@@ -151,5 +153,6 @@ Deno.serve(async (req: Request) => {
     invoices: inv,
     revenue,
     business: business.data?.[0] ?? null,
-  });
+  };
+  return json(role === "team" ? teamDashboard(payload) : payload);
 });

@@ -17,7 +17,7 @@
  function englishize(rootNode=document){if(typeof document.createTreeWalker!=='function')return;const walker=document.createTreeWalker(rootNode,4);const items=[];while(walker.nextNode())items.push(walker.currentNode);for(const n of items){let v=n.nodeValue;for(const [de,en] of ENGLISH_UI)v=v.split(de).join(en);n.nodeValue=v;}for(const el of rootNode.querySelectorAll?.('input,textarea,[aria-label],button')||[])for(const attr of ['placeholder','aria-label','title'])if(el.hasAttribute(attr)){let v=el.getAttribute(attr);for(const [de,en] of ENGLISH_UI)v=v.split(de).join(en);el.setAttribute(attr,v);}}
  let root,nav,dialog,saveHandler=null,draftKey='',toastTimer,renderGeneration=0;
  const authHeaders=()=>window.artistAuthHeaders?window.artistAuthHeaders():{'x-admin-key':KEY};
- async function api(body){if(!navigator.onLine)throw new Error('Du bist offline. Dein Entwurf bleibt erhalten. Bitte später speichern.');const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify(body)});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Speichern fehlgeschlagen.');return d;}
+ async function api(body){if(!navigator.onLine)throw new Error('Du bist offline. Dein Entwurf bleibt erhalten. Bitte später speichern.');const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({...body,view:window.crmCurrentView?window.crmCurrentView():undefined})});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Speichern fehlgeschlagen.');return d;}
  async function legacy(body){return state.ready?api({action:'legacy',payload:body}):post(body);}
  function toast(s){let t=document.getElementById('artistToast');if(!t){t=document.createElement('div');t.id='artistToast';t.setAttribute('role','status');document.body.append(t);}t.textContent=s;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.hidden=true,5000);}
  function init(){if(root)return;root=document.createElement('main');root.id='artistApp';root.hidden=true;document.querySelector('#wview').after(root);nav=document.createElement('nav');nav.id='artistNav';nav.setAttribute('aria-label','Hauptnavigation');nav.hidden=true;document.body.append(nav);dialog=document.createElement('dialog');dialog.id='artistDialog';document.body.append(dialog);
@@ -31,6 +31,7 @@
  }
  function readRoute(){const part=location.hash.replace('#','').split('/');state.tab=names[part[0]]?part[0]:'today';}
  window.hideArtistWorkspace=()=>{if(root){root.hidden=true;nav.hidden=true;}if(dialog?.open)dialog.close();};
+ window.prepareArtistWorkspace=base=>{init();state.d=base;state.ready=!!base.app_ready;};
  window.renderArtistWorkspace=async(base)=>{init();root.hidden=false;nav.hidden=false;document.querySelector('#wview').style.display='none';state.d=base;state.ready=!!base.app_ready;readRoute();if(base.role==='social'&&!['content','results'].includes(state.tab))state.tab='content';render();
  const version=++renderGeneration;if(state.ready){openRoute();return;}
  try{const full=await api({action:'dashboard'});if(version!==renderGeneration||root.hidden)return;state.d=full;state.ready=true;render();openRoute();}catch{if(version===renderGeneration){state.ready=false;render();openRoute();}}
