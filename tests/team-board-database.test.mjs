@@ -30,6 +30,16 @@ test('Team tasks preserve shared records, enforce versions, queue deduplicated a
  await assert.rejects(save({...p,task_version:5}),/Task changed/);
  await db.exec(`insert into client_board(id,kind,owner,title,status) values('33333333-3333-4333-8333-333333333333','work','warren','Private','open')`);
  await assert.rejects(save({...p,id:'33333333-3333-4333-8333-333333333333',task_version:1}),/Not a shared team task/);
+ // Self-assignment is an assignment event, but editing the same task is not.
+ const self={...p,id:crypto.randomUUID(),assignee_id:actor,reviewer_id:null};
+ await save(self);
+ let selfAlerts=await db.query('select * from team_task_notifications where board_id=$1',[self.id]);
+ assert.equal(selfAlerts.rows.length,1);assert.equal(selfAlerts.rows[0].recipient_id,actor);assert.equal(selfAlerts.rows[0].event,'assigned');
+ await save({...self,task_version:1,title:'Edited self task'});
+ selfAlerts=await db.query('select * from team_task_notifications where board_id=$1',[self.id]);assert.equal(selfAlerts.rows.length,1);
+ await save({...self,task_version:2,assignee_id:null});
+ await save({...self,task_version:3});
+ selfAlerts=await db.query('select * from team_task_notifications where board_id=$1',[self.id]);assert.equal(selfAlerts.rows.length,2);
  await db.query('update crm_user_roles set active=false where user_id=$1',[assignee]);
  await assert.rejects(save({...p,task_version:6}),/active assignee/);
  await assert.rejects(save({...p,task_version:6,assignee_id:null,reviewer_id:null},assignee),/Active team account/);

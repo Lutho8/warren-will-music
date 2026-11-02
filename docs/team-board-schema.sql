@@ -39,7 +39,7 @@ begin
   insert into client_board(id,kind,owner,title,details,status,priority,due_date,assignee_id,reviewer_id,creator_id,created_by,blocked_reason)
   values((p->>'id')::uuid,'work','team',p->>'title',p->>'details',p->>'status',p->>'priority',(p->>'due_date')::date,(p->>'assignee_id')::uuid,(p->>'reviewer_id')::uuid,actor,'team',p->>'blocked_reason') returning * into t;
  end if;
- if t.assignee_id is not null and t.assignee_id is distinct from old_assignee and t.assignee_id<>actor then
+ if t.assignee_id is not null and t.assignee_id is distinct from old_assignee then
  insert into team_task_notifications(board_id,recipient_id,event,task_version) values(t.id,t.assignee_id,'assigned',t.task_version) on conflict do nothing; end if;
  recipient:=coalesce(t.reviewer_id,t.creator_id);
  if t.status='review' and old_status is distinct from 'review' and recipient is not null and recipient<>actor then
