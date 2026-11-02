@@ -375,6 +375,7 @@ h2{position:relative}
   <span class="badge" id="roleBadge">Booking CRM</span>
   <span id="genAt"></span>
   <div id="topBtns">
+    <a id="btnFreelancerInvoices" class="tbtn" href="freelancer-invoices.html" style="display:none;text-decoration:none">Freelancer invoices</a>
     <button class="tbtn gold" id="btnView" type="button" style="display:none">Warren view →</button>
     <button class="tbtn" id="btnRefresh" type="button">Aktualisieren</button>
     <button class="tbtn" id="btnLogout" type="button">Abmelden</button>
@@ -685,6 +686,7 @@ async function load(){
   $('roleBadge').textContent = ROLE === 'client' ? 'Warren' : ROLE === 'social' ? 'Social-Team' : 'Management';
   $('roleBadge').classList.toggle('gold', ROLE === 'client');
   $('btnView').style.display = ROLE === 'team' ? 'inline-block' : 'none';
+  $('btnFreelancerInvoices').style.display = ROLE === 'team' ? 'inline-block' : 'none';
   showView(ROLE !== 'team' ? 'client' : teamView);
 }
 

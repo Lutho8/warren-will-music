@@ -1,0 +1,5 @@
+{
+  "buildCommand": "node -e \"console.log('Static site ready')\"",
+  "outputDirectory": ".",
+  "framework": null
+}
