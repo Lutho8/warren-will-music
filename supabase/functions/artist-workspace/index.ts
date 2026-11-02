@@ -1,3 +1,4 @@
+import { matchesSharedClientCode } from "../_shared/crm-access.ts";
 import { createClient } from 'jsr:@supabase/supabase-js@2.57.4';
 
 const cors = {'Access-Control-Allow-Origin':'https://www.warrenwill.net','Access-Control-Allow-Headers':'authorization,content-type,x-admin-key','Access-Control-Allow-Methods':'POST,GET,OPTIONS','Vary':'Origin','Cache-Control':'no-store'};
@@ -15,6 +16,7 @@ async function identity(req:Request,sb:any){
  if(!error && m?.crm_enabled===true && ['artist','management','social'].includes(m.crm_role))return {role:({artist:'client',management:'team',social:'social'} as any)[m.crm_role],actor:data.user.id};}
  const key=req.headers.get('x-admin-key');
  for(const role of ['team','client'])if(key && legacyKey(role) && key===legacyKey(role))return {role,actor:role==='client'?'legacy:warren':'legacy:team'};
+ if(await matchesSharedClientCode(sb,key||''))return {role:'client',actor:'shared:warren'};
  return null;
 }
 async function legacy(path:string,role:string,body?:unknown){

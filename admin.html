@@ -1607,8 +1607,11 @@ $('cVcf').addEventListener('change', async () => {
 /* gate + topbar events */
 $('gateForm').addEventListener('submit', e => {
   e.preventDefault();
-  KEY = $('gateKey').value.trim();
-  if(!KEY) return;
+  const enteredKey = $('gateKey').value.trim();
+  if(!enteredKey) return;
+  window.clearArtistSession();
+  KEY = enteredKey;
+  $('gateKey').value = '';
   $('gateBtn').textContent = 'Opening…';
   load().finally(() => { $('gateBtn').textContent = 'Dashboard öffnen'; });
 });

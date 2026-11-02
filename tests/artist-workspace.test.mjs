@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
-const source=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/artist-workspace/index.ts',import.meta.url),'utf8').replace(/^import .*\n/,''));
+const source=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/artist-workspace/index.ts',import.meta.url),'utf8').replace(/^import .*\n/gm,''));
+const sharedSource=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/_shared/crm-access.ts',import.meta.url),'utf8').replace('export async function','async function'));
 const UUID='12345678-1234-4234-8234-123456789012';
 function runtime({role='client',db={},authUser=null}={}){
  const calls=[];let handler;let outbound=0;
@@ -16,12 +17,12 @@ function runtime({role='client',db={},authUser=null}={}){
   delete(){this.operation='delete';return this;}
   eq(k,v){this.filters.push([k,v]);return this;}
   gte(k,v){this.filters.push([k,v]);return this;}
-  order(){return this;}limit(){return this;}single(){return this;}
+  order(){return this;}limit(){return this;}single(){return this;}maybeSingle(){return this;}
   then(resolve,reject){calls.push(this);let value=db[this.table];if(typeof value==='function')value=value(this);return Promise.resolve(value||{data:[],error:null}).then(resolve,reject);}
  }
  const sb={from:t=>new Query(t),rpc:async(name,args)=>{calls.push({rpc:name,args});return {data:{},error:null};},auth:{getUser:async()=>({data:{user:authUser},error:authUser?null:{message:'invalid'}})}};
- const context=vm.createContext({createClient:()=>sb,Response,Request,URL,Date,Intl,JSON,Error,Number,String,Array,isNaN,fetch:async()=>{outbound++;return new Response(JSON.stringify({ok:true,contacts:[],gigs:[],invoices:[]}));},Deno:{env:{get:name=>({ADMIN_DASH_KEY:'test-team-only',CLIENT_DASH_KEY:'test-artist-only',SUPABASE_URL:'https://example.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'test-server-only'})[name]},serve:fn=>handler=fn}});
- vm.runInContext(source,context);
+ const context=vm.createContext({crypto:globalThis.crypto,TextEncoder,createClient:()=>sb,Response,Request,URL,Date,Intl,JSON,Error,Number,String,Array,isNaN,fetch:async()=>{outbound++;return new Response(JSON.stringify({ok:true,contacts:[],gigs:[],invoices:[]}));},Deno:{env:{get:name=>({ADMIN_DASH_KEY:'test-team-only',CLIENT_DASH_KEY:'test-artist-only',SUPABASE_URL:'https://example.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'test-server-only'})[name]},serve:fn=>handler=fn}});
+ vm.runInContext(sharedSource+source,context);
  return {calls,outbound:()=>outbound,request:async(body,headers={},url='https://example.supabase.co/functions/v1/artist-workspace')=>{const r=await handler(new Request(url,{method:body?'POST':'GET',headers:{'content-type':'application/json',...(role?{'x-admin-key':role==='team'?'test-team-only':'test-artist-only'}:{}),...headers},...(body?{body:JSON.stringify(body)}:{})}));return {status:r.status,body:await r.json()};}};
 }
 test('Unauthenticated private reads do not query tables',async()=>{const r=runtime({role:null});const out=await r.request({action:'dashboard'});assert.equal(out.status,401);assert.equal(r.calls.length,0);});
@@ -58,3 +59,22 @@ test('All five artist tabs render valid empty states without fabricated metrics'
 });
 test('Today shows three personal actions and excludes team work from that list',async()=>{const r=uiRuntime();const board=Array.from({length:5},(_,n)=>({id:UUID+n,title:'Artist task '+n,owner:'warren',kind:'ask',status:'open'}));board.push({id:'team',title:'Management task',owner:'team',kind:'work',status:'open'});await r.context.window.renderArtistWorkspace({app_ready:true,role:'client',contacts:[],gigs:[],content:[],board});const html=r.elements.find(e=>e.id==='artistApp').innerHTML;assert.equal((html.match(/data-app="task"/g)||[]).length,3);assert.ok(html.includes('Alle Aktionen anzeigen'));});
 test('Untrusted content titles and captions are escaped',async()=>{const r=uiRuntime();r.context.location.hash='#content';await r.context.window.renderArtistWorkspace({app_ready:true,role:'client',content:[{id:UUID,title:'<img src=x onerror=alert(1)>',caption:'<script>alert(1)</script>',version:1,approval:'draft'}],publications:[]});const html=r.elements.find(e=>e.id==='artistApp').innerHTML;assert.ok(!html.includes('<img'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('&lt;img'));});
+
+const verifier={salt:'8464ab73ee7d0c50cebe11acf8182c77',code_hash:'f0e0794b61f2d761ad8dc293ffe5c1a36fb229e7de8b934573b68608356f1213',iterations:100000};
+test('Shared code authenticates fresh clients with artist permissions',async()=>{
+ const r=runtime({role:null,db:{crm_shared_access:{data:verifier,error:null}}});
+ const out=await r.request({action:'dashboard'},{'x-admin-key':'test-shared-artist-code'});
+ assert.equal(out.status,200);assert.equal(out.body.ok,true);assert.equal(out.body.role,'client');assert.equal(out.body.app_ready,true);
+});
+test('Shared code does not grant management actions',async()=>{
+ const r=runtime({role:null,db:{crm_shared_access:{data:verifier,error:null}}});
+ const out=await r.request({action:'save_inventory',quantity:1},{'x-admin-key':'test-shared-artist-code'});
+ assert.equal(out.body.ok,false);assert.equal(r.calls.filter(q=>q.table!=='crm_shared_access').length,0);
+});
+test('Incorrect or disabled shared code cannot read CRM records',async()=>{
+ for(const data of [verifier,null]){
+ const r=runtime({role:null,db:{crm_shared_access:{data,error:null}}});
+ const out=await r.request({action:'dashboard'},{'x-admin-key':'incorrect-code'});
+ assert.equal(out.status,401);assert.deepEqual(r.calls.map(q=>q.table),['crm_shared_access']);
+ }
+});

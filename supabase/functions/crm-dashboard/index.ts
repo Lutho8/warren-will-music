@@ -1,3 +1,4 @@
+import { matchesSharedClientCode } from "../_shared/crm-access.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -21,14 +22,14 @@ Deno.serve(async (req: Request) => {
   // Two-person access: TEAM (Lutho / agent ops) vs CLIENT (Warren). Same data, two views.
   const ADMIN_KEY = Deno.env.get("ADMIN_DASH_KEY") ?? "";
   const CLIENT_KEY = Deno.env.get("CLIENT_DASH_KEY") ?? "";
-  const provided = req.headers.get("x-admin-key") ?? "";
-  const role = provided && ADMIN_KEY && provided === ADMIN_KEY ? "team" : provided && CLIENT_KEY && provided === CLIENT_KEY ? "client" : null;
-  if (!role) return json({ ok: false, error: "unauthorized" }, 401);
-
   const sb = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+  const provided = req.headers.get("x-admin-key") ?? "";
+  const role = provided && ADMIN_KEY && provided === ADMIN_KEY ? "team" : provided && CLIENT_KEY && provided === CLIENT_KEY ? "client" : await matchesSharedClientCode(sb, provided) ? "client" : null;
+  if (!role) return json({ ok: false, error: "unauthorized" }, 401);
+
   const today = new Date().toISOString().slice(0, 10);
   const yearStart = today.slice(0, 4) + "-01-01";
 
