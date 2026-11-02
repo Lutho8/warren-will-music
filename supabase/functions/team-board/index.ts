@@ -30,7 +30,9 @@ Deno.serve(async(req:Request)=>{
  if(!p||!text(p.title,200)||String(p.title).length>200||!Number.isInteger(p.task_version)||p.task_version<0||!['open','in_progress','review','done'].includes(p.status)||!['normal','high','low'].includes(p.priority))throw new Error('Check the task title and status.');
  for(const key of ['assignee_id','reviewer_id'])if(p[key]!==null&&!uuid(p[key]))throw new Error('Choose a team member.');
  if(p.due_date&&(!/^\d{4}-\d{2}-\d{2}$/.test(p.due_date)||!Number.isFinite(Date.parse(p.due_date))||new Date(p.due_date).toISOString().slice(0,10)!==p.due_date))throw new Error('Choose a valid deadline.');
- const task=ok(await sb.rpc('save_team_task',{actor,p:{...p,id:b.id,title:text(p.title,200),details:text(p.details,1000)||null,blocked_reason:text(p.blocked_reason,500)||null,due_date:p.due_date||null}}));
+ const saved=ok(await sb.rpc('save_team_task',{actor,p:{...p,id:b.id,title:text(p.title,200),details:text(p.details,1000)||null,blocked_reason:text(p.blocked_reason,500)||null,due_date:p.due_date||null}}));
+ const task=Array.isArray(saved)?saved[0]:saved;
+ if(!task?.id)throw new Error('Task save could not be confirmed. Refresh before retrying.');
  // A failed email never undoes a saved task. Atomic claims prevent duplicate sends.
  let warning='';
  try{

@@ -1,6 +1,6 @@
 # Simple CRM team board
 
-Implementation based on repository commit b39b5e2. GitHub write access is now available. Production deployment remains pending access to the Warren Will Supabase project and live verification.
+Implementation based on repository commit b39b5e2. GitHub write access is now available. The database update has been applied to the Warren Will Supabase project. The task service and artist workspace are deployed; frontend publication is the remaining release step.
 
 ## Team experience
 
@@ -19,10 +19,10 @@ Uses the existing client_board and board_comments records. Shared work (team/lut
 
 ## Verification completed locally
 
-- 35 focused tests passed: authentication, existing artist workspace privacy, team API validation, server-controlled author identity, actual PostgreSQL task writes, optimistic locking (including legacy updates), done/reopen, notification deduplication and restricted function/table privileges.
-- Full suite: 49 non-browser tests passed; the existing equipment browser test could not launch because its Playwright browser executable is absent. It was not downloaded or replaced.
+- 36 focused tests passed: authentication, existing artist workspace privacy, team API validation, server-controlled author identity, actual PostgreSQL task writes, optimistic locking (including legacy updates), done/reopen, notification deduplication and restricted function/table privileges.
+- Full suite: 50 non-browser tests passed; the existing equipment browser test could not launch because its Playwright browser executable is absent. It was not downloaded or replaced.
 - Cloud-browser UI smoke test, with clearly marked fictional local fixtures and no real emails: create, assign and save task, then move it to Done; board counters and columns update correctly.
-- Live persistence and actual email delivery remain unverified until authorized project access is available.
+- Live PostgreSQL verification passed inside a rolled-back transaction: create, version checks, assignment/review notification records, completion and stale-write rejection. Actual recipient email delivery and the signed-in user flow still require real-account verification.
 
 ## Deliberate first-version limits
 
