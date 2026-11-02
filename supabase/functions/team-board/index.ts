@@ -22,7 +22,7 @@ Deno.serve(async(req:Request)=>{
  return {id:m.user_id,name:text(m.display_name||u.email?.split('@')[0]||'Team member',100)};
  }));
  const tasks=ok(await shared(sb.from('client_board').select(fields)).order('created_at',{ascending:false}).limit(1000));
- return reply({ok:true,actor,members:members.filter(Boolean),tasks,email_configured:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),limit:1000});
+ return reply({ok:true,actor,members:members.filter(Boolean),tasks,can_manage_all:!!identity.isAdmin,email_configured:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),limit:1000});
  }
  if(!uuid(b.id))return reply({ok:false,error:'Valid task ID required.'},400);
  if(b.action==='save'){
@@ -47,6 +47,14 @@ Deno.serve(async(req:Request)=>{
  }
  }catch{warning='Task saved, but email delivery could not be confirmed.';}
  return reply({ok:true,task,warning});
+ }
+ if(b.action==='archive'){
+ if(!identity.isAdmin)return reply({ok:false,error:'Administrator access required.'},403);
+ if(!Number.isInteger(b.task_version)||b.task_version<1)throw new Error('Task version required.');
+ const archived=ok(await shared(sb.from('client_board').update({archived_at:new Date().toISOString(),updated_at:new Date().toISOString()}).select('id')).eq('id',b.id).eq('task_version',b.task_version).single());
+ if(!archived?.id)throw new Error('Task changed. Refresh before removing it.');
+ const audit=await sb.from('crm_audit').insert({actor,action:'archive_team_task',entity_id:b.id,details:{task_version:b.task_version}});
+ return reply({ok:true,warning:audit.error?'Task archived. Activity logging needs review.':''});
  }
  const task=ok(await shared(sb.from('client_board').select('id')).eq('id',b.id).single());if(!task)throw new Error('Task not found.');
  if(b.action==='comments'){

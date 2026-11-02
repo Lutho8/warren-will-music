@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 const source=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/artist-workspace/index.ts',import.meta.url),'utf8').replace(/^import .*\n/gm,''));
 const sharedSource=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/_shared/crm-identity.ts',import.meta.url),'utf8').replace(/export /g,''));
+const focusSource=stripTypeScriptTypes(fs.readFileSync(new URL('../supabase/functions/_shared/team-focus.ts',import.meta.url),'utf8').replace(/export /g,''));
 const UUID='12345678-1234-4234-8234-123456789012';
 function runtime({role='client',db={},authUser=null,scopes=[]}={}){
  const calls=[];let handler;let outbound=0;
@@ -17,6 +18,7 @@ function runtime({role='client',db={},authUser=null,scopes=[]}={}){
   delete(){this.operation='delete';return this;}
   eq(k,v){this.filters.push([k,v]);return this;}
   gte(k,v){this.filters.push([k,v]);return this;}
+  or(v){this.filters.push(['or',v]);return this;}is(k,v){this.filters.push([k,v]);return this;}
   order(){return this;}limit(){return this;}single(){return this;}maybeSingle(){return this;}
   then(resolve,reject){calls.push(this);let value=db[this.table];if(typeof value==='function')value=value(this);return Promise.resolve(value||{data:[],error:null}).then(resolve,reject);}
  }
@@ -24,9 +26,9 @@ function runtime({role='client',db={},authUser=null,scopes=[]}={}){
  const verified=authUser?{email_confirmed_at:'2026-01-01',...authUser}:defaultUser;
  const assigned=verified?.app_metadata?.crm_role;
  const directory={role:assigned==='artist'?'artist':assigned==='management'?'management':'social_media',active:true,scopes};
- const sb={from:t=>t==='crm_user_roles'?{select(){return this;},eq(){return this;},maybeSingle:async()=>({data:directory,error:null})}:new Query(t),rpc:async(name,args)=>{calls.push({rpc:name,args});return {data:{},error:null};},auth:{getUser:async()=>({data:{user:verified},error:verified?null:{message:'invalid'}})}};
+ const sb={from:t=>t==='crm_user_roles'?{select(){return this;},eq(){return this;},order(){return this;},limit(){return this;},then(resolve,reject){return Promise.resolve(db.crm_user_roles||{data:[],error:null}).then(resolve,reject);},maybeSingle:async()=>({data:directory,error:null})}:new Query(t),rpc:async(name,args)=>{calls.push({rpc:name,args});return {data:{},error:null};},auth:{getUser:async()=>({data:{user:verified},error:verified?null:{message:'invalid'}})}};
  const context=vm.createContext({crypto:globalThis.crypto,TextEncoder,createClient:()=>sb,Response,Request,URL,Date,Intl,JSON,Error,Number,String,Array,isNaN,fetch:async()=>{outbound++;return new Response(JSON.stringify({ok:true,contacts:[],gigs:[],invoices:[]}));},Deno:{env:{get:name=>({ADMIN_DASH_KEY:'test-team-only',CLIENT_DASH_KEY:'test-artist-only',SUPABASE_URL:'https://example.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'test-server-only'})[name]},serve:fn=>handler=fn}});
- vm.runInContext(sharedSource+source,context);
+ vm.runInContext(sharedSource+focusSource+source,context);
  return {calls,outbound:()=>outbound,request:async(body,headers={},url='https://example.supabase.co/functions/v1/artist-workspace')=>{const r=await handler(new Request(url,{method:body?'POST':'GET',headers:{'content-type':'application/json',...(role?{'authorization':'Bearer test-personal-token'}:{}),...headers},...(body?{body:JSON.stringify(body)}:{})}));return {status:r.status,body:await r.json()};}};
 }
 test('Unauthenticated private reads do not query tables',async()=>{const r=runtime({role:null});const out=await r.request({action:'dashboard'});assert.equal(out.status,401);assert.equal(r.calls.length,0);});
@@ -105,3 +107,11 @@ test('Warren preview renders read-only notice and hides creation controls',async
 
 test('Scoped management cannot impersonate Warren by using team view for an approval',async()=>{const r=runtime({role:'team',scopes:['warren','team']});const out=await r.request({action:'review_content',view:'team',id:UUID,approval:'approved',version:1});assert.equal(out.body.ok,false);assert.equal(r.calls.length,0);});
 test('Scoped management private contact history is restricted to the read-only preview',async()=>{const db={contacts:{data:{id:UUID,assigned_to:'warren'},error:null}};const team=runtime({role:'team',scopes:['warren','team'],db});assert.equal((await team.request({action:'contact_history',view:'team',id:UUID})).body.ok,false);const preview=runtime({role:'team',scopes:['warren','team'],db});assert.equal((await preview.request({action:'contact_history',view:'warren',id:UUID})).body.ok,true);assert.equal(preview.calls[0].table,'interactions');});
+
+test('Admin scope enables editing both layouts without impersonating the artist',async()=>{const r=runtime({role:'team',scopes:['admin','warren','team']});const out=await r.request({action:'dashboard',view:'warren'});assert.equal(out.body.ok,true);assert.equal(out.body.is_admin,true);assert.equal(out.body.can_manage_all,true);assert.equal(out.body.is_owner,false);assert.equal(out.body.read_only,false);assert.equal(out.body.role,'team');});
+test('Admin can update a private board item and archive it through either layout',async()=>{for(const action of ['update','archive_item','unarchive_item','create']){const r=runtime({role:'team',scopes:['admin','warren','team']});const out=await r.request({action:'legacy',view:'warren',payload:{action,id:UUID,kind:'ask',owner:'warren',title:'Admin change'}});assert.equal(out.body.ok,true);assert.equal(r.outbound(),1);}});
+test('A forged admin scope in user metadata cannot unlock admin access',async()=>{const r=runtime({role:'team',authUser:{id:UUID,app_metadata:{crm_enabled:true,crm_role:'management'},user_metadata:{scopes:['admin','warren','team']}}});const out=await r.request({action:'dashboard',view:'team'});assert.equal(out.body.is_admin,false);});
+test('Social role with admin scope does not become an administrator',async()=>{const r=runtime({role:'social',scopes:['admin','warren','team']});assert.equal((await r.request({action:'dashboard',view:'warren'})).status,403);});
+test('Admin receives task management controls in Warren dashboard',async()=>{const r=uiRuntime();await r.context.window.renderArtistWorkspace({app_ready:true,role:'team',view:'warren',read_only:false,is_admin:true,contacts:[],gigs:[],invoices:[],content:[],board:[{id:UUID,owner:'warren',title:'Review task',kind:'ask',status:'open'}]});const html=r.elements.find(e=>e.id==='artistApp').innerHTML;assert.ok(html.includes('data-app="board-new"'));assert.ok(html.includes('data-app="board-edit"'));assert.ok(html.includes('data-app="board-archive"'));});
+
+test('Team focus cards escape member names and task titles and link to the original task',async()=>{const r=uiRuntime();await r.context.window.renderArtistWorkspace({app_ready:true,role:'client',view:'warren',contacts:[],gigs:[],content:[],board:[],team_focus:{members:[{id:UUID,name:'<img src=x>',tasks:[{id:UUID,title:'<script>bad</script>',status:'review',due_date:'2026-11-05'}]}],unassigned_count:0}});const html=r.elements.find(e=>e.id==='artistApp').innerHTML;assert.ok(html.includes('Team · top 3 per member'));assert.ok(html.includes('data-app="team-task"'));assert.ok(html.includes('data-id="'+UUID+'"'));assert.ok(!html.includes('<img'));assert.ok(!html.includes('<script>'));});

@@ -365,10 +365,10 @@ h2{position:relative}
 .gig-tools{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}.gig-tools label{flex:1;min-width:180px;font-size:14px}.gig-tools input,.gig-tools select{display:block;width:100%;padding:12px;margin-top:8px;border:1px solid var(--line-soft);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit}.gig-history{margin:24px 0}.gig-history summary{cursor:pointer;font-size:16px;padding:12px 0}.wgig[hidden]{display:none}.wgig .s{font-size:12px}.wgig .r{flex-shrink:0}</style>
 <link rel="stylesheet" href="artist-app.css?v=20260912-equipment">
 <link rel="stylesheet" href="team-board.css?v=20261102"/>
-<script src="team-board.js?v=20261102"></script>
+<script src="team-board.js?v=20261102-admin-focus"></script>
 <script src="artist-auth.js?v=20261102-personal-views"></script>
 <script src="equipment-workflow.js?v=20260912"></script>
-<script src="artist-app.js?v=20261102-scoped-views"></script>
+<script src="artist-app.js?v=20261102-admin-focus"></script>
 </head>
 <body>
 
@@ -691,7 +691,7 @@ async function load(view){
   $('topBtns').style.display = 'flex';
   $('genAt').style.display = 'inline';
   $('genAt').textContent = 'updated ' + fmtDT(d.generated_at);
-  $('roleBadge').textContent = d.is_owner ? (d.view==='warren'?'Warren':'Warren · Team') : d.view==='warren'?'Management · Warren preview':ROLE==='social'?'Team':'Management · Team';
+  $('roleBadge').textContent = d.is_admin ? (d.view==='warren'?'Administrator · Warren':'Administrator · Team') : d.is_owner ? (d.view==='warren'?'Warren':'Warren · Team') : d.view==='warren'?'Management · Warren preview':ROLE==='social'?'Team':'Management · Team';
   $('roleBadge').classList.toggle('gold', ROLE === 'client');
   $('btnView').style.display = (d.available_views || []).includes('warren') ? 'inline-block' : 'none';
   $('btnFreelancerInvoices').style.display = ROLE === 'team' ? 'inline-block' : 'none';
@@ -706,7 +706,7 @@ function showView(v){
   if(DATA?.view!==target){load(target);return;}
   $('dash').style.display = isW ? 'none' : 'block';
   $('wview').style.display = isW ? 'block' : 'none';
-  $('btnView').textContent = isW ? 'Open team view' : (DATA?.is_owner?'Open Warren view':'Preview Warren view');
+  $('btnView').textContent = isW ? 'Open team view' : (DATA?.is_owner||DATA?.is_admin?'Open Warren view':'Preview Warren view');
   if(isW) { window.hideTeamBoard(); window.renderArtistWorkspace(DATA); } else { window.hideArtistWorkspace(); render(DATA); $('teamOperations').hidden = ROLE === 'social'; window.renderTeamBoard(); }
 }
 
