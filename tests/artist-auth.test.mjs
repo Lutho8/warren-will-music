@@ -8,7 +8,7 @@ function runtime(expired=false){
  let resolve;const pending=new Promise(r=>resolve=r);
  const persistent=new Map();
  const storage=m=>({getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k),key:i=>[...m.keys()][i]||null,get length(){return m.size;}});
- const context={localStorage:storage(persistent),window:{},sessionStorage:storage(values),document:{addEventListener(){}},fetch:()=>pending,Date,JSON,KEY:'test-shared-code'};
+ const context={localStorage:storage(persistent),window:{},sessionStorage:storage(values),document:{addEventListener(){}},fetch:()=>pending.then(res=>res.clone()),Date,JSON,KEY:'test-shared-code'};
  vm.createContext(context);vm.runInContext(source,context);
  return {window:context.window,values,persistent,respond:resolve};
 }
