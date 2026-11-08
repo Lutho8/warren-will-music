@@ -52,12 +52,20 @@ test('Expired persistent session is refreshed and refresh token rotates in both 
  r.persistent.set('ww-personal-session',r.values.get('ww-personal-session'));
  const pending=r.window.artistLoadData();
  r.respond(new Response(JSON.stringify({access_token:'rotated',refresh_token:'new-refresh',expires_at:4102444800})));
- // A single unresolved fetch is used by the harness; response then also reaches dashboard mock.
- // Validate that refresh reached the persistent store, independent of dashboard response.
- await Promise.resolve();await Promise.resolve();
+ // The mock returns a token payload for both refresh and the next dashboard request.
+ await pending;
  assert.equal(JSON.parse(r.persistent.get('ww-personal-session')).refresh_token,'new-refresh');
  r.window.clearArtistSession();
  assert.equal(r.persistent.has('ww-personal-session'),false);
- // The dashboard request is intentionally left unsettled, without changing any production records.
- void pending;
+});
+
+test('Successful personal sign-in writes persistent storage',async()=>{
+ const r=runtime();
+ const promise=r.window.artistSignIn('valid@example.org','example-password');
+ r.respond(new Response(JSON.stringify({access_token:'signed-in-token',refresh_token:'new-refresh-token',expires_at:4102444800}),{status:200}));
+ await promise;
+ assert.equal(r.window.hasArtistSession(),true);
+ assert.equal(JSON.parse(r.persistent.get('ww-personal-session')).access_token,'signed-in-token');
+ r.window.clearArtistSession();
+ assert.equal(r.persistent.has('ww-personal-session'),false);
 });
