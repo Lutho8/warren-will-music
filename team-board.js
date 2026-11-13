@@ -6,7 +6,7 @@
  const newId=()=>crypto.randomUUID?crypto.randomUUID():'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(Number(c)^crypto.getRandomValues(new Uint8Array(1))[0]&15>>Number(c)/4).toString(16));
  const day=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Berlin'}).format(new Date());
  const shared=t=>t.kind==='work'&&(!t.owner||['team','lutho'].includes(t.owner));
- let root,dialog,data={tasks:[],members:[]},filter='all',generation=0,current,comments=[],saving=false;
+ let root,dialog,data={tasks:[],members:[]},filter='all',assignee='',focus='all',generation=0,current,comments=[],saving=false;
  const name=id=>data.members.find(m=>m.id===id)?.name||'Unassigned';
  const options=(selected,empty='Unassigned')=>`<option value="">${empty}</option>`+data.members.map(m=>`<option value="${E(m.id)}" ${m.id===selected?'selected':''}>${E(m.name)}</option>`).join('');
  async function api(body){
@@ -14,6 +14,13 @@
   const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',...window.artistAuthHeaders()},body:JSON.stringify(body)});
   let d;try{d=await r.json();}catch{throw new Error('Could not reach the team board. Please retry.');}
   if(!r.ok||!d.ok)throw new Error(d.error||'Could not save. Please retry.');return d;
+ }
+ function selectTasks(tasks,{actor,filter='all',assignee='',focus='all',today=day()}={}){
+  return tasks.filter(t=>(filter!=='mine'||t.assignee_id===actor||(t.status==='review'&&(t.reviewer_id||t.creator_id)===actor))
+   &&(!assignee||(assignee==='unassigned'?!t.assignee_id:t.assignee_id===assignee))
+   &&(focus==='all'||(focus==='overdue'&&t.status!=='done'&&t.due_date&&t.due_date<today)
+    ||(focus==='blocked'&&t.status!=='done'&&!!t.blocked_reason)
+    ||(focus==='review'&&t.status==='review')||(focus==='today'&&t.status!=='done'&&t.due_date===today)));
  }
  function init(){
   if(root)return;root=document.getElementById('teamBoard');
@@ -24,8 +31,13 @@
    if(b.dataset.team==='open')return openTask(b.dataset.id);
    if(b.dataset.team==='archive')return archiveTask();
    if(b.dataset.team==='filter'){filter=b.dataset.filter;render();}
+   if(b.dataset.team==='member'){assignee=assignee===b.dataset.member?'':b.dataset.member;filter='all';render();}
+   if(b.dataset.team==='reset'){filter='all';assignee='';focus='all';render();}
   });
-  root.addEventListener('change',async e=>{if(!e.target.matches('[data-team-status]'))return;
+  root.addEventListener('change',async e=>{
+   if(e.target.matches('[data-team-assignee]')){assignee=e.target.value;render();return;}
+   if(e.target.matches('[data-team-focus]')){focus=e.target.value;render();return;}
+   if(!e.target.matches('[data-team-status]'))return;
    const el=e.target,t=data.tasks.find(t=>t.id===el.dataset.teamStatus);if(!t)return;el.disabled=true;
    try{const r=await api({action:'save',id:t.id,task:{...t,status:el.value}});data.tasks=data.tasks.map(x=>x.id===t.id?r.task:x);render();message(r.warning||'Task updated.');notify();}
    catch(err){el.value=t.status;el.disabled=false;message(err.message,true);}
@@ -49,17 +61,19 @@
  }
  function message(s,error=false){const el=root.querySelector('[role=status]');if(el){el.textContent=s;el.classList.toggle('team-error',error);}}
  function render(){
-  const mine=t=>t.assignee_id===data.actor||(t.status==='review'&&(t.reviewer_id||t.creator_id)===data.actor);
-  const list=data.tasks.filter(t=>filter!=='mine'||mine(t));
+  const list=selectTasks(data.tasks,{actor:data.actor,filter,assignee,focus});
   const overdue=t=>t.status!=='done'&&t.due_date&&t.due_date<day();
-  root.innerHTML=`<div class="team-heading"><div><h1>Team board</h1><p>One place to see what needs doing and finish it.</p></div><button type="button" class="bbtn gold" data-team="new">+ New task</button></div>
+  root.innerHTML=`<div class="team-heading"><div><h1>Team board</h1><p>Plan together. Create, review and deliver with one clear owner.</p></div><button type="button" class="bbtn gold" data-team="new">+ New task</button></div>
    <div class="team-toolbar"><button type="button" class="bbtn" data-team="filter" data-filter="all" aria-pressed="${filter==='all'}">All tasks</button><button type="button" class="bbtn" data-team="filter" data-filter="mine" aria-pressed="${filter==='mine'}">My work</button><button type="button" class="bbtn" data-team="retry">Refresh</button><span>${data.tasks.filter(t=>t.status!=='done').length} open · ${data.tasks.filter(overdue).length} overdue</span></div>
+   <div class="team-filters"><label>Owner<select data-team-assignee><option value="">Everyone</option><option value="unassigned" ${assignee==='unassigned'?'selected':''}>Unassigned</option>${data.members.map(m=>`<option value="${E(m.id)}" ${assignee===m.id?'selected':''}>${E(m.name)}</option>`).join('')}</select></label><label>Focus<select data-team-focus>${Object.entries({all:'All work',today:'Due today',overdue:'Overdue',blocked:'Blocked',review:'Awaiting review'}).map(([v,l])=>`<option value="${v}" ${focus===v?'selected':''}>${l}</option>`).join('')}</select></label><button type="button" class="bbtn" data-team="reset">Clear filters</button><span>${list.length} of ${data.tasks.length} tasks shown</span></div>
+   <div class="team-workload" aria-label="Team workload">${data.members.map(m=>{const active=data.tasks.filter(t=>t.assignee_id===m.id&&t.status!=='done');const reviews=data.tasks.filter(t=>t.status==='review'&&(t.reviewer_id||t.creator_id)===m.id);return `<button type="button" data-team="member" data-member="${E(m.id)}" aria-pressed="${assignee===m.id}"><strong>${E(m.name)}</strong><span>${active.length} owned · ${reviews.length} to review</span><small>${active.filter(overdue).length} overdue · ${active.filter(t=>t.blocked_reason).length} blocked</small></button>`;}).join('')}</div>
+   <details class="team-playbook"><summary>How we work as a team</summary><p>One deliverable per task. Add a brief, an owner, a due date, an asset link and a reviewer. Use comments for handoffs and feedback.</p><div class="team-role-guide"><p><strong>Social media strategist</strong>Plan channels, captions and publishing dates. Record the live post link and results when complete.</p><p><strong>Brand manager</strong>Set the campaign brief and check visuals, messaging and consistency before publishing.</p><p><strong>Video & photography</strong>Plan shoots, capture and edit. Link the latest cut or photo selection for review.</p><p><strong>Artist</strong>Provide creative direction, attend shoots and review content that needs artist approval.</p></div><p><b>To do</b> → <b>In progress</b> → <b>In review</b> → <b>Done</b>. Name the next reviewer in each handoff. Use separate tasks for production, approval and publishing when owners or deadlines differ. Mark publishing done only after the content is live.</p></details>
    <p role="status" aria-live="polite"></p>
    ${data.email_configured?'':'<p class="team-note">Email alerts are not configured yet. Assignments and updates remain available here.</p>'}
    ${data.tasks.length>=1000?'<p class="team-note">Showing the latest 1,000 tasks.</p>':''}
    <div class="team-columns">${Object.entries(states).map(([status,label])=>{
-    const items=list.filter(t=>t.status===status).sort((a,b)=>Number(!!b.blocked_reason)-Number(!!a.blocked_reason)||String(a.due_date||'9999').localeCompare(String(b.due_date||'9999'))||String(b.created_at).localeCompare(String(a.created_at)));
-    return `<section class="team-column" aria-label="${label}"><h2>${label} <span>${items.length}</span></h2>${items.map(t=>`<article class="team-ticket ${overdue(t)?'team-overdue':''}"><button type="button" class="team-title" data-team="open" data-id="${E(t.id)}">${E(t.title)}</button><p>${E(name(t.assignee_id))}</p>${t.blocked_reason?`<p class="team-error">Blocked: ${E(t.blocked_reason)}</p>`:''}${t.due_date?`<p class="${overdue(t)?'team-error':''}">${overdue(t)?'Overdue · ':'Due '}${E(t.due_date)}</p>`:''}${status==='review'?`<p>Review: ${E(name(t.reviewer_id||t.creator_id))}</p>`:''}<label class="team-sr" for="status-${E(t.id)}">Status for ${E(t.title)}</label><select id="status-${E(t.id)}" data-team-status="${E(t.id)}">${Object.entries(states).map(([s,l])=>`<option value="${s}" ${s===status?'selected':''}>${l}</option>`).join('')}</select></article>`).join('')||'<p class="team-empty">No tasks here.</p>'}</section>`;
+    const items=list.filter(t=>t.status===status).sort((a,b)=>Number(!!b.blocked_reason)-Number(!!a.blocked_reason)||({high:0,normal:1,low:2}[a.priority]??1)-({high:0,normal:1,low:2}[b.priority]??1)||String(a.due_date||'9999').localeCompare(String(b.due_date||'9999'))||String(b.created_at).localeCompare(String(a.created_at)));
+    return `<section class="team-column" data-status="${status}" aria-label="${label}"><h2>${label} <span>${items.length}</span></h2>${items.map(t=>`<article class="team-ticket ${overdue(t)?'team-overdue':''}"><button type="button" class="team-title" data-team="open" data-id="${E(t.id)}">${E(t.title)}</button><p>${E(name(t.assignee_id))}${t.priority==='high'?' · <b>High priority</b>':''}</p>${t.blocked_reason?`<p class="team-error">Blocked: ${E(t.blocked_reason)}</p>`:''}${t.due_date?`<p class="${overdue(t)?'team-error':''}">${overdue(t)?'Overdue · ':'Due '}${E(t.due_date)}</p>`:''}${status==='review'?`<p>Review: ${E(name(t.reviewer_id||t.creator_id))}</p>`:''}<label class="team-sr" for="status-${E(t.id)}">Status for ${E(t.title)}</label><select id="status-${E(t.id)}" data-team-status="${E(t.id)}">${Object.entries(states).map(([s,l])=>`<option value="${s}" ${s===status?'selected':''}>${l}</option>`).join('')}</select></article>`).join('')||'<p class="team-empty">No tasks here.</p>'}</section>`;
    }).join('')}</div>`;
  }
  async function loadComments(id){
@@ -84,7 +98,7 @@
   if(id)try{await loadComments(id);}catch(err){if(current?.id===id)dialog.querySelector('#teamComments').textContent=err.message;}
  }
  window.WWTeamBoardReady=false;
- window.hideTeamBoard=()=>{window.WWTeamBoardReady=false;generation++;if(dialog?.open)dialog.close();if(root){root.hidden=true;root.innerHTML='';}data={tasks:[],members:[]};};
+ window.hideTeamBoard=()=>{window.WWTeamBoardReady=false;generation++;if(dialog?.open)dialog.close();if(root){root.hidden=true;root.innerHTML='';}data={tasks:[],members:[]};filter='all';assignee='';focus='all';};
  window.renderTeamBoard=async()=>{
   init();root.hidden=false;const seq=++generation;
   root.innerHTML='<p role="status">Loading team tasks…</p>';
@@ -93,5 +107,5 @@
   }catch(err){if(seq!==generation)return;root.innerHTML=`<h1>Team board</h1><p role="alert">${E(err.message)}</p><button type="button" class="bbtn" data-team="retry">Retry</button>`;}
  };
  window.openSharedTeamTask=async(id,readOnly=false)=>{init();data=await api({action:'list'});return openTask(id,readOnly);};
- window.WWTeamBoardUtils={shared,escape:E};
+ window.WWTeamBoardUtils={shared,escape:E,selectTasks};
 })();
