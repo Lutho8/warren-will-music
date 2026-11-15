@@ -9,3 +9,6 @@ verify_jwt = false
 # Verifies personal CRM identity inside the handler.
 [functions.team-board]
 verify_jwt = false
+
+[functions.content-calendar]
+verify_jwt = false

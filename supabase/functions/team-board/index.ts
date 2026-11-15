@@ -5,7 +5,7 @@ const reply=(b:unknown,status=200)=>new Response(JSON.stringify(b),{status,heade
 const ok=(r:any)=>{if(r.error)throw new Error(r.error.message);return r.data;};
 const uuid=(s:unknown)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(s));
 const text=(s:unknown,n:number)=>String(s??'').trim().slice(0,n);
-const fields='id,title,details,status,priority,due_date,assignee_id,reviewer_id,creator_id,blocked_reason,task_version,created_at,done_at';
+const fields='id,title,details,status,priority,due_date,assignee_id,reviewer_id,creator_id,blocked_reason,task_version,created_at,done_at,campaign_id,content_id,task_type';
 const shared=(q:any)=>q.eq('kind','work').or('owner.in.(team,lutho),owner.is.null').is('archived_at',null);
 Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:cors});
@@ -21,8 +21,9 @@ Deno.serve(async(req:Request)=>{
  if(!u?.email_confirmed_at||u.app_metadata?.crm_enabled!==true)return null;
  return {id:m.user_id,name:text(m.display_name||u.email?.split('@')[0]||'Team member',100)};
  }));
+ const campaigns=ok(await sb.from('content_campaigns').select('id,name,status').order('name'));
  const tasks=ok(await shared(sb.from('client_board').select(fields)).order('created_at',{ascending:false}).limit(1000));
- return reply({ok:true,actor,members:members.filter(Boolean),tasks,can_manage_all:!!identity.isAdmin,email_configured:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),limit:1000});
+ return reply({ok:true,actor,members:members.filter(Boolean),tasks,campaigns:campaigns.filter((c:any)=>c.status!=='archived'),can_manage_all:!!identity.isAdmin,email_configured:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),limit:1000});
  }
  if(!uuid(b.id))return reply({ok:false,error:'Valid task ID required.'},400);
  if(b.action==='save'){
