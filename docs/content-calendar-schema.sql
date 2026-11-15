@@ -52,6 +52,7 @@ begin
    if current_setting('ww.calendar_write',true) is distinct from 'on' then
     if old.content_id is distinct from new.content_id or old.publication_id is distinct from new.publication_id or old.task_type is distinct from new.task_type or old.campaign_id is distinct from new.campaign_id then raise exception 'Change campaign links in Content calendar.'; end if;
     if new.task_type in ('brand_review','artist_review','publish') and new.status is distinct from old.status then raise exception 'Use the review or publication action in Content calendar.'; end if;
+    if new.task_type in ('brand_review','artist_review','publish') and (new.assignee_id is distinct from old.assignee_id or new.reviewer_id is distinct from old.reviewer_id) then raise exception 'Change review and publishing assignments in Content calendar.'; end if;
     if new.archived_at is not null and old.archived_at is null and exists(select 1 from content_publications x where x.content_id=new.content_id and x.status not in ('published','cancelled')) then raise exception 'Resolve pending publications before archiving campaign work.'; end if;
    end if;
   end if;

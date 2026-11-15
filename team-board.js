@@ -53,7 +53,7 @@
     if(form.id==='teamCommentForm'){
      await api({action:'comment',id:current.id,body:f.get('comment')});form.reset();await loadComments(current.id);
     }else{
-     const task={task_version:current.task_version,title:f.get('title'),details:f.get('details'),assignee_id:f.get('assignee_id')||null,reviewer_id:f.get('reviewer_id')||null,due_date:f.get('due_date')||null,status:f.get('status')||current.status,priority:f.get('priority'),blocked_reason:f.get('blocked_reason')};
+     const task={task_version:current.task_version,title:f.get('title'),details:f.get('details'),assignee_id:f.has('assignee_id')?(f.get('assignee_id')||null):(current.assignee_id||null),reviewer_id:f.has('reviewer_id')?(f.get('reviewer_id')||null):(current.reviewer_id||null),due_date:f.get('due_date')||null,status:f.get('status')||current.status,priority:f.get('priority'),blocked_reason:f.get('blocked_reason')};
      const r=await api({action:'save',id:current.id,task});
      data.tasks=[r.task,...data.tasks.filter(t=>t.id!==r.task.id)];dialog.close();render();message(r.warning||'Task saved.');notify();
     }
@@ -85,16 +85,16 @@
  function notify(){window.dispatchEvent(new Event('ww:tasks-changed'));}
  async function archiveTask(){if(!current||saving||!confirm('Remove this task from the boards? It can be restored from the admin archive.'))return;saving=true;try{const r=await api({action:'archive',id:current.id,task_version:current.task_version});data.tasks=data.tasks.filter(t=>t.id!==current.id);dialog.close();render();message(r.warning||'Task archived.');notify();if(!root.hidden)await window.load?.('team');}catch(e){dialog.querySelector('[role=alert]').textContent=e.message;}finally{saving=false;}}
  async function openTask(id,readOnly=false){
-  current=id?data.tasks.find(t=>t.id===id):{id:newId(),task_version:0,status:'open',priority:'normal'};if(!current)return;const t=current;
+  current=id?data.tasks.find(t=>t.id===id):{id:newId(),task_version:0,status:'open',priority:'normal'};if(!current)return;const t=current,managed=['brand_review','artist_review','publish'].includes(t.task_type);
   dialog.innerHTML=`<div class="team-heading"><h2>${id?'Task details':'New task'}</h2><button type="button" class="bbtn" data-team-close>Close</button></div><p role="alert" class="team-error"></p>
    <form id="teamTaskForm"><label>Task title<input name="title" required maxlength="200" value="${E(t.title)}" placeholder="What needs to be done?"/></label>
-   <label>Assigned to<select name="assignee_id">${options(t.assignee_id)}</select></label>
+   <label>Assigned to<select name="assignee_id" ${managed?'disabled':''}>${options(t.assignee_id)}</select></label>
    <label>Due date <small>(optional)</small><input name="due_date" type="date" value="${E(t.due_date)}"/></label>
    <label>Status<select name="status" ${['brand_review','artist_review','publish'].includes(t.task_type)?'disabled':''}>${Object.entries(states).map(([s,l])=>`<option value="${s}" ${s===t.status?'selected':''}>${l}</option>`).join('')}</select></label>
    <label>Details <small>(optional)</small><textarea name="details" maxlength="1000" rows="3" placeholder="Instructions, expected result or a link to the work">${E(t.details)}</textarea></label>
-   <details ${t.blocked_reason?'open':''}><summary>Review, priority & blockers</summary><label>Reviewer<select name="reviewer_id">${options(t.reviewer_id,'Task creator')}</select></label><label>Priority<select name="priority">${['normal','high','low'].map(p=>`<option value="${p}" ${t.priority===p?'selected':''}>${p[0].toUpperCase()+p.slice(1)}</option>`).join('')}</select></label><label>What is blocking this task?<textarea name="blocked_reason" rows="2" maxlength="500">${E(t.blocked_reason)}</textarea></label></details>
+   <details ${t.blocked_reason?'open':''}><summary>Review, priority & blockers</summary><label>Reviewer<select name="reviewer_id" ${managed?'disabled':''}>${options(t.reviewer_id,'Task creator')}</select></label><label>Priority<select name="priority">${['normal','high','low'].map(p=>`<option value="${p}" ${t.priority===p?'selected':''}>${p[0].toUpperCase()+p.slice(1)}</option>`).join('')}</select></label><label>What is blocking this task?<textarea name="blocked_reason" rows="2" maxlength="500">${E(t.blocked_reason)}</textarea></label></details>
    <button class="bbtn gold" type="submit">${id?'Save changes':'Create task'}</button>${id&&data.can_manage_all?'<button class="bbtn" type="button" data-team="archive">Remove task</button>':''}</form>
-   ${t.content_id?`<p>Review and publication actions are managed in the content calendar.</p><button type="button" class="bbtn" data-team="calendar" data-id="${E(t.content_id)}">Open content calendar</button>`:''}${id?'<h3>Comments</h3><div id="teamComments">Loading comments…</div><form id="teamCommentForm"><label>Add a comment<textarea name="comment" required maxlength="1000" rows="2"></textarea></label><button class="bbtn" type="submit">Send comment</button></form>':''}`;
+   ${t.content_id?`<p>Review and publication actions and assignments are managed in the content calendar.</p><button type="button" class="bbtn" data-team="calendar" data-id="${E(t.content_id)}">Open content calendar</button>`:''}${id?'<h3>Comments</h3><div id="teamComments">Loading comments…</div><form id="teamCommentForm"><label>Add a comment<textarea name="comment" required maxlength="1000" rows="2"></textarea></label><button class="bbtn" type="submit">Send comment</button></form>':''}`;
   if(readOnly){dialog.querySelectorAll('input,select,textarea').forEach(el=>el.disabled=true);dialog.querySelectorAll('[type=submit],[data-team=archive]').forEach(el=>el.hidden=true);}
   dialog.showModal();dialog.querySelector('[name=title]').focus();
   if(id)try{await loadComments(id);}catch(err){if(current?.id===id)dialog.querySelector('#teamComments').textContent=err.message;}

@@ -36,6 +36,10 @@ test('Campaign records enforce staged approvals, shared tasks, actual publicatio
   const publicationSave={action:'publication_save',id:publication.id,content_id:content.id,version:1,lock_version:publication.lock_version};
   await assert.rejects(save({...publicationSave,status:'published',post_url:'https://instagram.com/p/fixture',published_at:new Date(Date.now()-10000).toISOString()}),/both approvals/);
   await assert.rejects(db.query("update client_board set status='done' where publication_id=$1",[publication.id]),/Content calendar/);
+  for(const kind of ['brand_review','artist_review','publish']){
+   await assert.rejects(db.query('update client_board set assignee_id=case when assignee_id=$1 then $2::uuid else $1::uuid end where content_id=$3 and task_type=$4',[ID,SOCIAL,content.id,kind]),/assignments in Content calendar/);
+   await assert.rejects(db.query('update client_board set reviewer_id=case when reviewer_id=$1 then $2::uuid else $1::uuid end where content_id=$3 and task_type=$4',[ID,SOCIAL,content.id,kind]),/assignments in Content calendar/);
+  }
   await assert.rejects(save({...draft,version:1,task_version:999}),/changed/);
   await save({action:'submit_brand',content_id:content.id,version:1},SOCIAL);
   await assert.rejects(save({action:'artist_review',content_id:content.id,version:1,decision:'approved'},ARTIST),/after brand/);
