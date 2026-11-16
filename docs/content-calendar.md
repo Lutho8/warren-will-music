@@ -4,6 +4,10 @@ Team view includes **Content calendar**, also available at `admin.html#content-c
 It uses existing `client_board`, `artist_content`, version snapshots and publication records.
 No task board or personal workspace is replaced.
 
+The calendar owner is Anmol, with shared access for every active team member.
+Ownership identifies the coordinator and does not limit calendar access.
+The runtime reads the server-owned team directory, never the protected Auth users table.
+
 ## Daily workflow
 
 - Open My week, Today or Month. Filter by campaign, your work, approvals, readiness,
@@ -31,6 +35,8 @@ from this website's backend credentials. Confirm the account IDs, professional I
 eligibility, API-enabled Metricool plan and an approved test post before adding automated
 dispatch. This release does not purchase a plan, store social tokens, call publishing APIs
 or post content. SoundCloud audio releases remain a separate workflow.
+Use `booking@warrenwilliam.de` for the Warren Will Metricool account. Signup and reconnecting
+the ChatGPT integration must be completed under that account before it is considered connected.
 
 ## Deployment
 
@@ -41,6 +47,11 @@ or post content. SoundCloud audio releases remain a separate workflow.
    confirmed email, CRM enablement and active server-owned role.
 3. Publish `admin.html`, `team-board.js`, `content-calendar.js` and `content-calendar.css`
    through the existing Warren Will Git/Vercel project. Do not create a replacement site.
+
+For an installation that already applied the initial calendar migration, apply
+`docs/content-calendar-access.sql` to repair calendar reads and add the shared owner setting.
+Set its singleton `owner_user_id` to Anmol's verified active directory ID; no role or scope
+changes are required. Fresh installs include the same table and function in the base schema.
 
 New functions/tables are service-only with RLS enabled. Private tasks cannot become
 calendar work. Generic task or legacy content actions cannot bypass calendar approval
@@ -55,5 +66,7 @@ Run `node --test tests/content-calendar.test.mjs` plus the existing non-browser 
 The calendar tests execute real PostgreSQL semantics in PGlite, including staged role
 checks, stale writes, publication evidence, rollback-safe state transitions and denied
 public privileges. Date tests cover Berlin summer/winter time and ambiguous/missing hours.
+Database workflow tests execute as `service_role` without SELECT on `auth.users`, matching
+the hosted Edge function permissions, and verify shared access across all four fixture members.
 `tests/calendar-browser-fixture.html` is a clearly marked fictional UI fixture that blocks
 real API calls. Live recipient email and social publishing are not simulated by these tests.

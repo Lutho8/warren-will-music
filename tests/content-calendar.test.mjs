@@ -4,12 +4,12 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
 import {PGlite} from '@electric-sql/pglite';
-const ID='11111111-1111-4111-8111-111111111111',ARTIST='22222222-2222-4222-8222-222222222222',SOCIAL='33333333-3333-4333-8333-333333333333';
+const ID='11111111-1111-4111-8111-111111111111',ARTIST='22222222-2222-4222-8222-222222222222',SOCIAL='33333333-3333-4333-8333-333333333333',ANMOL='44444444-4444-4444-8444-444444444444';
 const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('Campaign records enforce staged approvals, shared tasks, actual publication evidence and optimistic locking',async()=>{
  const db=new PGlite();
  try{
-  await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+  await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;
    create table auth.users(id uuid primary key,email_confirmed_at timestamptz default now(),raw_app_meta_data jsonb default '{"crm_enabled":true}');
    create table crm_user_roles(user_id uuid primary key,display_name text,role text,active boolean default true,scopes text[] default '{}',created_at timestamptz default now());
    create table client_board(id uuid primary key default gen_random_uuid(),kind text,owner text,title text,details text,price text,warren_comment text,status text default 'open',priority text default 'normal',due_date date,created_by text,created_at timestamptz default now(),updated_at timestamptz default now(),done_at timestamptz,archived_at timestamptz);
@@ -18,12 +18,19 @@ test('Campaign records enforce staged approvals, shared tasks, actual publicatio
    create table artist_content(id uuid primary key default gen_random_uuid(),title text not null,caption text not null default '',preview_url text,owner text not null default 'team',version integer not null default 1,approval text not null default 'draft',review_note text,updated_at timestamptz default now(),created_at timestamptz default now());
    create table content_revisions(content_id uuid references artist_content(id),version integer,title text,caption text,preview_url text,approval text,review_note text,reviewed_by text,created_at timestamptz default now(),primary key(content_id,version));
    create table content_publications(id uuid primary key default gen_random_uuid(),content_id uuid,version integer,platform text,status text constraint content_publications_status_check check(status in ('planned','published','failed')),scheduled_at timestamptz,published_at timestamptz,post_url text,note text,verification text default 'manual',updated_at timestamptz default now(),foreign key(content_id,version) references content_revisions(content_id,version),unique(content_id,version,platform));
-   insert into auth.users(id) values('${ID}'),('${ARTIST}'),('${SOCIAL}');
-   insert into crm_user_roles(user_id,display_name,role) values('${ID}','Brand reviewer fixture','management'),('${ARTIST}','Artist fixture','artist'),('${SOCIAL}','Social fixture','social_media');`);
+   insert into auth.users(id) values('${ID}'),('${ARTIST}'),('${SOCIAL}'),('${ANMOL}');
+   insert into crm_user_roles(user_id,display_name,role) values('${ID}','Brand reviewer fixture','management'),('${ARTIST}','Artist fixture','artist'),('${SOCIAL}','Social fixture','social_media'),('${ANMOL}','Anmol fixture','management');`);
   await db.exec(read('docs/team-board-schema.sql'));
   await db.exec(read('docs/content-calendar-schema.sql'));
+  await db.exec(read('docs/content-calendar-access.sql'));
+  await db.exec(`update content_calendar_settings set owner_user_id='${ANMOL}' where id;`);
+  await db.exec('grant usage on schema public,auth to service_role; grant all on all tables in schema public to service_role; set role service_role;');
+  assert.equal((await db.query("select has_table_privilege('service_role','auth.users','select') as allowed")).rows[0].allowed,false);
   const save=async(p,actor=ID)=>(await db.query('select public.calendar_save($1::jsonb,$2::uuid) as value',[JSON.stringify(p),actor])).rows[0].value;
   const list=async(actor=ID)=>(await db.query("select calendar_list($1::uuid,'2026-11-01T00:00:00Z','2026-12-01T00:00:00Z') as value",[actor])).rows[0].value;
+  for(const actor of [ID,ARTIST,SOCIAL,ANMOL]){
+   const shared=await list(actor);assert.equal(shared.actor,actor);assert.equal(shared.members.length,4);assert.equal(shared.owner.id,ANMOL);
+  }
   const camp=await save({action:'campaign_template',id:crypto.randomUUID(),version:0,name:'FICTIONAL local performance campaign'});
   let data=await list();assert.equal(data.entries.length,3);assert.equal(data.publishing.connected,false);
   assert.ok(data.entries.every(c=>c.publications.every(p=>!p.scheduled_at)));

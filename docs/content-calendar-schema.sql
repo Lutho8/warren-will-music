@@ -1,5 +1,14 @@
 -- Additive campaign calendar. All access goes through the verified Edge service.
 begin;
+create table public.content_calendar_settings (
+ id boolean primary key default true check(id),
+ owner_user_id uuid references public.crm_user_roles(user_id),
+ updated_at timestamptz not null default now()
+);
+insert into public.content_calendar_settings(id) values(true);
+alter table public.content_calendar_settings enable row level security;
+revoke all on public.content_calendar_settings from anon,authenticated;
+grant all on public.content_calendar_settings to service_role;
 create table public.content_campaigns (
  id uuid primary key default gen_random_uuid(), name text not null check(length(trim(name)) between 1 and 200),
  brief text not null default '', goal text not null default '', event_date date, planning_month date,
@@ -197,8 +206,9 @@ begin
  if range_end<=range_start or range_end-range_start>interval '62 days' then raise exception 'Choose a calendar range of up to 62 days.'; end if;
  select jsonb_build_object(
   'actor',actor,'role',(select role from crm_user_roles where user_id=actor),
+  'owner',(select jsonb_build_object('id',r.user_id,'name',r.display_name) from content_calendar_settings s join crm_user_roles r on r.user_id=s.owner_user_id where s.id and r.active),
   'campaigns',coalesce((select jsonb_agg(c order by c.updated_at desc) from content_campaigns c where c.status<>'archived'),'[]'),
-  'members',coalesce((select jsonb_agg(jsonb_build_object('id',r.user_id,'name',r.display_name,'role',r.role)) from crm_user_roles r join auth.users u on u.id=r.user_id where r.active and u.email_confirmed_at is not null and u.raw_app_meta_data->>'crm_enabled'='true'),'[]'),
+  'members',coalesce((select jsonb_agg(jsonb_build_object('id',r.user_id,'name',r.display_name,'role',r.role) order by r.display_name) from crm_user_roles r where r.active and r.role in ('artist','management','social_media','videographer_photographer')),'[]'),
   'entries',coalesce((select jsonb_agg(to_jsonb(c)||jsonb_build_object('task',to_jsonb(t)-'warren_comment'-'price','review',to_jsonb(r),'publications',coalesce((select jsonb_agg(x order by x.platform) from content_publications x where x.content_id=c.id and (x.version=c.version or (x.published_at>=range_start and x.published_at<range_end))),'[]')) order by c.updated_at desc)
    from artist_content c join client_board t on t.id=c.production_task_id join content_revisions r on r.content_id=c.id and r.version=c.version
    where c.owner='team' and c.campaign_id is not null and t.kind='work' and coalesce(t.owner,'team') in ('team','lutho') and
