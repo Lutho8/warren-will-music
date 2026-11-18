@@ -1,6 +1,15 @@
 {
   "private": true,
   "type": "module",
-  "scripts": {"test": "node --test *.test.mjs"},
-  "devDependencies": {"@electric-sql/pglite": "0.5.8", "@playwright/test": "1.63.0"}
+  "scripts": {
+    "test": "node --test *.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@playwright/test": "1.63.0",
+    "html-to-text": "10.0.1",
+    "imapflow": "2.12.1",
+    "mailparser": "3.14.5",
+    "nodemailer": "10.6.0"
+  }
 }

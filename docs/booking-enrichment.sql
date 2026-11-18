@@ -39,6 +39,10 @@ begin
  if length(coalesce(p->>'phone',''))>40 or (nullif(p->>'phone','') is not null and (p->>'phone' !~ '^\+?[0-9 ()/-]{6,40}$' or nullif(e->>'phone_source_url','') is null)) then raise exception 'Add a published business phone and its source.'; end if;
  if coalesce(p->>'preferred_channel','') not in ('','email','phone','whatsapp','ig_dm','in_person') then raise exception 'Choose a contact channel.'; end if;
  if coalesce(trim(p->>'name'),'')='' or length(p->>'name')>120 then raise exception 'Contact or team name required.'; end if;
+ if e ? 'draft_attachment_ids' then
+  if jsonb_typeof(e->'draft_attachment_ids')<>'array' or jsonb_array_length(e->'draft_attachment_ids')>5 then raise exception 'Choose up to 5 saved attachments.';end if;
+  if exists(select 1 from jsonb_array_elements_text(e->'draft_attachment_ids') a(id) where not exists(select 1 from booking_media m where m.id=a.id::uuid and m.kind='file' and m.status='ready' and (m.opportunity_id is null or m.opportunity_id=nullif(p->>'opportunity_id','')::uuid))) then raise exception 'A saved attachment is unavailable for this lead. Select available files and save again.';end if;
+ end if;
  result:=booking_acquisition_save(p||jsonb_build_object('action','lead_save'),actor);
  oid:=(result->>'id')::uuid;
  select x.* into c from contacts x join opportunities o on o.contact_id=x.id where o.id=oid and x.assigned_to='team';
@@ -72,6 +76,7 @@ begin
  if r.version is distinct from (p->>'version')::int then raise exception 'Prospect changed. Refresh before logging.'; end if;
  if c.opt_out_at is not null or coalesce(o.do_not_contact,false) or o.pipeline_stage in ('Do not contact','Not interested') then raise exception 'This prospect is suppressed.'; end if;
  if p->>'channel' not in ('email','phone','in_person') or p->>'outcome' not in ('sent','no_answer','connected','replied','qualified','not_interested','do_not_contact') or length(trim(coalesce(p->>'summary','')))<3 or length(p->>'summary')>1500 then raise exception 'Choose the actual channel and outcome and add a note.'; end if;
+ if (p->>'channel'<>'email' and p->>'outcome'='sent') or (p->>'channel'<>'phone' and p->>'outcome'='no_answer') or (p->>'channel'='email' and p->>'outcome'='connected') then raise exception 'Choose an outcome that matches the communication channel.';end if;
  occurred:=(p->>'occurred_at')::timestamp at time zone 'Europe/Berlin';
  if occurred is null or occurred>now()+interval '5 minutes' then raise exception 'Log only communication that already happened.'; end if;
  next_stage:=case p->>'outcome' when 'qualified' then 'Qualified' when 'replied' then 'Replied' when 'not_interested' then 'Not interested' when 'do_not_contact' then 'Do not contact' else 'Contacted' end;

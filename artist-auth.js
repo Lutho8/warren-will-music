@@ -8,7 +8,7 @@
  window.hasArtistSession=()=>!!session?.access_token;
  window.artistAuthHeaders=()=>session?.access_token?{'Authorization':'Bearer '+session.access_token}:{};
  window.crmCurrentView=()=>sessionStorage.getItem(VIEW)||'';
- window.clearArtistSession=()=>{session=null;sessionStorage.removeItem(STORE);sessionStorage.removeItem(VIEW);Object.keys(sessionStorage).filter(k=>k.startsWith('ww-draft:')).forEach(k=>sessionStorage.removeItem(k));};
+ window.clearArtistSession=()=>{window.hideTeamBoard?.();window.hideArtistWorkspace?.();session=null;sessionStorage.removeItem(STORE);sessionStorage.removeItem(VIEW);Object.keys(sessionStorage).filter(k=>k.startsWith('ww-draft:')).forEach(k=>sessionStorage.removeItem(k));};
  window.artistSignIn=async(email,password)=>{
   window.clearArtistSession();
   const r=await fetch(BASE+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:PUBLIC_KEY,'Content-Type':'application/json'},body:JSON.stringify({email:String(email).trim().toLowerCase(),password})});
