@@ -15,3 +15,9 @@ verify_jwt = false
 
 [functions.booking-acquisition]
 verify_jwt = false
+
+[functions.booking-assets]
+verify_jwt = false
+
+[functions.booking-mail]
+verify_jwt = false
