@@ -23,4 +23,4 @@ Give each task or lead one owner and a specific next step. Use Team tasks commen
 
 ## Release checks
 
-103 non-browser regression checks pass, including role isolation, calendar approvals, unsaved-work choices, current draft saving, My day priority selection, private attachment rules, real MIME handling, booking confirmation validation, retry idempotency, duplicate-date prevention and cancellation-sensitive KPI counts. Provider credentials and live email/social publishing acceptance are separate setup tasks.
+107 non-browser regression checks pass, including role isolation, calendar approvals, unsaved-work choices, current draft saving, My day priority selection, private attachment rules, real MIME handling, booking confirmation validation, retry idempotency, duplicate-date prevention, cancellation-sensitive KPI counts and shared session renewal before CRM requests. Provider credentials and live email/social publishing acceptance are separate setup tasks.

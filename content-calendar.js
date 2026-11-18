@@ -21,7 +21,7 @@
  const area=(label,name,value='',limit=5000)=>`<label>${label}<textarea name="${name}" maxlength="${limit}" rows="3">${E(value)}</textarea></label>`;
  const button=(text,action,id='',primary=false)=>`<button type="button" class="bbtn ${primary?'gold':''}" data-cc="${action}" data-id="${E(id)}">${text}</button>`;
  const fmtDay=s=>new Date(s+'T12:00:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
- async function api(body){if(!navigator.onLine)throw new Error('You are offline. Reconnect before saving.');const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json',...window.artistAuthHeaders()},body:JSON.stringify(body)});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Could not save. Please retry.');return d;}
+ async function api(body){if(!navigator.onLine)throw new Error('You are offline. Reconnect before saving.');const r=await (window.artistFetch||fetch)(API,{method:'POST',headers:{'Content-Type':'application/json',...window.artistAuthHeaders()},body:JSON.stringify(body)});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Could not save. Please retry.');return d;}
  function message(text,error=false){const target=root?.querySelector('[data-cc-message]');if(target){target.textContent=text;target.classList.toggle('cc-error',error);}}
  function preference(){try{localStorage.setItem('ww-calendar-prefs:'+data.actor,JSON.stringify({view,filter,campaign}));}catch{}}
  function range(){const start=view==='month'?anchor.slice(0,7)+'-01':anchor;const end=view==='month'?new Date(Date.UTC(+start.slice(0,4),+start.slice(5,7),1)).toISOString().slice(0,10):dayAdd(start,view==='today'?1:7);return {start,end};}

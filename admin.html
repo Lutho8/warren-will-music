@@ -367,15 +367,15 @@ h2{position:relative}
 <link rel="stylesheet" href="team-board.css?v=20261113-team-workflow"/>
 <link rel="stylesheet" href="crm-experience.css?v=20261118-onboarding2"/>
 <script src="crm-experience.js?v=20261118-onboarding1"></script>
-<script src="team-board.js?v=20261118-onboarding1"></script>
+<script src="team-board.js?v=20261118-session1"></script>
 <link rel="stylesheet" href="content-calendar.css?v=20261115-campaign-calendar"/>
-<script src="content-calendar.js?v=20261118-onboarding2"></script>
+<script src="content-calendar.js?v=20261118-session1"></script>
 <link rel="stylesheet" href="booking-acquisition.css?v=20261118-review3"/>
-<script src="booking-tools.js?v=20261118-onboarding1"></script>
-<script src="booking-acquisition.js?v=20261118-onboarding2"></script>
-<script src="artist-auth.js?v=20261118-review2"></script>
+<script src="booking-tools.js?v=20261118-session1"></script>
+<script src="booking-acquisition.js?v=20261118-session1"></script>
+<script src="artist-auth.js?v=20261118-session1"></script>
 <script src="equipment-workflow.js?v=20260912"></script>
-<script src="artist-app.js?v=20261102-admin-focus"></script>
+<script src="artist-app.js?v=20261118-session1"></script>
 </head>
 <body>
 
@@ -721,7 +721,7 @@ function showView(v){
 
 /* ── write path: one helper for every board action ── */
 async function post(body){
-  if(window.hasArtistSession()){const r=await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace',{method:'POST',headers:{'Content-Type':'application/json',...window.artistAuthHeaders()},body:JSON.stringify({action:'legacy',payload:body,view:window.crmCurrentView()})});const d=await r.json();if(!d.ok)throw new Error(d.error||'Speichern fehlgeschlagen');return d;}
+  if(window.hasArtistSession()){const r=await window.artistFetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace',{method:'POST',headers:{'Content-Type':'application/json',...window.artistAuthHeaders()},body:JSON.stringify({action:'legacy',payload:body,view:window.crmCurrentView()})});const d=await r.json();if(!d.ok)throw new Error(d.error||'Speichern fehlgeschlagen');return d;}
   throw new Error('Please sign in again.');
 }
 async function act(body, btn){
@@ -1242,7 +1242,7 @@ document.addEventListener('click', e => {
     return (async () => {
       t.disabled = true; t.textContent = '…';
       try{
-        const r = await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace', { method:'POST', headers:{ 'Content-Type':'application/json', ...window.artistAuthHeaders() }, body: JSON.stringify({ action:'send_invoice_email', invoice_id:id, confirmed_recipient:DATA.invoices.find(i=>i.id===id)?.recipient_email }) });
+        const r = await window.artistFetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace', { method:'POST', headers:{ 'Content-Type':'application/json', ...window.artistAuthHeaders() }, body: JSON.stringify({ action:'send_invoice_email', invoice_id:id, confirmed_recipient:DATA.invoices.find(i=>i.id===id)?.recipient_email }) });
         const d = await r.json().catch(() => ({}));
         if(r.ok && d.ok){
           t.textContent = 'Gesendet ✓';
@@ -1266,7 +1266,7 @@ document.addEventListener('click', e => {
     return (async () => {
       t.disabled = true; t.textContent = '…';
       try{
-        const r = await fetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace', { method:'POST', headers:{ 'Content-Type':'application/json', ...window.artistAuthHeaders() }, body: JSON.stringify({ action:'invoice_pdf', invoice_id:id }) });
+        const r = await window.artistFetch('https://tqwaepvdsvyyfgtlurkm.supabase.co/functions/v1/artist-workspace', { method:'POST', headers:{ 'Content-Type':'application/json', ...window.artistAuthHeaders() }, body: JSON.stringify({ action:'invoice_pdf', invoice_id:id }) });
         if(!r.ok) throw new Error('pdf ' + r.status);
         const blob = await r.blob();
         const url = URL.createObjectURL(blob);
