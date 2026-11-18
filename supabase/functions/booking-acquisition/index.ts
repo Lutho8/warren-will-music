@@ -7,7 +7,7 @@ const https=(x:unknown)=>{try{const u=new URL(String(x));return u.protocol==='ht
 const ok=(r:any)=>{if(r.error)throw new Error(r.error.message);return r.data;};
 function enrichment(raw:any){
  if(!raw||Array.isArray(raw)||typeof raw!=='object')throw new Error('Research fields required.');
- const limits:Record<string,number>={email_type:20,booker_status:30,contact_role:160,contact_source_url:1000,phone_source_url:1000,programming_url:1000,programming_evidence:1000,checked_on:10,email_permission:30,permission_note:1000,permission_source_url:1000,phone_basis:30,phone_basis_note:1000,address:250,region:80,route_note:1500,email_subject:250,email_draft:6000,call_script:2500};
+ const limits:Record<string,number>={email_type:20,booker_status:30,booker_contact_name:120,contact_role:160,contact_source_url:1000,phone_source_url:1000,programming_url:1000,programming_evidence:1000,checked_on:10,email_permission:30,permission_note:1000,permission_source_url:1000,phone_basis:30,phone_basis_note:1000,address:250,region:80,route_note:1500,email_subject:250,email_draft:6000,call_script:2500};
  const clean:Record<string,any>={};for(const [key,limit] of Object.entries(limits)){clean[key]=String(raw[key]??'').trim();if(clean[key].length>limit)throw new Error('Research field too long.');if(key.endsWith('_url')&&clean[key]&&!https(clean[key]))throw new Error('Use HTTPS evidence URLs.');}for(const key of ['email_type','email_permission','phone_basis'])clean[key]||='unknown';clean.booker_status||='unconfirmed';const ids=raw.draft_attachment_ids??[];if(!Array.isArray(ids)||ids.length>5||ids.some(x=>!uuid(x)))throw new Error('Choose up to 5 saved attachments.');clean.draft_attachment_ids=[...new Set(ids)];return clean;
 }
 function lead(p:any,importing=false){
@@ -31,6 +31,11 @@ Deno.serve(async(req:Request)=>{
  if(b.action==='enrichment_save'){
   p={...lead(b),phone:String(b.phone||'').trim(),preferred_channel:b.preferred_channel||'',enrichment:enrichment(b.enrichment)};
   return reply({ok:true,result:ok(await sb.rpc('booking_enrichment_save',{actor:identity.actor,p}))});
+ }
+ if(b.action==='record_booking'){
+  if(!uuid(b.id)||!uuid(b.opportunity_id)||!uuid(b.campaign_id)||!Number.isInteger(b.version)||b.version<1||b.confirmed!==true||!/^\d{4}-\d{2}-\d{2}$/.test(b.date)||!/^\d{4}-\d{2}-\d{2}$/.test(b.confirmed_on)||!String(b.venue_name||'').trim()||String(b.venue_name).length>200||!String(b.city||'').trim()||String(b.city).length>120||String(b.confirmation_reference||'').trim().length<3||String(b.confirmation_reference).length>500||String(b.set_length||'').length>120||(b.fee!==null&&(!Number.isFinite(b.fee)||b.fee<0||b.fee>1000000)))throw new Error('Check the agreed date, venue, campaign and confirmation evidence.');
+  p={id:b.id,opportunity_id:b.opportunity_id,campaign_id:b.campaign_id,version:b.version,confirmed:true,date:b.date,venue_name:b.venue_name.trim(),city:b.city.trim(),confirmed_on:b.confirmed_on,confirmation_reference:b.confirmation_reference.trim(),fee:b.fee,set_length:b.set_length||''};
+  return reply({ok:true,result:ok(await sb.rpc('booking_record_confirmed',{actor:identity.actor,p}))});
  }
  if(b.action==='log_activity'){
   if(!uuid(b.id)||!uuid(b.opportunity_id)||!Number.isInteger(b.version)||b.version<1||!['email','phone','in_person'].includes(b.channel)||!['sent','no_answer','connected','replied','qualified','not_interested','do_not_contact'].includes(b.outcome)||!Number.isFinite(Date.parse(b.occurred_at))||String(b.summary||'').length>1500||String(b.next_step||'').length>500)throw new Error('Check the communication details.');

@@ -33,3 +33,7 @@ test('Unassigned work remains visible and filters do not mutate source',()=>{
  assert.deepEqual(ids({}),['a','b','c','d','e','f']);
  assert.equal(tasks.length,6);
 });
+test('My day surfaces active personal work and reviews, keeping blocked work behind actionable tasks',()=>{
+ const queue=context.window.WWTeamBoardUtils.dayTasks([...tasks,{id:'new',assignee_id:'video',status:'open',priority:'high',due_date:'2026-11-13'}],'video','2026-11-13');
+ assert.deepEqual(Array.from(queue,t=>t.id),['new','a']);assert.ok(!queue.some(t=>t.id==='c'));assert.equal(context.window.WWTeamBoardUtils.dayTasks(tasks,'new-member').length,0);
+});

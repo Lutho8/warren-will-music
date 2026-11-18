@@ -18,7 +18,7 @@ create function public.booking_enrichment_list(actor uuid,period_start date,peri
 declare result jsonb; expanded jsonb;
 begin
  result:=booking_acquisition_list(actor,period_start,period_end);
- select coalesce(jsonb_agg(l||jsonb_build_object('phone',c.phone_whatsapp,'preferred_channel',c.preferred_channel,'last_touch',(select max(i.created_at) from interactions i where i.contact_id=c.id and i.channel<>'dashboard'),
+ select coalesce(jsonb_agg(l||jsonb_build_object('phone',c.phone_whatsapp,'confirmed_gigs',(select count(*) from booking_campaign_attribution a join gigs g on g.id=a.gig_id where a.opportunity_id=(l->>'opportunity_id')::uuid and g.booking_status='confirmed'),'bookings',(select coalesce(jsonb_agg(jsonb_build_object('id',g.id,'date',g.date,'confirmed_on',a.confirmed_on)),'[]') from booking_campaign_attribution a join gigs g on g.id=a.gig_id where a.opportunity_id=(l->>'opportunity_id')::uuid and g.booking_status='confirmed'),'preferred_channel',c.preferred_channel,'last_touch',(select max(i.created_at) from interactions i where i.contact_id=c.id and i.channel<>'dashboard'),
  'campaign_count',(select count(*) from artist_pitch_targets t where t.opportunity_id=o.id),
  'history',(select coalesce(jsonb_agg(to_jsonb(h) order by h.created_at desc),'[]') from (select i.id,i.channel,i.direction,i.summary,i.created_at from interactions i where i.contact_id=c.id order by i.created_at desc limit 30) h)) order by (l->>'fit_score')::int desc),'[]') into expanded
  from jsonb_array_elements(result->'leads') l join opportunities o on o.id=(l->>'opportunity_id')::uuid join contacts c on c.id=o.contact_id;
