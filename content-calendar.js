@@ -68,7 +68,7 @@
   const result=await api(payload);if(s.kind==='campaign')campaign=result.result.id;dialog.close();await load();message('Saved. The Team board uses these same task records.');window.dispatchEvent(new Event('ww:calendar-changed'));
  }catch(err){dialog.querySelector('[role=alert]').textContent=err.message;}finally{busy=false;submit.disabled=false;}}
  window.hideContentCalendar=()=>{seq++;if(root){root.hidden=true;root.innerHTML='';}if(dialog?.open)dialog.close();data={entries:[],campaigns:[],members:[]};prefsActor='';};
- window.openContentCalendar=async()=>{init();history.replaceState(null,'','#content-calendar');document.getElementById('teamBoard').hidden=true;root.hidden=false;anchor=anchor||today();root.innerHTML='<p role="status">Loading campaign calendar…</p>';try{await load();}catch(err){root.innerHTML=`<h1>Content calendar</h1><p role="alert">${E(err.message)}</p>${button('Retry','refresh')}${button('Team board','board')}`;}};
+ window.openContentCalendar=async()=>{init();window.hideBookingAcquisition?.();history.replaceState(null,'','#content-calendar');document.getElementById('teamBoard').hidden=true;root.hidden=false;anchor=anchor||today();root.innerHTML='<p role="status">Loading campaign calendar…</p>';try{await load();}catch(err){root.innerHTML=`<h1>Content calendar</h1><p role="alert">${E(err.message)}</p>${button('Retry','refresh')}${button('Team board','board')}`;}};
  window.openCalendarContent=async id=>{await window.openContentCalendar();openDetail(id);};
  window.addEventListener?.('ww:tasks-changed',()=>{if(root&&!root.hidden&&!dialog.open)load().catch(e=>message(e.message,true));});
  window.WWCalendarUtils={instant,localTime,dayAdd,selectEntries,nextAction,ready,escape:E};

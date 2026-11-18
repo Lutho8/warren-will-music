@@ -12,3 +12,6 @@ verify_jwt = false
 
 [functions.content-calendar]
 verify_jwt = false
+
+[functions.booking-acquisition]
+verify_jwt = false

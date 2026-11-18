@@ -27,6 +27,7 @@
   dialog=document.createElement('dialog');dialog.id='teamTaskDialog';dialog.className='team-dialog';document.body.append(dialog);
   root.addEventListener('click',async e=>{const b=e.target.closest('[data-team]');if(!b)return;
    if(b.dataset.team==='retry')return window.renderTeamBoard();
+   if(b.dataset.team==='booking')return window.openBookingAcquisition();
    if(b.dataset.team==='calendar')return b.dataset.id?window.openCalendarContent(b.dataset.id):window.openContentCalendar();
    if(b.dataset.team==='new')return openTask();
    if(b.dataset.team==='open')return openTask(b.dataset.id);
@@ -65,7 +66,7 @@
  function render(){
   const list=selectTasks(data.tasks,{actor:data.actor,filter,assignee,focus,campaign:campaignFilter});
   const overdue=t=>t.status!=='done'&&t.due_date&&t.due_date<day();
-  root.innerHTML=`<div class="team-heading"><div><h1>Team board</h1><p>Plan together. Create, review and deliver with one clear owner.</p></div><div class="team-toolbar"><button type="button" class="bbtn" data-team="calendar">Content calendar</button><button type="button" class="bbtn gold" data-team="new">+ New task</button></div></div>
+  root.innerHTML=`<div class="team-heading"><div><h1>Team board</h1><p>Plan together. Create, review and deliver with one clear owner.</p></div><div class="team-toolbar">${data.can_manage_bookings?'<button type="button" class="bbtn" data-team="booking">Gig acquisition</button>':''}<button type="button" class="bbtn" data-team="calendar">Content calendar</button><button type="button" class="bbtn gold" data-team="new">+ New task</button></div></div>
    <div class="team-toolbar"><button type="button" class="bbtn" data-team="filter" data-filter="all" aria-pressed="${filter==='all'}">All tasks</button><button type="button" class="bbtn" data-team="filter" data-filter="mine" aria-pressed="${filter==='mine'}">My work</button><button type="button" class="bbtn" data-team="retry">Refresh</button><span>${data.tasks.filter(t=>t.status!=='done').length} open · ${data.tasks.filter(overdue).length} overdue</span></div>
    <div class="team-filters"><label>Campaign<select data-team-campaign><option value="">All campaigns</option>${(data.campaigns||[]).map(c=>`<option value="${E(c.id)}" ${c.id===campaignFilter?'selected':''}>${E(c.name)}</option>`).join('')}</select></label><label>Owner<select data-team-assignee><option value="">Everyone</option><option value="unassigned" ${assignee==='unassigned'?'selected':''}>Unassigned</option>${data.members.map(m=>`<option value="${E(m.id)}" ${assignee===m.id?'selected':''}>${E(m.name)}</option>`).join('')}</select></label><label>Focus<select data-team-focus>${Object.entries({all:'All work',today:'Due today',overdue:'Overdue',blocked:'Blocked',review:'Awaiting review'}).map(([v,l])=>`<option value="${v}" ${focus===v?'selected':''}>${l}</option>`).join('')}</select></label><button type="button" class="bbtn" data-team="reset">Clear filters</button><span>${list.length} of ${data.tasks.length} tasks shown</span></div>
    <div class="team-workload" aria-label="Team workload">${data.members.map(m=>{const active=data.tasks.filter(t=>t.assignee_id===m.id&&t.status!=='done');const reviews=data.tasks.filter(t=>t.status==='review'&&(t.reviewer_id||t.creator_id)===m.id);return `<button type="button" data-team="member" data-member="${E(m.id)}" aria-pressed="${assignee===m.id}"><strong>${E(m.name)}</strong><span>${active.length} owned · ${reviews.length} to review</span><small>${active.filter(overdue).length} overdue · ${active.filter(t=>t.blocked_reason).length} blocked</small></button>`;}).join('')}</div>
@@ -100,11 +101,12 @@
   if(id)try{await loadComments(id);}catch(err){if(current?.id===id)dialog.querySelector('#teamComments').textContent=err.message;}
  }
  window.WWTeamBoardReady=false;
- window.hideTeamBoard=()=>{window.hideContentCalendar?.();window.WWTeamBoardReady=false;generation++;if(dialog?.open)dialog.close();if(root){root.hidden=true;root.innerHTML='';}data={tasks:[],members:[]};filter='all';assignee='';focus='all';campaignFilter='';};
+ window.hideTeamBoard=()=>{window.hideContentCalendar?.();window.hideBookingAcquisition?.();window.WWTeamBoardReady=false;generation++;if(dialog?.open)dialog.close();if(root){root.hidden=true;root.innerHTML='';}data={tasks:[],members:[]};filter='all';assignee='';focus='all';campaignFilter='';};
  window.renderTeamBoard=async()=>{
-  window.hideContentCalendar?.();init();root.hidden=false;const seq=++generation;
+  window.hideContentCalendar?.();window.hideBookingAcquisition?.();init();root.hidden=false;const seq=++generation;
   root.innerHTML='<p role="status">Loading team tasks…</p>';
   try{const result=await api({action:'list'});if(seq!==generation)return;data=result;window.WWTeamBoardReady=true;window.onTeamBoardReady?.();render();
+   if(location.hash==='#booking-acquisition'&&data.can_manage_bookings){await window.openBookingAcquisition();return;}
    if(location.hash==='#content-calendar'){await window.openContentCalendar();return;}
    const match=location.hash.match(/^#team-task\/([a-f0-9-]+)$/i);if(match){await openTask(match[1]);history.replaceState(null,'',location.pathname+location.search);}
   }catch(err){if(seq!==generation)return;root.innerHTML=`<h1>Team board</h1><p role="alert">${E(err.message)}</p><button type="button" class="bbtn" data-team="retry">Retry</button>`;}

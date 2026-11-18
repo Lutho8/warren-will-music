@@ -23,7 +23,7 @@ Deno.serve(async(req:Request)=>{
  }));
  const campaigns=ok(await sb.from('content_campaigns').select('id,name,status').order('name'));
  const tasks=ok(await shared(sb.from('client_board').select(fields)).order('created_at',{ascending:false}).limit(1000));
- return reply({ok:true,actor,members:members.filter(Boolean),tasks,campaigns:campaigns.filter((c:any)=>c.status!=='archived'),can_manage_all:!!identity.isAdmin,email_configured:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),limit:1000});
+ return reply({ok:true,actor,members:members.filter(Boolean),tasks,campaigns:campaigns.filter((c:any)=>c.status!=='archived'),can_manage_all:!!identity.isAdmin,can_manage_bookings:identity.role!=='social',email_configured:!!(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('RESEND_FROM')),limit:1000});
  }
  if(!uuid(b.id))return reply({ok:false,error:'Valid task ID required.'},400);
  if(b.action==='save'){
