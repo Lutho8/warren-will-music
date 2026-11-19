@@ -3,7 +3,7 @@
 Open the CRM and sign in with your own team account. Your permissions control which workspaces are available. The Quick start guide remains available in the navigation after you dismiss the welcome message.
 
 1. **Start with My day.** Open your next priority, review or booking lead. Team tasks shows everyone’s shared work; completed tasks are collapsed.
-2. **Open a lead.** Choose Gig acquisition → My leads → Open lead. Overview explains the next action, owner and follow-up date. Search filters as you type.
+2. **Open a lead.** Choose Gig acquisition → My leads → Open lead. Overview explains the next action, owner, research gaps and follow-up date. The next-action button takes you directly to the appropriate section. Search accepts venue, city, booker, email or phone. Choose a Campaign to work its leads, or use View campaign leads under Campaigns. Clear filters returns to all leads.
 3. **Check Research.** Confirm the published business contact, relevant venue programme and appropriate outreach basis. A named booker and an invited submission route are separate facts. Save the lead before switching sections.
 4. **Prepare Outreach.** The sender is booking@warrenwilliam.de. Edit the subject and message, preview a relevant mix, add it to the message and choose any private attachments. Save draft before leaving. Unsaved work prompts Save and continue, Keep editing or Discard changes. Sending stays unavailable until mailbox setup and the lead’s outreach checks are complete.
 5. **Record what happened.** In Activity, select the actual channel and outcome, add a short note and set the next follow-up date. Opening a draft or call link does not record contact automatically. Stop contacting a lead when it opts out.
@@ -23,4 +23,4 @@ Give each task or lead one owner and a specific next step. Use Team tasks commen
 
 ## Release checks
 
-107 non-browser regression checks pass, including role isolation, calendar approvals, unsaved-work choices, current draft saving, My day priority selection, private attachment rules, real MIME handling, booking confirmation validation, retry idempotency, duplicate-date prevention, cancellation-sensitive KPI counts and shared session renewal before CRM requests. Provider credentials and live email/social publishing acceptance are separate setup tasks.
+117 non-browser regression checks pass, including role isolation, calendar approvals, unsaved-work choices, current draft saving, edits during pending saves, stale CSV preview protection, combined campaign filters, My day priority selection, private attachment rules, media previews, real MIME handling, booking confirmation validation, retry idempotency, duplicate-date prevention, cancellation-sensitive KPI counts and shared session renewal before CRM requests. Provider credentials and live email/social publishing acceptance are separate setup tasks.
